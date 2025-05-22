@@ -237,7 +237,7 @@ export class LitmHooks {
 						app.update({ rolls: [roll] });
 						break;
 					}
-					case "gain-experience": {
+					case "gain-improve": {
 						event.stopPropagation();
 						event.preventDefault();
 
@@ -248,8 +248,8 @@ export class LitmHooks {
 						for (const tag of roll.litm.weaknessTags.filter(
 							(t) => t.type === "weaknessTag",
 						))
-							await actor.sheet.gainExperience(tag);
-						roll.options.gainedExp = true;
+							await actor.sheet.gainImprove(tag);
+						roll.options.gainedImp = true;
 						app.update({ rolls: [roll] });
 						break;
 					}

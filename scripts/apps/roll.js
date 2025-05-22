@@ -95,7 +95,7 @@ export class LitmRoll extends Roll {
 			isOwner: game.user.isGM || this.actor.isOwner,
 			hasBurnedTags: !this.litm.isBurnt && this.litm.burnedTags.length > 0,
 			hasWeaknessTags:
-				!this.litm.gainedExp &&
+				!this.litm.gainedImp &&
 				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
 					0,
 		};

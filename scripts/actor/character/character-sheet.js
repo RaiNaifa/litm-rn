@@ -98,7 +98,7 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 		}
 	}
 
-	async gainExperience(tag) {
+	async gainImprove(tag) {
 		const parentTheme = this.items.find(
 			(i) =>
 				i.type === "theme" &&
@@ -107,7 +107,7 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 		this.actor.updateEmbeddedDocuments("Item", [
 			{
 				_id: parentTheme.id,
-				"system.experience": parentTheme.system.experience + 1,
+				"system.improve": parentTheme.system.improve + 1,
 			},
 		]);
 	}

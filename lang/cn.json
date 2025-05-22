@@ -192,6 +192,7 @@
 			"error-validating-actor": "验证实体时出错。有关更多信息，请参阅控制台。",
 			"error-validating-item": "验证物品时出错。有关更多信息，请参阅控制台。",
 			"gain-exp": "获得经验",
+			"gain-imp": "Gain Improve",
 			"import-actor": "从JSON中导入实体",
 			"import-adventure": "导入火绒盒冒险内容",
 			"inc-dec": "<span class='reference'>左键单击</span>以增加<br /> <span class='reference'>右键单击</span>以降低",

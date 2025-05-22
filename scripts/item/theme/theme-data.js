@@ -51,13 +51,19 @@ export class ThemeData extends foundry.abstract.TypeDataModel {
 					validate: (tags) => tags.length === 2,
 				},
 			),
-			experience: new fields.NumberField({
+			improve: new fields.NumberField({
 				integer: true,
 				min: 0,
 				initial: 0,
 				max: 3,
 			}),
-			decay: new fields.NumberField({
+			abandon: new fields.NumberField({
+				integer: true,
+				min: 0,
+				initial: 0,
+				max: 3,
+			}),
+			milestone: new fields.NumberField({
 				integer: true,
 				min: 0,
 				initial: 0,

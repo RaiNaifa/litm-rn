@@ -101,7 +101,7 @@
 				"key": "Weaken"
 			}
 		},
-		"progress": {
+    "progress": {
       "abandon": "Abandon",
       "improve": "Improve",
       "milestone": "Milestone"
@@ -197,7 +197,7 @@
 			"error-validating-actor": "There was an error validating the actor. Please see the console for more information.",
 			"error-validating-item": "There was an error validating the item. Please see the console for more information.",
 			"gain-exp": "Gain Experience",
-			"gain-imp": "Gain Improve",
+      "gain-imp": "Получить Улучшение",
 			"import-actor": "Import Actor from JSON",
 			"import-adventure": "Import Tinderbox Content",
 			"inc-dec": "<span class='reference'>Click</span> to increase<br /> <span class='reference'>Right-Click</span> to decrease",
@@ -265,13 +265,13 @@
 	"success": "Strong Hit",
 	"TYPES": {
 		"Actor": {
-			"challenge": "Challenge",
-			"character": "Character"
+			"challenge": "Испытание",
+			"character": "Персонаж"
 		},
 		"Item": {
-			"backpack": "Backpack",
-			"theme": "Theme",
-			"threat": "Threat"
+			"backpack": "Рюкзак",
+			"theme": "Тема",
+			"threat": "Угроза"
 		}
 	}
 }

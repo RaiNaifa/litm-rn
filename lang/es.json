@@ -192,6 +192,7 @@
 			"error-validating-actor": "Ha habido un error validando el actor. Por favor, mira la consola para más información.",
 			"error-validating-item": "Ha habido un error validando el item. Mira la consola para más información.",
 			"gain-exp": "Ganar experiencia",
+			"gain-imp": "Gain Improve",
 			"import-actor": "Importar Actor desde JSON",
 			"import-adventure": "Importar el contenido de Tinderbox",
 			"inc-dec": "Click izquierdo para incrementar<br /> Click derecho para reducir",

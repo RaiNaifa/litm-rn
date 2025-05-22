@@ -68,6 +68,11 @@
 			"lang": "no",
 			"name": "Norsk",
 			"path": "lang/no.json"
+		},
+		{
+			"lang": "ru",
+			"name": "Russian",
+			"path": "lang/ru.json"
 		}
 	],
 	"socket": true,

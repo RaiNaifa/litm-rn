@@ -192,6 +192,7 @@
 			"error-validating-actor": "Det oppstod en feil under validering av aktøren. Se konsollen for mer informasjon.",
 			"error-validating-item": "Det oppstod en feil under validering av gjenstanden. Se konsollen for mer informasjon.",
 			"gain-exp": "Marker Erfaring",
+			"gain-imp": "Gain Improve",
 			"import-actor": "Importer Karakter fra JSON",
 			"import-adventure": "Importer Tinderbox Eventyret",
 			"inc-dec": "<span class='reference'>Klikk</span> for å øke<br /><span class='reference'>Høyreklikke</span> for å senke",

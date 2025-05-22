@@ -192,6 +192,7 @@
 			"error-validating-actor": "Es hat einen Fehler gegeben als der Akteur validiert werden sollte. Schaue in die Console des Browser (oft F12) für mehr information.",
 			"error-validating-item": "Es hat einen Fehler gegeben als das Item validdiert werden sollte. Schaue in die Console des Browser (oft F12) für mehr information.",
 			"gain-exp": "Erfahrung erhalten",
+			"gain-imp": "Gain Improve",
 			"import-actor": "Akteur von JSON importieren",
 			"import-adventure": "Den Inhalt der Tinderbox DEMO (engl.) importieren",
 			"inc-dec": "<span class='reference'>Linksklick</span> zum Erhöhen<br /> <span class='reference'>Rechtsklick</span> zum Verringern",

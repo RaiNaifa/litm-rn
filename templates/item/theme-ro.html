@@ -44,8 +44,41 @@
 			</button>
 			{{/each}}
 			<div class="litm--theme-progression">
+				<!-- Abandon buttons -->
+				<div data-click="increase" data-context="decrease" data-id="system.abandon"
+					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+					<div>
+						{{#progress-buttons data.system.abandon 3}}
+						<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
+						{{/progress-buttons}}
+						<input id="{{data._id}}-abandon" class="litm--sro" type="number" name="items.{{data._id}}.system.abandon" value="{{data.system.abandon}}" />
+					</div>
+					<label for="{{data._id}}-abandon">{{localize "Litm.progress.abandon"}}</label>
+				</div>
+				<!-- Improve buttons -->
+				<div data-click="increase" data-context="decrease" data-id="system.improve"
+					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+					<div>
+						{{#progress-buttons data.system.improve 3}}
+						<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
+						{{/progress-buttons}}
+						<input id="{{data._id}}-improve" class="litm--sro" type="number" name="items.{{data._id}}.system.improve" value="{{data.system.improve}}" />
+					</div>
+					<label for="{{data._id}}-improve">{{localize "Litm.progress.improve"}}</label>
+				</div>
+				<!-- Milestone buttons -->
+				<div data-click="increase" data-context="decrease" data-id="system.milestone"
+					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+					<div>
+						{{#progress-buttons data.system.milestone 3}}
+						<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
+						{{/progress-buttons}}
+						<input id="{{data._id}}-milestone" class="litm--sro" type="number" name="items.{{data._id}}.system.milestone" value="{{data.system.milestone}}" />
+					</div>
+					<label for="{{data._id}}-milestone">{{localize "Litm.progress.milestone"}}</label>
+				</div>
 				<!-- Experience buttons -->
-				<div data-click="increase" data-context="decrease" data-id="system.experience"
+				<!-- <div data-click="increase" data-context="decrease" data-id="system.experience"
 					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
 					{{#progress-buttons data.system.experience 3}}
 					<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
@@ -54,9 +87,9 @@
 						<input id="{{data._id}}-experience" type="number" class="litm--sro"
 							name="items.{{data._id}}.system.experience" value="{{data.system.experience}}" />
 					</label>
-				</div>
+				</div> -->
 				<!-- Decay buttons -->
-				<div data-click="increase" data-context="decrease" data-id="system.decay"
+				<!-- <div data-click="increase" data-context="decrease" data-id="system.decay"
 					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
 					{{#progress-buttons data.system.decay 3}}
 					<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
@@ -65,7 +98,7 @@
 						<input id="{{data._id}}-decay" type="number" class="litm--sro" name="items.{{data._id}}.system.decay"
 							value="{{data.system.decay}}" />
 					</label>
-				</div>
+				</div> -->
 			</div>
 		</div>
 	</div>
