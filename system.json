@@ -1,0 +1,120 @@
+{
+	"$schema": "https://json.schemastore.org/foundryvtt-system-manifest.json",
+	"id": "litm",
+	"version": 29,
+	"license": "LICENSE",
+	"title": "Legend in the Mist Demo",
+	"description": "A <strong>Rustic Fantasy</strong> Game for Foundry Virtual Tabletop.",
+	"authors": [
+		{
+			"name": "Filip Ambrosius",
+			"discord": "aMediocreDad#2483",
+			"email": "hello@amediocre.dev",
+			"ko-fi": "amediocredad"
+		}
+	],
+	"esmodules": [
+		"litm.js"
+	],
+	"styles": [
+		"litm.css"
+	],
+	"documentTypes": {
+		"Actor": {
+			"character": {
+				"htmlFields": [
+					"note"
+				]
+			},
+			"challenge": {
+				"htmlFields": [
+					"note",
+					"special"
+				]
+			}
+		},
+		"Item": {
+			"backpack": {},
+			"theme": {
+				"htmlFields": [
+					"note"
+				]
+			},
+			"threat": {}
+		}
+	},
+	"languages": [
+		{
+			"lang": "cn",
+			"name": "中文",
+			"path": "lang/cn.json"
+		},
+		{
+			"lang": "de",
+			"name": "Deutsch",
+			"path": "lang/de.json"
+		},
+		{
+			"lang": "en",
+			"name": "English",
+			"path": "lang/en.json"
+		},
+		{
+			"lang": "es",
+			"name": "Español",
+			"path": "lang/es.json"
+		},
+		{
+			"lang": "no",
+			"name": "Norsk",
+			"path": "lang/no.json"
+		}
+	],
+	"socket": true,
+	"compatibility": {
+		"minimum": 12,
+		"verified": 13,
+		"maximum": 13
+	},
+	"packs": [
+		{
+			"label": "Tinderbox Demo",
+			"type": "Adventure",
+			"name": "tinderbox-demo",
+			"path": "packs/tinderbox-demo",
+			"system": "litm",
+			"flags": {}
+		}
+	],
+	"flags": {
+		"hotReload": {
+			"extensions": [
+				"css",
+				"html",
+				"js",
+				"json"
+			],
+			"paths": [
+				"styles",
+				"templates",
+				"lang",
+				"litm.css",
+				"litm.js"
+			]
+		}
+	},
+	"relationships": {
+		"recommends": [
+			{
+				"id": "dice-so-nice",
+				"manifest": "https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/raw/master/module/module.json"
+			}
+		]
+	},
+	"background": "systems/litm/assets/media/litm_splash.webp",
+	"url": "https://github.com/aMediocreDad/litm",
+	"bugs": "https://github.com/aMediocreDad/litm/issues?q=is:issue+is:open+sort:updated-desc",
+	"manifest": "https://raw.githubusercontent.com/aMediocreDad/litm/main/system.json",
+	"download": "https://github.com/aMediocreDad/litm/archive/refs/tags/v29.zip",
+	"readme": "https://github.com/aMediocreDad/litm/blob/main/README.md"
+}
