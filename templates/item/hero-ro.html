@@ -1,0 +1,12 @@
+<div class="litm--hero-wrapper litm--hero-wrapper item" data-item-id="{{hero.id}}" data-id="{{hero.id}}">
+	<img width="250px" class="litm--hero-bg-frame" src="systems/litm/assets/media/background-frame.webp"
+		aria-hidden="true">
+	<div class="litm--hero-bg litm--hero-bg" data-context="menu">
+		<div class="meta">{{localize 'Litm.other.hero-card'}}</div>
+		<ul class="taglist">
+			{{#each hero.contents as |tag|}}
+				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../hero.id ".system.contents") embedded=true remove=false}}
+			{{/each}}
+		</ul>
+	</div>
+</div>

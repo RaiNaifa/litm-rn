@@ -243,7 +243,7 @@
 		}
 
 		& .litm--theme-progression {
-			padding: var(--litm-space-4) 16px 8px;
+			padding: var(--litm-space-4) 10px 8px;
 			display: flex;
 			justify-content: space-between;
 			background: url(../../assets/media/progress-bg.webp);
@@ -261,6 +261,18 @@
 
 				& > div {
 					display: flex;
+				}
+
+				&:nth-child(2) {
+					flex-direction: column-reverse;
+
+					& > div {
+						margin-top: 5px;
+					}
+
+					& > label {
+						margin-top: 0px;
+					}
 				}
 			}
 

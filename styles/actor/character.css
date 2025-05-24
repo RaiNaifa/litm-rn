@@ -77,8 +77,8 @@
 			width: 50%;
 			z-index: 1;
 			pointer-events: none;
-			top: -1.65rem;
-			left: 23rem;
+			top: -2.65rem;
+			left: 33rem;
 			rotate: -15deg;
 		}
 	}
@@ -138,7 +138,6 @@
 				width: auto;
 				height: 3.75rem;
 				background: transparent;
-				font-size: 3.25rem;
 				color: var(--litm-color-accent);
 				text-shadow: 0px 0px 4px var(--litm-color-dark-bg);
 				transition: scale 0.15s;
@@ -247,17 +246,69 @@
 		}
 	}
 
-	& .litm--character-backpack {
+	& .litm--character-hero {
+		isolation: isolate;
 		position: absolute;
 		right: -14.75rem;
 		width: 18.75rem;
 		height: 18.75rem;
 		top: -2rem;
 		pointer-events: none;
+		scale: 1;
+		transition: scale 0.13s;
+
+		&:hover,
+		&.hovered {
+			scale: 1.3;
+			z-index: 3;
+		}
+
+		& .litm--hero-bg-frame,
+		& .litm--hero-bg {
+			transform: translate(-5px, -15px) scale(0.8) rotate(1deg);
+		}
+
+		& .litm--hero-bg-frame {
+			width: 15.625rem;
+		}
+
+		& .litm--hero-bg {
+			height: 97%;
+			width: 15rem;
+			pointer-events: all;
+			overflow: visible;
+
+			& .taglist {
+				height: 13.125rem;
+			}
+		}
+
+		& #context-menu {
+			pointer-events: all;
+		}
+	}
+
+	& .litm--character-backpack {
+		isolation: isolate;
+		position: absolute;
+		right: -25.55rem;
+		width: 18.75rem;
+		height: 18.75rem;
+		top: -2rem;
+		transform: scale(1);
+		transition: transform 0.13s;
+
+		&:hover,
+		&:focus-within,
+		&.focused,
+		&.hovered {
+			transform: scale(1.3);
+			z-index: 3;
+		}
 
 		& .litm--backpack-bg-frame,
 		& .litm--backpack-bg {
-			transform: translate(-5px, -15px) scale(0.8) rotate(10deg);
+			transform: translate(-5px, -15px) scale(0.8) rotate(5deg);
 		}
 
 		& .litm--backpack-bg-frame {
@@ -293,12 +344,12 @@
 		width: 18.75rem;
 		translate: -20% -18%;
 		rotate: 1deg;
-		scale: 0.71;
+		scale: 0.75;
 		transition: scale 0.13s;
 
 		&:hover,
 		&.hovered {
-			scale: 0.85;
+			scale: 1;
 			z-index: 3;
 		}
 
@@ -317,8 +368,8 @@
 		}
 
 		&:nth-child(2) {
-			top: 1rem;
-			left: -1.375rem;
+			top: 1.8rem;
+			left: -0.775rem;
 			rotate: -1deg;
 
 			&::before {
@@ -339,8 +390,8 @@
 
 		&:nth-child(3) {
 			top: 3.75rem;
-			left: 11rem;
-			rotate: 0deg;
+			left: 11.7rem;
+			rotate: 2deg;
 
 			&::before {
 				content: "";
@@ -358,9 +409,9 @@
 		}
 
 		&:nth-child(4) {
-			top: 3.9375rem;
-			left: 23.75rem;
-			rotate: -3deg;
+			top: 5.5rem;
+			left: 25rem;
+			rotate: 0deg;
 
 			&::before {
 				content: "";
@@ -413,7 +464,7 @@
 		padding: 0px;
 		list-style: none;
 		top: 0.625rem;
-		right: -21.875rem;
+		right: -33.875rem;
 		rotate: 30deg;
 		pointer-events: none;
 		display: grid;

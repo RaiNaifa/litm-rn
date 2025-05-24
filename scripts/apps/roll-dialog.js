@@ -381,6 +381,7 @@ export class LitmRollDialog extends FormApplication {
 			case "powerTag":
 			case "themeTag":
 			case "backpack":
+			case "hero":
 			case "weaknessTag": {
 				const tag = this.characterTags.find((t) => t.id === id);
 				tag.state = value;

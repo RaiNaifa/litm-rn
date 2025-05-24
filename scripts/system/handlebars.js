@@ -53,6 +53,7 @@ export class HandlebarsPartials {
 		"systems/litm/templates/chat/message-tooltip.html",
 		"systems/litm/templates/chat/moderation.html",
 		"systems/litm/templates/item/backpack-ro.html",
+		"systems/litm/templates/item/hero-ro.html",
 		"systems/litm/templates/item/theme-ro.html",
 		"systems/litm/templates/partials/new-tag.html",
 		"systems/litm/templates/partials/tag.html",

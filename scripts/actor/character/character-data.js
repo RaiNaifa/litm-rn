@@ -21,12 +21,19 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		return backpack.system.contents;
 	}
 
+	get hero() {
+		const hero = this.parent.items.find((item) => item.type === "hero");
+		if (!hero) return [];
+		return hero.system.contents;
+	}
+
 	get allTags() {
+		const hero = this.hero;
 		const backpack = this.backpack;
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.allTags);
-		return [...backpack, ...themeTags];
+		return [...hero, ...backpack, ...themeTags];
 	}
 
 	get powerTags() {
@@ -34,7 +41,8 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 			(tag) =>
 				tag.type === "powerTag" ||
 				tag.type === "themeTag" ||
-				tag.type === "backpack",
+				tag.type === "backpack" ||
+				tag.type === "hero",
 		);
 	}
 
@@ -45,13 +53,16 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get availablePowerTags() {
+		const hero = this.hero.filter(
+			(tag) => tag.isActive && !tag.isBurnt,
+		);
 		const backpack = this.backpack.filter(
 			(tag) => tag.isActive && !tag.isBurnt,
 		);
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.availablePowerTags);
-		return [...backpack, ...themeTags];
+		return [...hero, ...backpack, ...themeTags];
 	}
 
 	get statuses() {
@@ -114,6 +125,21 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 				`Too many backpacks found for ${this.parent.name}, attempting to resolve...`,
 			);
 			const toDelete = backpacks.slice(1);
+			await this.parent.deleteEmbeddedDocuments(
+				"Item",
+				toDelete.map((item) => item._id),
+			);
+		}
+
+		// Make sure only one hero is present
+		const heroes = this.parent.items.filter(
+			(item) => item.type === "hero",
+		);
+		if (heroes.length > 1) {
+			warn(
+				`Too many heroes found for ${this.parent.name}, attempting to resolve...`,
+			);
+			const toDelete = heroes.slice(1);
 			await this.parent.deleteEmbeddedDocuments(
 				"Item",
 				toDelete.map((item) => item._id),

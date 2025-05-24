@@ -1,0 +1,16 @@
+<form autocomplete="off" class="litm--hero-wrapper">
+	<img width="380px" class="litm--hero-img" src="systems/litm/assets/media/hero.webp"
+		alt="Soft illustration of a rustic hero" />
+	<img width="270px" class="litm--hero-bg-frame" src="systems/litm/assets/media/background-frame.webp"
+		aria-hidden="true">
+	<div class="litm--hero-bg">
+		<div class="meta">{{localize 'Litm.tags.item-tags'}}</div>
+		<input class="title" name="name" value="{{name}}" />
+		<ul class="taglist">
+			{{#each hero as |tag|}}
+				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
+			{{/each}}
+		</ul>
+		<button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button>
+	</div>
+</form>

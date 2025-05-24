@@ -437,6 +437,15 @@ export class LitmHooks {
 					},
 				]);
 			}
+			const hero = actor.items.find((it) => it.type === "hero");
+			if (!hero) {
+				await actor.createEmbeddedDocuments("Item", [
+					{
+						name: t("TYPES.Item.hero"),
+						type: "hero",
+					},
+				]);
+			}
 		});
 	}
 

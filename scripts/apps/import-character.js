@@ -96,6 +96,14 @@ export async function importCharacter(data) {
 		},
 	};
 
+	const hero = {
+		name: t("TYPES.Item.hero"),
+		type: "hero",
+		system: {
+			contents: data.hero.map((item) => createTag(item, "hero")),
+		},
+	};
+
 	const statuses = data.statuses.map((status) => createStatus(status));
 
 	const tags = Object.values(data.miscCard?.content || {})
@@ -109,7 +117,7 @@ export async function importCharacter(data) {
 			note: "",
 		},
 		effects: [...tags, ...statuses],
-		items: [...themeData, backpack],
+		items: [...themeData, backpack, hero],
 	};
 	const created = await Actor.create(actorData);
 	if (created) {

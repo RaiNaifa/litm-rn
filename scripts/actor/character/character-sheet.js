@@ -18,6 +18,8 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 	#tagsFocused = null;
 	#tagsHovered = false;
 	#themeHovered = null;
+	#backpackHovered = null;
+	#heroHovered = null;
 	#contextmenu = null;
 	#roll = game.litm.LitmRollDialog.create({
 		actorId: this.actor._id,
@@ -95,6 +97,18 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 				]);
 				break;
 			}
+			case "hero": {
+				const hero = this.items.find((i) => i.type === "hero");
+				const { contents } = hero.system.toObject();
+				contents.find((i) => i.id === tag.id).isBurnt = !tag.isBurnt;
+				this.actor.updateEmbeddedDocuments("Item", [
+					{
+						_id: hero.id,
+						"system.contents": contents,
+					},
+				]);
+				break;
+			}
 		}
 	}
 
@@ -127,9 +141,17 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 				.sort((a, b) => a.name.localeCompare(b.name))
 				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
+		const hero = {
+			name: this.items.find((i) => i.type === "hero")?.name,
+			id: this.items.find((i) => i.type === "hero")?._id,
+			contents: this.system.hero
+				.sort((a, b) => a.name.localeCompare(b.name))
+				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+		};
 		return {
 			...this.object.system,
 			backpack,
+			hero,
 			note,
 			themes,
 			_id: this.actor.id,
@@ -144,6 +166,8 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 			tagsFocused: this.#tagsFocused,
 			tagsHovered: this.#tagsHovered,
 			themeHovered: this.#themeHovered,
+			backpackHovered: this.#backpackHovered,
+			heroHovered: this.#heroHovered,
 		};
 	}
 
@@ -163,14 +187,30 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 			.on("mousedown", this.#onDragHandleMouseDown.bind(this));
 		html.on("mouseover", (event) => {
 			html.find(".litm--character-theme").removeClass("hovered");
+			html.find(".litm--character-backpack").removeClass("hovered");
+			html.find(".litm--character-hero").removeClass("hovered");
 			html.find(".litm--character-story-tags").removeClass("hovered");
-
+	
 			const t = event.target.classList.contains("litm--character-theme")
 				? event.target
 				: event.target.closest(".litm--character-theme");
 
+			const b = event.target.classList.contains("litm--character-backpack")
+				? event.target
+				: event.target.closest(".litm--character-backpack");
+
+			const h = event.target.classList.contains("litm--character-hero")
+				? event.target
+				: event.target.closest(".litm--character-hero");
+
 			if (t) this.#themeHovered = t.dataset.id;
 			else this.#themeHovered = null;
+
+			if (b) this.#backpackHovered = b.dataset.id;
+			else this.#backpackHovered = null;
+
+			if (h) this.#heroHovered = h.dataset.id;
+			else this.#heroHovered = null;
 
 			if (event.target.closest(".litm--character-story-tags"))
 				this.#tagsHovered = true;
@@ -251,7 +291,7 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 	// Prevent dropping more than 4 themes on the character sheet
 	async _onDropItem(event, data) {
 		const item = await Item.implementation.fromDropData(data);
-		if (!["backpack", "theme"].includes(item.type)) return;
+		if (!["backpack", "theme", "hero"].includes(item.type)) return;
 
 		if (this.items.get(item.id)) return this._onSortItem(event, item);
 
@@ -264,6 +304,12 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 		const numBackpacks = this.items.filter((i) => i.type === "backpack").length;
 		if (item.type === "backpack" && numBackpacks >= 1)
 			return this.#handleLootDrop(item);
+
+		const numHeroes = this.items.filter((i) => i.type === "hero").length;
+		if (item.type === "hero" && numHeroes >= 1)
+			return ui.notifications.warn(
+				game.i18n.localize("Litm.ui.warn-theme-limit"),
+			);
 
 		return super._onDropItem(event, data);
 	}

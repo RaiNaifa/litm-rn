@@ -12,6 +12,8 @@ import { ToggledInput } from "./scripts/components/toggled-input.js";
 import { TagData } from "./scripts/data/abstract.js";
 import { BackpackData } from "./scripts/item/backpack/backpack-data.js";
 import { BackpackSheet } from "./scripts/item/backpack/backpack-sheet.js";
+import { HeroData } from "./scripts/item/hero/hero-data.js";
+import { HeroSheet } from "./scripts/item/hero/hero-sheet.js";
 import { ThemeData } from "./scripts/item/theme/theme-data.js";
 import { ThemeSheet } from "./scripts/item/theme/theme-sheet.js";
 import { ThreatData } from "./scripts/item/threat/threat-data.js";
@@ -60,6 +62,7 @@ Hooks.once("init", () => {
 	CONFIG.Dice.terms[DENOMINATION] = DoubleSix;
 	CONFIG.Dice.rolls.push(LitmRoll);
 	CONFIG.Item.dataModels.backpack = BackpackData;
+	CONFIG.Item.dataModels.hero = HeroData;
 	CONFIG.Item.dataModels.theme = ThemeData;
 	CONFIG.Item.dataModels.threat = ThreatData;
 	CONFIG.litm = new LitmConfig();
@@ -81,6 +84,14 @@ Hooks.once("init", () => {
 		types: ["backpack"],
 		makeDefault: true,
 	});
+	Items.registerSheet("litm", HeroSheet, {
+		types: ["hero"],
+		makeDefault: true,
+	});
+	// Items.registerSheet("litm", StoryThemeSheet, {
+	// 	types: ["storytheme"],
+	// 	makeDefault: true,
+	// });
 	Items.registerSheet("litm", ThemeSheet, {
 		types: ["theme"],
 		makeDefault: true,
