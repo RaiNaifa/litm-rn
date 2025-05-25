@@ -265,6 +265,7 @@
 		},
 		"Item": {
 			"backpack": "行囊",
+			"hero": "Hero",
 			"theme": "主题",
 			"threat": "威胁"
 		}

@@ -265,6 +265,7 @@
 		},
 		"Item": {
 			"backpack": "Rucksack",
+			"hero": "Hero",
 			"theme": "Thema",
 			"threat": "Gefahr"
 		}

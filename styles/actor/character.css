@@ -291,8 +291,8 @@
 	& .litm--character-backpack {
 		isolation: isolate;
 		position: absolute;
-		right: -25.55rem;
-		width: 18.75rem;
+		right: -22.75rem;
+		width: 13.75rem;
 		height: 18.75rem;
 		top: -2rem;
 		transform: scale(1);
@@ -313,6 +313,10 @@
 
 		& .litm--backpack-bg-frame {
 			width: 15.625rem;
+		}
+
+		& .litm--backpack-img {
+			transform: translateX(-10px) translateY(-10px);
 		}
 
 		& .litm--backpack-bg {

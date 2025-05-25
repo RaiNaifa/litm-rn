@@ -63,11 +63,13 @@
 		</div>
 		{{editor note target="system.note" owner=owner button=true editable=true}}
 	</div>
-	<div class="item-list litm--character-hero"
+	{{#if hero.id}}
+	<div class="item-list litm--character-hero {{#if heroHovered}}hovered{{/if}}"
 		data-tooltip="{{localize 'Litm.ui.context-edit'}}"
 		data-tooltip-direction="LEFT" data-id="{{hero.id}}">
 		{{> systems/litm/templates/item/hero-ro.html hero=hero}}
 	</div>
+	{{/if}}
 	{{#if backpack.id}}
 		<div class="litm--character-backpack item-list {{#if backpackHovered}}hovered{{/if}}"
 			data-tooltip="{{localize 'Litm.ui.context-edit'}}"

@@ -34,8 +34,8 @@
 			}
 		},
 		"Item": {
-			"hero": {},
 			"backpack": {},
+			"hero": {},
 			"theme": {
 				"htmlFields": [
 					"note"

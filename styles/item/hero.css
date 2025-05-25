@@ -7,7 +7,8 @@
 
 	& .window-header {
 		position: absolute;
-		padding-inline: 70px;
+		top: 32px;
+		padding-inline: 76px;
 		width: 100%;
 		flex-wrap: nowrap;
 		text-shadow: 1px 2px 2px var(--litm-color);
@@ -48,9 +49,9 @@
 		flex-direction: column;
 		height: 398px;
 		width: 260px;
-
+		/* Change to ../../assets/media/hero-top-bg.webp */
 		& .meta {
-			background: url(../../assets/media/hero-top-bg.webp) no-repeat bottom
+			background: url(../../assets/media/backpack-top-bg.webp) no-repeat bottom
 				/ cover;
 			color: var(--litm-color-accent);
 			font-family: var(--litm-font-primary);

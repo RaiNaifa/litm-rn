@@ -3,6 +3,7 @@
 		aria-hidden="true">
 	<div class="litm--hero-bg litm--hero-bg" data-context="menu">
 		<div class="meta">{{localize 'Litm.other.hero-card'}}</div>
+		<div class="title">{{hero.name}}</div>
 		<ul class="taglist">
 			{{#each hero.contents as |tag|}}
 				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../hero.id ".system.contents") embedded=true remove=false}}

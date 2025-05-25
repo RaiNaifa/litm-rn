@@ -123,6 +123,7 @@
 			"level": "Level",
 			"limit": "Limit",
 			"limits": "Limits",
+			"hero": "Hero",
       "hero-card": "Hero Card",
 			"outcome": "Outcome",
 			"rating": "Rating",
@@ -274,6 +275,7 @@
 		},
 		"Item": {
 			"backpack": "Рюкзак",
+			"hero": "Герой",
 			"theme": "Тема",
 			"threat": "Угроза"
 		}
