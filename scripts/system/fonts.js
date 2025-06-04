@@ -3,7 +3,7 @@ import { info } from "../logger.js";
 export class Fonts {
 	static register() {
 		info("Registering Fonts...");
-		FontConfig.loadFont("LitM Dice", {
+		foundry.applications.settings.menus.FontConfig.loadFont("LitM Dice", {
 			fonts: [
 				{
 					name: "LitM Dice",
@@ -11,7 +11,7 @@ export class Fonts {
 				},
 			],
 		});
-		FontConfig.loadFont("CaslonAntique", {
+		foundry.applications.settings.menus.FontConfig.loadFont("CaslonAntique", {
 			editor: true,
 			fonts: [
 				{
@@ -33,7 +33,7 @@ export class Fonts {
 				},
 			],
 		});
-		FontConfig.loadFont("Fraunces", {
+		foundry.applications.settings.menus.FontConfig.loadFont("Fraunces", {
 			editor: true,
 			fonts: [
 				{
@@ -49,7 +49,7 @@ export class Fonts {
 				},
 			],
 		});
-		FontConfig.loadFont("AlchemyItalic", {
+		foundry.applications.settings.menus.FontConfig.loadFont("AlchemyItalic", {
 			editor: true,
 			fonts: [
 				{
@@ -58,7 +58,7 @@ export class Fonts {
 				},
 			],
 		});
-		FontConfig.loadFont("PackardAntique", {
+		foundry.applications.settings.menus.FontConfig.loadFont("PackardAntique", {
 			editor: true,
 			fonts: [
 				{
@@ -72,7 +72,7 @@ export class Fonts {
 				},
 			],
 		});
-		FontConfig.loadFont("PowellAntique", {
+		foundry.applications.settings.menus.FontConfig.loadFont("PowellAntique", {
 			editor: true,
 			fonts: [
 				{

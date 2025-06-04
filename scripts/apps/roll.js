@@ -107,13 +107,13 @@ export class LitmRoll extends Roll {
 					0) || (this.litm.isActive && this.litm.state === "negative" && this.litm.heroWeaknessTags.length > 0)
 		};
 
-		return renderTemplate(template, chatData);
+		return foundry.applications.handlebars.renderTemplate(template, chatData);
 	}
 
 	async getTooltip() {
 		const parts = this.dice.map((d) => d.getTooltipData());
 		const data = this.getTooltipData();
-		return renderTemplate(LitmRoll.TOOLTIP_TEMPLATE, { data, parts });
+		return foundry.applications.handlebars.renderTemplate(LitmRoll.TOOLTIP_TEMPLATE, { data, parts });
 	}
 
 	getTooltipData() {

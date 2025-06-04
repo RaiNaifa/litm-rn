@@ -39,7 +39,7 @@ export async function newTagDialog(actors) {
 	return Dialog.wait(
 		{
 			title: t("Litm.ui.add-tag"),
-			content: await renderTemplate(
+			content: await foundry.applications.handlebars.renderTemplate(
 				"systems/litm/templates/partials/new-tag.html",
 				{ actors },
 			),

@@ -1,7 +1,7 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
 import { confirmDelete, localize as t } from "../../utils.js";
 
-export class BackpackSheet extends SheetMixin(ItemSheet) {
+export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	/** @override */
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {

@@ -539,7 +539,7 @@ export class LitmRollDialog extends FormApplication {
 			.map((u) => u[0]);
 
 		ChatMessage.create({
-			content: await renderTemplate(
+			content: await foundry.applications.handlebars.renderTemplate(
 				"systems/litm/templates/chat/moderation.html",
 				{
 					title: t("Litm.ui.roll-moderation"),

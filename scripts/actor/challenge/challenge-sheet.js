@@ -1,8 +1,8 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
 import { confirmDelete } from "../../utils.js";
 
-export class ChallengeSheet extends SheetMixin(ActorSheet) {
-	static defaultOptions = foundry.utils.mergeObject(ActorSheet.defaultOptions, {
+export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) {
+	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ActorSheet.defaultOptions, {
 		classes: ["litm", "litm--challenge"],
 		width: 320,
 		height: 700,

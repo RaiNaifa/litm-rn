@@ -2,8 +2,8 @@ import { SheetMixin } from "../../mixins/sheet-mixin.js";
 import { confirmDelete, dispatch } from "../../utils.js";
 import { localize as t } from "../../utils.js";
 
-export class CharacterSheet extends SheetMixin(ActorSheet) {
-	static defaultOptions = foundry.utils.mergeObject(ActorSheet.defaultOptions, {
+export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) {
+	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ActorSheet.defaultOptions, {
 		classes: ["litm", "litm--character"],
 		width: 250,
 		height: 350,
@@ -571,7 +571,7 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 		const { contents } = item.system;
 		const chosenLoot = await Dialog.wait({
 			title: game.i18n.localize("Litm.ui.item-transfer-title"),
-			content: await renderTemplate(
+			content: await foundry.applications.handlebars.renderTemplate(
 				"systems/litm/templates/apps/loot-dialog.html",
 				{ contents, cssClass: "litm--loot-dialog" },
 			),

@@ -1,8 +1,8 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
 import { confirmDelete } from "../../utils.js";
 
-export class ThemeSheet extends SheetMixin(ItemSheet) {
-	static defaultOptions = foundry.utils.mergeObject(ItemSheet.defaultOptions, {
+export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
+	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ItemSheet.defaultOptions, {
 		classes: ["litm", "litm--theme"],
 		width: 330,
 		height: 700,

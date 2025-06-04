@@ -62,6 +62,6 @@ export class HandlebarsPartials {
 
 	static register() {
 		info("Registering Handlebars Partials...");
-		loadTemplates(HandlebarsPartials.partials);
+		foundry.applications.handlebars.loadTemplates(HandlebarsPartials.partials);
 	}
 }

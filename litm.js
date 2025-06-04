@@ -71,22 +71,22 @@ Hooks.once("init", () => {
 
 	info("Registering Sheets...");
 	// Unregister the default sheets
-	Actors.unregisterSheet("core", ActorSheet);
-	Items.unregisterSheet("core", ItemSheet);
+	foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
+	foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
 	// Register the new sheets
-	Actors.registerSheet("litm", CharacterSheet, {
+	foundry.documents.collections.Actors.registerSheet("litm", CharacterSheet, {
 		types: ["character"],
 		makeDefault: true,
 	});
-	Actors.registerSheet("litm", ChallengeSheet, {
+	foundry.documents.collections.Actors.registerSheet("litm", ChallengeSheet, {
 		types: ["challenge"],
 		makeDefault: true,
 	});
-	Items.registerSheet("litm", BackpackSheet, {
+	foundry.documents.collections.Items.registerSheet("litm", BackpackSheet, {
 		types: ["backpack"],
 		makeDefault: true,
 	});
-	Items.registerSheet("litm", HeroSheet, {
+	foundry.documents.collections.Items.registerSheet("litm", HeroSheet, {
 		types: ["hero"],
 		makeDefault: true,
 	});
@@ -94,11 +94,11 @@ Hooks.once("init", () => {
 	// 	types: ["storytheme"],
 	// 	makeDefault: true,
 	// });
-	Items.registerSheet("litm", ThemeSheet, {
+	foundry.documents.collections.Items.registerSheet("litm", ThemeSheet, {
 		types: ["theme"],
 		makeDefault: true,
 	});
-	Items.registerSheet("litm", ThreatSheet, {
+	foundry.documents.collections.Items.registerSheet("litm", ThreatSheet, {
 		types: ["threat"],
 		makeDefault: true,
 	});
