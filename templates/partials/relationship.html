@@ -3,7 +3,7 @@
 	<!-- Tags embedded in the character sheet have different functionality -->
 	{{#if embedded}}
 		<!-- Select Tag button -->
-		<button type="button" class="litm--theme-tag-button litm--rltnship" data-id="{{tag.id}}"
+		<button type="button" class="litm--theme-tag-button litm--rltnship" data-id="{{tag.id}}" data-tooltip="{{localize 'Litm.ui.toggle-non-burnable-tag'}}"
 			{{#if (includes @root.rollTags tag.id 'id')}}data-selected{{/if}} {{#if tag.isActive}}data-click="select"
 			{{/if}}
 			{{#if tag.isActive}}data-tooltip="{{localize ('Litm.ui.toggle-roll')}}"

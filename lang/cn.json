@@ -244,7 +244,7 @@
 			"threats-consequences": "> 威胁 / >> 效力",
 			"toggle-burnt": "<span class='reference'>ALT/OPTION +单击</span>以燃尽一个标签。",
 			"toggle-roll": "<span class='reference'>单击</span>以在掷骰中加入或删去. <br /> <span class='reference'>SHIFT + 单击</span>以在掷骰中燃尽标签， <br /> <span class='reference'>ALT/OPTION + 单击</span>以燃尽或取消燃尽一个标签.",
-			"toggle-weakness-roll": "<span class='reference'>单击</span>以在掷骰中加入或删去。",
+			"toggle-non-burnable-tag": "<span class='reference'>单击</span>以在掷骰中加入或删去。",
 			"total-power": "总效力",
 			"user-manual": "打开用户手册",
 			"warn-incompatible-data": "尝试导入的数据与这个系统不匹配。",

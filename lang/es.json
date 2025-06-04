@@ -244,7 +244,7 @@
 			"threats-consequences": "> Amenazas / >> Consecuencias",
 			"toggle-burnt": "<span class='reference'>OPCIÓN + Click</span> para quemar/restablecer etiqueta.",
 			"toggle-roll": "<span class='reference'>Click</span> para añadir/quitar a la tirada. <br /> <span class='reference'>MAYUS + Click</span> para quemar una etiqueta para la tirada. <br /> <span class='reference'>OPCIÓN + Click</span> para quemar/restablecer una etiqueta.",
-			"toggle-weakness-roll": "<span class='reference'>Click</span> para añadir/quitar de la tirada.",
+			"toggle-non-burnable-tag": "<span class='reference'>Click</span> para añadir/quitar de la tirada.",
 			"total-power": "Poder total",
 			"user-manual": "Abrir manual de usuario",
 			"warn-incompatible-data": "Los datos que estás tratando de importar no son compatibles con este sistema.",

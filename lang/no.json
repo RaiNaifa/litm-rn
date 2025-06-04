@@ -244,7 +244,7 @@
 			"threats-consequences": "> Trussel / >> Konsekvens",
 			"toggle-burnt": "<span class='reference'>ALT/OPTION + Klikk</span> for a brenne/gjenopprette merket.",
 			"toggle-roll": "<span class='reference'>Klikk</span> for å legge til/fjerne fra kastet. <br /> <span class='reference'>SHIFT + klikk</span> for å brenne en merket i et kast. <br /> <span class='reference'>ALT/OPTION + klikk</span> for å brenne merket.",
-			"toggle-weakness-roll": "<span class='reference'>Klikk</span> for å legge til/fjerne fra kastet.",
+			"toggle-non-burnable-tag": "<span class='reference'>Klikk</span> for å legge til/fjerne fra kastet.",
 			"total-power": "Styrketotal",
 			"user-manual": "Åpne brukermanual",
 			"warn-incompatible-data": "Dataene er ikke kompatible med Legend in the Mist. Vennligst sjekk at du har laget en Legend in the Mist karakter.",

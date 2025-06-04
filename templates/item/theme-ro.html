@@ -37,7 +37,7 @@
 			<!-- Weakness -->
 			{{#each data.system.weakness as |tag|}}
 			<button type="button" class="litm--weakness" data-click="select"
-				data-tooltip="{{localize 'Litm.ui.toggle-weakness-roll'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
+				data-tooltip="{{localize 'Litm.ui.toggle-non-burnable-tag'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
 				tag.id 'id' )}}data-selected{{/if}}>
 				<!-- Weakness Name -->
 				<span class="litm--weakness-part">{{tag.name}}</span>

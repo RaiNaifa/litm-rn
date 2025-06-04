@@ -244,7 +244,7 @@
 			"threats-consequences": "> Drohung / >> Konsequenzen",
 			"toggle-burnt": "<span class='reference'>ALT/OPTION + Linksklick</span> um Merkmal auszubrennen/wiederzuerlangen.",
 			"toggle-roll": "<span class='reference'>Linksklick</span> um vom Würfelwurf abzuziehen oder hinzuzufügen. <br /> <span class='reference'>SHIFT + Linksklick</span> um das Merkmal beim Wurf anzubrennen. <br /> <span class='reference'>ALT/OPTION + Linksklick</span> um Merkmal auszubrennen/wiederherzustellen.",
-			"toggle-weakness-roll": "<span class='reference'>Linksklick</span> um vom Würfelwurf abzuziehen oder hinzuzufügen.",
+			"toggle-non-burnable-tag": "<span class='reference'>Linksklick</span> um vom Würfelwurf abzuziehen oder hinzuzufügen.",
 			"total-power": "Gesammte Kraft",
 			"user-manual": "Benutzerhandbuch öffnen",
 			"warn-incompatible-data": "Die Daten die Sie zu importieren versuchen sind nicht mit diesem System kompatibel.",

@@ -258,7 +258,7 @@
 			"threats-consequences": "> Threats / >> Consequences",
 			"toggle-burnt": "<span class='reference'>ALT/OPTION + Click</span> to burn/unburn tag.",
 			"toggle-roll": "<span class='reference'>Click</span> to add/remove from dice roll. <br /> <span class='reference'>SHIFT + Click</span> to burn tag on dice roll. <br /> <span class='reference'>ALT/OPTION + Click</span> to burn/unburn tag.",
-			"toggle-weakness-roll": "<span class='reference'>Click</span> to add/remove from dice roll.",
+			"toggle-non-burnable-tag": "<span class='reference'>Click</span> to add/remove from dice roll.",
 			"total-power": "Total Power",
 			"user-manual": "Open User Manual",
 			"warn-incompatible-data": "The data you are trying to import is not compatible with this system.",
