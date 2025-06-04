@@ -36,6 +36,8 @@
 		{{#if data.mitigate}}
 		{{> section name=(localize 'Litm.effects.mitigate.key') value=1}}
 		{{/if}}
+		<!-- TODO: Добавить фильтр просто weaknessTags от heroWeaknessTags -->
+		<!-- TODO: Добавить crispyTags -->
 		{{#each data.weaknessTags as |tag|}}
 		{{> section name=tag.name value=-1 flavor=(ifThen (eq tag.type 'weaknessTag') (localize 'Litm.tags.weakness')
 		(localize 'Litm.other.tag')) flavorClass=(ifThen (eq tag.type 'weaknessTag') "negative" "warning")}}

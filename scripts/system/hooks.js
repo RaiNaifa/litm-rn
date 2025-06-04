@@ -144,10 +144,10 @@ export class LitmHooks {
 
 	static #safeUpdateItemSheet() {
 		Hooks.on("preUpdateItem", (_, data) => {
-			console.log("_, data", _, data);
 			function getArray(data) {
 				return Array.isArray(data) ? data : Object.values(data);
 			}
+			const itemType = data.type;
 
 			let tagSchema;
 			switch (itemType) {

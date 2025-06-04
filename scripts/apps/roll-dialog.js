@@ -41,8 +41,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessTags,
 			positiveStatuses,
 			negativeStatuses,
-			crispyPositives,
-			crispyNegatives,
+			crispyTags,
+			heroWeaknessTags,
 		} = LitmRollDialog.#filterTags(tags);
 
 		// Values
@@ -52,8 +52,6 @@ export class LitmRollDialog extends FormApplication {
 			weaknessValue,
 			positiveStatusValue,
 			negativeStatusValue,
-			crispyPositivesValue,
-			crispyNegativesValue,
 			totalPower,
 		} = game.litm.methods.calculatePower({
 			burnedTags,
@@ -61,8 +59,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessTags,
 			positiveStatuses,
 			negativeStatuses,
-			crispyPositives,
-			crispyNegatives,
+			crispyTags,
+			heroWeaknessTags,
 			modifier: Number(modifier) || 0,
 		});
 
@@ -74,15 +72,13 @@ export class LitmRollDialog extends FormApplication {
 						weaknessTags,
 						positiveStatuses,
 						negativeStatuses,
-						crispyPositives,
-						crispyNegatives,
+						crispyTags,
+						heroWeaknessTags,
 						burnedValue,
 						powerValue,
 						weaknessValue,
 						positiveStatusValue,
 						negativeStatusValue,
-						crispyPositivesValue,
-						crispyNegativesValue,
 						totalPower,
 						actorId,
 						type,
@@ -90,7 +86,7 @@ export class LitmRollDialog extends FormApplication {
 						modifier,
 					})
 				: CONFIG.litm.roll.formula ||
-					"2d6 + (@burnedValue + @powerValue + @positiveStatusValue + @crispyPositivesValue - @weaknessValue - @negativeStatusValue - @crispyNegativesValue + @modifier)";
+					"2d6 + (@burnedValue + @powerValue + @positiveStatusValue - @weaknessValue - @negativeStatusValue + @modifier)";
 
 		// Roll
 		const roll = new game.litm.LitmRoll(
@@ -101,8 +97,6 @@ export class LitmRollDialog extends FormApplication {
 				positiveStatusValue,
 				weaknessValue,
 				negativeStatusValue,
-				crispyPositivesValue,
-				crispyNegativesValue,
 				modifier: Number(modifier) || 0,
 			},
 			{
@@ -114,8 +108,8 @@ export class LitmRollDialog extends FormApplication {
 				weaknessTags,
 				positiveStatuses,
 				negativeStatuses,
-				crispyPositives,
-				crispyNegatives,
+				crispyTags,
+				heroWeaknessTags,
 				speaker,
 				totalPower,
 				modifier,
@@ -142,10 +136,6 @@ export class LitmRollDialog extends FormApplication {
 
 		const weaknessValue = tags.weaknessTags.length;
 		
-		const crispyPositivesValue = tags.crispyPositives.length;
-
-		const crispyNegativesValue = tags.crispyNegatives.length;
-
 		const positiveStatusValue = tags.positiveStatuses.reduce(
 			(a, t) => a + Number.parseInt(t.value),
 			0,
@@ -164,8 +154,6 @@ export class LitmRollDialog extends FormApplication {
 			positiveStatusValue -
 			weaknessValue -
 			negativeStatusValue +
-			crispyPositivesValue -
-			crispyNegativesValue +
 			modifier;
 
 		return {
@@ -174,26 +162,25 @@ export class LitmRollDialog extends FormApplication {
 			weaknessValue,
 			positiveStatusValue,
 			negativeStatusValue,
-			crispyPositivesValue,
-			crispyNegativesValue,
 			totalPower,
 			modifier,
 		};
 	}
 
 	static #filterTags(tags) {
+		console.log("filter tags", tags);
 		const burnedTags = tags.filter((t) => t.state === "burned");
 		const powerTags = tags.filter(
 			(t) => t.type && t.type !== "crispy" !== "status" && t.state === "positive",
 		);
 		const weaknessTags = tags.filter(
-			(t) => t.type !== "status" && t.type !== "crispy" && t.state === "negative",
+			(t) => t.type !== "status" && t.state === "negative",
 		);
-		const crispyPositives = tags.filter(
-			((t) => t.type === "crispy") || ((t) => t.type === "hero") && t.state === "positive",
+		const crispyTags = tags.filter(
+			(t) => t.type === "crispy" || t.type === "hero",
 		);
-		const crispyNegatives = tags.filter(
-			((t) => t.type === "crispy") || ((t) => t.type === "hero") && t.state === "negative",
+		const heroWeaknessTags = tags.filter(
+			(t) => t.type === "hero" && t.state === "negative",
 		);
 		const positiveStatuses = tags.filter(
 			(t) => t.type === "status" && t.state === "positive",
@@ -208,8 +195,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessTags,
 			positiveStatuses,
 			negativeStatuses,
-			crispyPositives,
-			crispyNegatives,
+			crispyTags,
+			heroWeaknessTags,
 		};
 	}
 
