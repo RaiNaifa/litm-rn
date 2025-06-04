@@ -144,11 +144,23 @@ export class LitmHooks {
 
 	static #safeUpdateItemSheet() {
 		Hooks.on("preUpdateItem", (_, data) => {
+			console.log("_, data", _, data);
 			function getArray(data) {
 				return Array.isArray(data) ? data : Object.values(data);
 			}
 
-			const { schema: tagSchema } = game.litm.data.TagData;
+			let tagSchema;
+			switch (itemType) {
+			case "hero":
+				tagSchema = game.litm.data.HeroTagData?.schema;
+				break;
+			default:
+				tagSchema = game.litm.data.TagData?.schema;
+				break;
+			}
+			if (!tagSchema) return;
+
+			// const { schema: tagSchema } = game.litm.data.TagData;
 			const { system = {} } = data;
 
 			const { powerTags = [], weaknessTags = [], contents = [] } = system;
@@ -237,6 +249,26 @@ export class LitmHooks {
 						app.update({ rolls: [roll] });
 						break;
 					}
+					case "scratch-tags": {
+						event.stopPropagation();
+						event.preventDefault();
+
+						// TO DO
+						const roll = app.rolls[0];
+						const actor = game.actors.get(roll?.litm?.actorId);
+						if (!roll || !actor) return;
+
+						for (const tag of roll.litm.crispyPositives.filter(
+							(t) => t.type === "crispy" || t.type === "hero",
+						))
+							await actor.sheet.gainImprove(tag);
+
+						for (const tag of roll.litm.burnedTags)
+							await actor.sheet.toggleBurnTag(tag);
+						roll.options.isBurnt = true;
+						app.update({ rolls: [roll] });
+						break;
+					}
 					case "gain-improve": {
 						event.stopPropagation();
 						event.preventDefault();
@@ -245,6 +277,7 @@ export class LitmHooks {
 						const actor = game.actors.get(roll?.litm?.actorId);
 						if (!roll || !actor) return;
 
+						// TO DO: for (crispy negative)
 						for (const tag of roll.litm.weaknessTags.filter(
 							(t) => t.type === "weaknessTag",
 						))

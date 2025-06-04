@@ -97,18 +97,18 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 				]);
 				break;
 			}
-			case "hero": {
-				const hero = this.items.find((i) => i.type === "hero");
-				const { contents } = hero.system.toObject();
-				contents.find((i) => i.id === tag.id).isBurnt = !tag.isBurnt;
-				this.actor.updateEmbeddedDocuments("Item", [
-					{
-						_id: hero.id,
-						"system.contents": contents,
-					},
-				]);
-				break;
-			}
+			// case "hero": {
+			// 	const hero = this.items.find((i) => i.type === "hero");
+			// 	const { contents } = hero.system.toObject();
+			// 	contents.find((i) => i.id === tag.id).isBurnt = !tag.isBurnt;
+			// 	this.actor.updateEmbeddedDocuments("Item", [
+			// 		{
+			// 			_id: hero.id,
+			// 			"system.contents": contents,
+			// 		},
+			// 	]);
+			// 	break;
+			// }
 		}
 	}
 
@@ -539,7 +539,7 @@ export class CharacterSheet extends SheetMixin(ActorSheet) {
 		const selected = t.hasAttribute("data-selected");
 
 		if (toBurnNoRoll) return this.toggleBurnTag(tag);
-		if (!selected && tag.isBurnt) return;
+		if (!selected && tag?.isBurnt) return;
 
 		// Add or remove the tag from the roll
 		switch (selected) {

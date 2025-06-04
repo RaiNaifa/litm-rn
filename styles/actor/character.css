@@ -326,7 +326,7 @@
 			overflow: visible;
 
 			& .taglist {
-				height: 13.125rem;
+				height: 16.35rem;
 			}
 		}
 
@@ -646,6 +646,12 @@
 		top: -5px;
 		left: 50%;
 		transform: translateX(-50%);
+	}
+
+	& .litm--rltnship {
+		&[data-selected]::before {
+			width: 110%;
+		}
 	}
 
 	#context-menu {

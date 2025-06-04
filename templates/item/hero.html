@@ -2,13 +2,13 @@
 	<img width="270px" class="litm--hero-bg-frame" src="systems/litm/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--hero-bg">
-		<div class="meta">{{localize 'Litm.tags.item-tags'}}</div>
+		<div class="meta">{{localize 'Litm.other.hero-card'}}</div>
 		<input class="title" name="name" value="{{name}}" />
 		<ul class="taglist">
 			{{#each hero as |tag|}}
-				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
+				{{> systems/litm/templates/partials/relationship.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
 			{{/each}}
 		</ul>
-		<button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button>
+		<button type="button" data-click="add-tag">{{localize "Litm.ui.add-relationship"}}</button>
 	</div>
 </form>

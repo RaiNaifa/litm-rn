@@ -2,11 +2,11 @@
 	<img width="250px" class="litm--hero-bg-frame" src="systems/litm/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--hero-bg litm--hero-bg" data-context="menu">
-		<div class="meta">{{localize 'Litm.other.hero-card'}}</div>
-		<div class="title">{{hero.name}}</div>
+		<!-- <div class="meta">{{localize 'Litm.other.hero-card'}}</div> -->
+		<div class="meta">{{hero.name}}</div>
 		<ul class="taglist">
 			{{#each hero.contents as |tag|}}
-				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../hero.id ".system.contents") embedded=true remove=false}}
+				{{> systems/litm/templates/partials/relationship.html tag=tag key=@key path=(concat "items." ../hero.id ".system.contents") embedded=true remove=false}}
 			{{/each}}
 		</ul>
 	</div>

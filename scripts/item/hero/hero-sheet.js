@@ -73,9 +73,9 @@ export class HeroSheet extends SheetMixin(ItemSheet) {
 
 	#addTag() {
 		const item = {
-			name: t("Litm.ui.name-tag"),
+			name: t("Litm.tags.relationship"),
+			fellowName: t("Litm.ui.fellow-name"),
 			isActive: false,
-			isBurnt: false,
 			type: "hero",
 			id: foundry.utils.randomID(),
 		};
@@ -87,12 +87,22 @@ export class HeroSheet extends SheetMixin(ItemSheet) {
 	}
 
 	async #removeTag(button) {
-		if (!(await confirmDelete("Litm.other.tag"))) return;
+		if (!(await confirmDelete("Litm.tags.relationship"))) return;
 
 		const index = button.dataset.id;
 		const contents = this.system.contents;
 		contents.splice(index, 1);
 
 		return this.item.update({ "system.contents": contents });
+	}
+
+	async #increase(field) {
+		const attribute = foundry.utils.getProperty(this.item, field);
+		await this.item.update({ [field]: attribute + 1 });
+	}
+
+	async #decrease(field) {
+		const attribute = foundry.utils.getProperty(this.item, field);
+		await this.item.update({ [field]: attribute - 1 });
 	}
 }

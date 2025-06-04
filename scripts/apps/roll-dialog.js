@@ -41,6 +41,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessTags,
 			positiveStatuses,
 			negativeStatuses,
+			crispyPositives,
+			crispyNegatives,
 		} = LitmRollDialog.#filterTags(tags);
 
 		// Values
@@ -50,6 +52,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessValue,
 			positiveStatusValue,
 			negativeStatusValue,
+			crispyPositivesValue,
+			crispyNegativesValue,
 			totalPower,
 		} = game.litm.methods.calculatePower({
 			burnedTags,
@@ -57,6 +61,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessTags,
 			positiveStatuses,
 			negativeStatuses,
+			crispyPositives,
+			crispyNegatives,
 			modifier: Number(modifier) || 0,
 		});
 
@@ -68,11 +74,15 @@ export class LitmRollDialog extends FormApplication {
 						weaknessTags,
 						positiveStatuses,
 						negativeStatuses,
+						crispyPositives,
+						crispyNegatives,
 						burnedValue,
 						powerValue,
 						weaknessValue,
 						positiveStatusValue,
 						negativeStatusValue,
+						crispyPositivesValue,
+						crispyNegativesValue,
 						totalPower,
 						actorId,
 						type,
@@ -80,7 +90,7 @@ export class LitmRollDialog extends FormApplication {
 						modifier,
 					})
 				: CONFIG.litm.roll.formula ||
-					"2d6 + (@burnedValue + @powerValue + @positiveStatusValue - @weaknessValue - @negativeStatusValue + @modifier)";
+					"2d6 + (@burnedValue + @powerValue + @positiveStatusValue + @crispyPositivesValue - @weaknessValue - @negativeStatusValue - @crispyNegativesValue + @modifier)";
 
 		// Roll
 		const roll = new game.litm.LitmRoll(
@@ -91,6 +101,8 @@ export class LitmRollDialog extends FormApplication {
 				positiveStatusValue,
 				weaknessValue,
 				negativeStatusValue,
+				crispyPositivesValue,
+				crispyNegativesValue,
 				modifier: Number(modifier) || 0,
 			},
 			{
@@ -102,6 +114,8 @@ export class LitmRollDialog extends FormApplication {
 				weaknessTags,
 				positiveStatuses,
 				negativeStatuses,
+				crispyPositives,
+				crispyNegatives,
 				speaker,
 				totalPower,
 				modifier,
@@ -127,6 +141,10 @@ export class LitmRollDialog extends FormApplication {
 		const powerValue = tags.powerTags.length;
 
 		const weaknessValue = tags.weaknessTags.length;
+		
+		const crispyPositivesValue = tags.crispyPositives.length;
+
+		const crispyNegativesValue = tags.crispyNegatives.length;
 
 		const positiveStatusValue = tags.positiveStatuses.reduce(
 			(a, t) => a + Number.parseInt(t.value),
@@ -146,6 +164,8 @@ export class LitmRollDialog extends FormApplication {
 			positiveStatusValue -
 			weaknessValue -
 			negativeStatusValue +
+			crispyPositivesValue -
+			crispyNegativesValue +
 			modifier;
 
 		return {
@@ -154,6 +174,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessValue,
 			positiveStatusValue,
 			negativeStatusValue,
+			crispyPositivesValue,
+			crispyNegativesValue,
 			totalPower,
 			modifier,
 		};
@@ -162,10 +184,16 @@ export class LitmRollDialog extends FormApplication {
 	static #filterTags(tags) {
 		const burnedTags = tags.filter((t) => t.state === "burned");
 		const powerTags = tags.filter(
-			(t) => t.type !== "status" && t.state === "positive",
+			(t) => t.type && t.type !== "crispy" !== "status" && t.state === "positive",
 		);
 		const weaknessTags = tags.filter(
-			(t) => t.type !== "status" && t.state === "negative",
+			(t) => t.type !== "status" && t.type !== "crispy" && t.state === "negative",
+		);
+		const crispyPositives = tags.filter(
+			((t) => t.type === "crispy") || ((t) => t.type === "hero") && t.state === "positive",
+		);
+		const crispyNegatives = tags.filter(
+			((t) => t.type === "crispy") || ((t) => t.type === "hero") && t.state === "negative",
 		);
 		const positiveStatuses = tags.filter(
 			(t) => t.type === "status" && t.state === "positive",
@@ -180,6 +208,8 @@ export class LitmRollDialog extends FormApplication {
 			weaknessTags,
 			positiveStatuses,
 			negativeStatuses,
+			crispyPositives,
+			crispyNegatives,
 		};
 	}
 
@@ -221,11 +251,35 @@ export class LitmRollDialog extends FormApplication {
 		return [
 			...tags.filter((tag) => tag.values.every((v) => !v)),
 			...this.actor.system.storyTags,
-		].map((tag) => ({
-			...tag,
-			state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
-			states: ",negative,positive,burned",
-		}));
+			// ...this.actor.system.contents, // ← если ты держишь hero-relationship внутри contents
+		].map((tag) => {
+			const type = tag.type;
+			let states;
+
+			switch (type) {
+				case "hero":
+				case "crispy":
+					states = ",negative,positive";
+					break;
+				case "weaknessTag":
+					states = ",negative";
+					break;
+				default:
+					states = ",negative,positive,burned";
+					break;
+			}
+
+			return {
+				...tag,
+				state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
+				states,
+			};
+		});
+		// ].map((tag) => ({
+		// 	...tag,
+		// 	state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
+		// 	states: ",negative,positive,burned",
+		// }));
 	}
 
 	get gmTags() {
@@ -236,14 +290,37 @@ export class LitmRollDialog extends FormApplication {
 			.filter((actor) => actor.id !== this.actorId)
 			.flatMap((actor) => actor.tags);
 		return tags
-			.map((tag) => ({
-				...tag,
-				state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
-				states:
-					tag.type === "tag"
-						? ",negative,positive,burned"
-						: ",negative,positive",
-			}))
+			.map((tag) => {
+				const type = tag.type;
+				let states;
+
+				switch (type) {
+					case "hero":
+					case "crispy":
+						states = ",negative,positive";
+						break;
+					case "weaknessTag":
+						states = ",negative";
+						break;
+					default:
+						states = ",negative,positive,burned";
+						break;
+				}
+
+				return {
+					...tag,
+					state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
+					states,
+				};
+			})
+			// .map((tag) => ({
+			// 	...tag,
+			// 	state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
+			// 	states:
+			// 		tag.type === "tag"
+			// 			? ",negative,positive,burned"
+			// 			: ",negative,positive",
+			// }))
 			.filter((tag) => tag.state !== "");
 	}
 
@@ -302,9 +379,19 @@ export class LitmRollDialog extends FormApplication {
 	}
 
 	addTag(tag, toBurn) {
-		tag.state =
-			tag.type === "weaknessTag" ? "negative" : toBurn ? "burned" : "positive";
-		tag.states = tag.type === "weaknessTag" ? ",negative" : ",positive,burned";
+		if (tag.type === "weaknessTag") {
+			tag.state = "negative";
+			tag.states = ",negative";
+		} else if (tag.type === "crispy" || tag.type === "hero") {
+			tag.state = "positive"; // crispy нельзя "burn", даже если toBurn === true
+			tag.states = ",negative,positive";
+		} else {
+			tag.state = toBurn ? "burned" : "positive";
+			tag.states = ",positive,burned";
+		}
+		// tag.state =
+		// 	tag.type === "weaknessTag" ? "negative" : toBurn ? "burned" : "positive";
+		// tag.states = tag.type === "weaknessTag" ? ",negative" : ",positive,burned";
 
 		this.characterTags.push(tag);
 		this.element.find("[data-update='totalPower']").text(this.totalPower);
@@ -382,9 +469,25 @@ export class LitmRollDialog extends FormApplication {
 			case "themeTag":
 			case "backpack":
 			case "hero":
+			case "crispy":
 			case "weaknessTag": {
 				const tag = this.characterTags.find((t) => t.id === id);
+				if (!tag) break;
+
 				tag.state = value;
+
+				switch (tag.type) {
+				case "crispy":
+				case "hero":
+					tag.states = ",negative,positive";
+					break;
+				case "weaknessTag":
+					tag.states = ",negative";
+					break;
+				default:
+					tag.states = ",negative,positive,burned";
+					break;
+				}
 				break;
 			}
 			default: {
@@ -394,10 +497,33 @@ export class LitmRollDialog extends FormApplication {
 					const tag = [...this.tags, ...this.statuses, ...this.gmTags].find(
 						(t) => t.id === id,
 					);
-					this.#tagState.push({
+
+					if (tag) {
+					const statefulTag = {
 						...tag,
 						state: value,
-					});
+					};
+
+					// Определяем возможные состояния для UI
+					switch (tag.type) {
+						case "crispy":
+						case "hero":
+							statefulTag.states = ",negative,positive";
+							break;
+						case "weaknessTag":
+							statefulTag.states = ",negative";
+							break;
+						default:
+							statefulTag.states = ",negative,positive,burned";
+							break;
+					}
+
+						this.#tagState.push(statefulTag);
+					}
+					// this.#tagState.push({
+					// 	...tag,
+					// 	state: value,
+					// });
 				}
 			}
 		}

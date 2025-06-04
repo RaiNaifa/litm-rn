@@ -1,6 +1,16 @@
 import { localize as t } from "../utils.js";
 
 function createTag(data, type) {
+	if (type === "hero") return {
+		...(data || { name: "", fellowName: "", isActive: false }),
+		type,
+		id: foundry.utils.randomID(),
+	}
+	if (type === "crispy") return {
+		...(data || { name: "", isActive: false }),
+		type,
+		id: foundry.utils.randomID(),
+	}
 	return {
 		...(data || { name: "", isBurnt: false, isActive: false }),
 		type,

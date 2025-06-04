@@ -10,6 +10,7 @@ import { StoryTagApp } from "./scripts/apps/story-tags.js";
 import { SuperCheckbox } from "./scripts/components/super-checkbox.js";
 import { ToggledInput } from "./scripts/components/toggled-input.js";
 import { TagData } from "./scripts/data/abstract.js";
+import { RelationshipData } from "./scripts/data/abstract.js";
 import { BackpackData } from "./scripts/item/backpack/backpack-data.js";
 import { BackpackSheet } from "./scripts/item/backpack/backpack-sheet.js";
 import { HeroData } from "./scripts/item/hero/hero-data.js";
@@ -44,6 +45,7 @@ Hooks.once("init", () => {
 	game.litm = {
 		data: {
 			TagData,
+			RelationshipData,
 		},
 		methods: {
 			calculatePower: LitmRollDialog.calculatePower,

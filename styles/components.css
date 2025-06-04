@@ -186,6 +186,7 @@
 
 	&.litm--powerTag,
 	&.litm--themeTag,
+	&.litm--hero,
 	&.litm--backpack {
 		background: color-mix(in hsl, var(--litm-color-accent-bg) 60%, transparent);
 	}

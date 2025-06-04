@@ -148,6 +148,8 @@
 			"isBurnt": "Burned",
 			"isInactive": "Not active",
 			"item-tags": "Item Tags",
+			"relationship": "Relationship",
+			"relationships": "Relationships",
 			"power": "Power",
 			"story": "Story",
 			"weakness": "Weakness"
@@ -201,6 +203,7 @@
 			"error-no-backpack": "No backpack found. Try duplicating the actor to solve this issue.",
 			"error-validating-actor": "There was an error validating the actor. Please see the console for more information.",
 			"error-validating-item": "There was an error validating the item. Please see the console for more information.",
+			"fellow-name": "Товарищ",
 			"gain-exp": "Gain Experience",
       "gain-imp": "Получить Улучшение",
 			"import-actor": "Import Actor from JSON",

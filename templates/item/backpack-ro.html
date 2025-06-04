@@ -4,8 +4,8 @@
 	<img width="250px" class="litm--backpack-bg-frame" src="systems/litm/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--backpack-bg" data-context="menu">
-		<div class="meta">{{localize 'Litm.tags.item-tags'}}</div>
-		<div class="title">{{backpack.name}}</div>
+		<!-- <div class="meta">{{localize 'Litm.tags.item-tags'}}</div> -->
+		<div class="meta">{{backpack.name}}</div>
 		<ul class="taglist">
 			{{#each backpack.contents as |tag|}}
 				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../backpack.id ".system.contents") embedded=true remove=false}}

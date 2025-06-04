@@ -4,7 +4,7 @@ export class HeroData extends foundry.abstract.TypeDataModel {
 		const abstract = game.litm.data;
 		return {
 			contents: new fields.ArrayField(
-				new fields.EmbeddedDataField(abstract.TagData),
+				new fields.EmbeddedDataField(abstract.RelationshipData)
 			),
 		};
 	}

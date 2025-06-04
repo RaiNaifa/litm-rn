@@ -94,10 +94,16 @@ export class LitmRoll extends Roll {
 			user: game.user.id,
 			isOwner: game.user.isGM || this.actor.isOwner,
 			hasBurnedTags: !this.litm.isBurnt && this.litm.burnedTags.length > 0,
+			hasCrispyTags:
+				!this.litm.isActive && 
+				(this.litm.crispyPositives.filter(((t) => t.type === "crispy") || ((t) => t.type === "hero")).length >
+					0 || this.litm.crispyNegatives.filter(((t) => t.type === "crispy") || ((t) => t.type === "hero")).length >
+					0) ,
 			hasWeaknessTags:
 				!this.litm.gainedImp &&
-				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
-					0,
+				(this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
+					0 || this.litm.crispyNegatives.filter(((t) => t.type === "crispy") || ((t) => t.type === "hero")).length >
+					0),
 		};
 
 		return renderTemplate(template, chatData);
@@ -116,6 +122,8 @@ export class LitmRoll extends Roll {
 			burnedTags: this.litm.burnedTags,
 			powerTags: this.litm.powerTags,
 			weaknessTags: this.litm.weaknessTags,
+			crispyPositives: this.litm.crispyPositives,
+			crispyNegatives: this.litm.crispyNegatives,
 			positiveStatuses: this.litm.positiveStatuses,
 			negativeStatuses: this.litm.negativeStatuses,
 			modifier: this.modifier,

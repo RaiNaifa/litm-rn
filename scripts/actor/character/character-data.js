@@ -41,8 +41,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 			(tag) =>
 				tag.type === "powerTag" ||
 				tag.type === "themeTag" ||
-				tag.type === "backpack" ||
-				tag.type === "hero",
+				tag.type === "backpack"
 		);
 	}
 
@@ -53,16 +52,13 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get availablePowerTags() {
-		const hero = this.hero.filter(
-			(tag) => tag.isActive && !tag.isBurnt,
-		);
 		const backpack = this.backpack.filter(
 			(tag) => tag.isActive && !tag.isBurnt,
 		);
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.availablePowerTags);
-		return [...hero, ...backpack, ...themeTags];
+		return [...backpack, ...themeTags];
 	}
 
 	get statuses() {
@@ -77,6 +73,12 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 					name: item.name,
 				};
 			});
+	}
+
+	get availableRelationships() {
+		return this.hero.filter(
+			(tag) => tag.isActive,
+		);
 	}
 
 	get storyTags() {
