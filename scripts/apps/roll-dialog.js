@@ -168,7 +168,6 @@ export class LitmRollDialog extends FormApplication {
 	}
 
 	static #filterTags(tags) {
-		console.log("filter tags", tags);
 		const burnedTags = tags.filter((t) => t.state === "burned");
 		const powerTags = tags.filter(
 			(t) => t.type && t.type !== "crispy" !== "status" && t.state === "positive",
