@@ -140,6 +140,12 @@ export class LitmConfig {
 		greatness: "systems/litm/assets/media/greatness",
 	};
 
+	themeicon_src = {
+		origin: "systems/litm/assets/media/icons/origin",
+		adventure: "systems/litm/assets/media/icons/adventure",
+		greatness: "systems/litm/assets/media/icons/greatness",
+	};
+
 	tagStringRe = /(?!\b|\s)(?:\[|\{)([^\d\[\]{}]+)(?:[\s\-\:](\d+))?(?:\}|\])/gi;
 	sceneLinkRe = /@ActivateScene\[([^\]]+)\](?:\{([^\}]+)\})?/gi;
 }

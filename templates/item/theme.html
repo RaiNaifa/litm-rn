@@ -9,16 +9,32 @@
 		<img class="litm--theme-border-top" src="{{themesrc}}-theme-border-top.webp" aria-hidden="true" />
 		<div class="litm--theme-top-bg">
 			<div class="litm--theme-meta" style="--theme-src:url('/{{themesrc}}-theme-alt-bg-top.webp');">
+				<!-- <select class="litm--theme-meta-part" type="text" name="system.level" value="{{data.system.level}}">
+					{{selectOptions data.system.levels selected=data.system.level}}
+				</select> -->
+				<button class="litm--specials litm--specials-button" type="button" data-click="" data-tooltip="{{localize 'Specials'}}">
+					<img src="systems/litm/assets/media/icons/special_icn.svg" alt="Specials" />
+				</button>
+				<div class="litm--image-dropdown" data-name="system.level">
+					<input type="hidden" name="system.level" value="{{data.system.level}}" />
+
+					<div class="selected-image" data-click="open-levels" title="{{lookup data.system.levels data.system.level}}">
+						<img src="{{themeiconsrc}}_litm_icn.svg" alt="Выбор мощи" />
+						<i class="fas fa-angle-down"></i>
+					</div>
+
+					<div class="dropdown-options">
+						{{#each data.system.levels as |level key|}}
+							<div class="image-option" data-click="select-level" data-value="{{key}}" title="{{level}}">
+								<img src="systems/litm/assets/media/icons/{{key}}-color_litm_icn.svg" alt="{{label}}" />
+								<span>{{level}}</span>
+							</div>
+						{{/each}}
+					</div>
+				</div>
+
 				<input list="litm--themebook" class="litm--theme-meta-part" type="text" name="system.themebook" data-size-input
 					value="{{data.system.themebook}}" />
-				<select class="litm--theme-meta-part" type="text" name="system.level" value="{{data.system.level}}">
-					{{selectOptions data.system.levels selected=data.system.level}}
-				</select>
-			</div>
-			<div class="litm--theme-legend">
-				<span>{{localize "Litm.tags.power"}}
-					{{localize "Litm.other.tags"}}</span><span>・</span><span>{{localize "Litm.tags.weakness"}}
-					{{localize "Litm.other.tag"}}</span>
 			</div>
 			<div class="litm--theme-title">
 				<!-- isActive checkbox -->

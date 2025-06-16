@@ -31,13 +31,16 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		const themesrc =
 			CONFIG.litm.theme_src[data.system.level] ||
 			`systems/litm/assets/media/${fallbackSrc}`;
+		const themeiconsrc =
+			CONFIG.litm.themeicon_src[data.system.level] ||
+			`systems/litm/assets/media/icons/${fallbackSrc}`;
 
-		return { data, themesrc, ...rest };
+		return { data, themesrc, themeiconsrc, ...rest };
 	}
 
 	activateListeners(html) {
 		super.activateListeners(html);
-
+	
 		html.find("[data-click]").click(this.#handleClicks.bind(this));
 		html.find("[data-context").contextmenu(this.#handleContextmenu.bind(this));
 	}
@@ -75,6 +78,12 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			case "increase":
 				this.#increase(id);
 				break;
+			case "open-levels":
+				this.#openlevels(event);
+				break;
+			case "select-level":
+				this.#selectlevel(event);
+				break;
 		}
 	}
 
@@ -87,6 +96,47 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 				this.#decrease(id);
 				break;
 		}
+	}
+
+	#handleCloseLevels = (event) => {
+		const $dropdown = $(".litm--image-dropdown.open");
+		const $icon = $dropdown.find(".selected-image i.fas");
+		const dropdown = $dropdown[0];
+		if (!dropdown.contains(event.target)) {
+			$dropdown.removeClass("open");
+			$icon.toggleClass("fa-angle-down fa-angle-up");
+			$(document).off("click", this.#handleCloseLevels);
+		}
+	};
+
+	#openlevels(event) {
+		const dropdown = event.currentTarget.closest(".litm--image-dropdown");
+		const $dropdown = $(dropdown);
+		const $icon = $dropdown.find(".selected-image i.fas");
+
+		$dropdown.toggleClass("open");
+		$icon.toggleClass("fa-angle-down fa-angle-up");
+
+		const isOpen = $dropdown.hasClass("open");
+		if (isOpen) {
+			$(document).on("click", this.#handleCloseLevels);
+		} else {
+			$(document).off("click", this.#handleCloseLevels);
+		}
+
+	}
+
+	async #selectlevel(event) {
+			const $option = $(event.currentTarget);
+			const value = $option.data("value");
+
+			const $dropdown = $option.closest(".litm--image-dropdown");
+			const $input = $dropdown.find("input[type=hidden]");
+
+			$input.val(value);
+
+			await this._onSubmit(event);
+			await this.render();
 	}
 
 	async #addTag() {
