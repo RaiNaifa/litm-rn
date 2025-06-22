@@ -51,6 +51,20 @@ export class ThemeData extends foundry.abstract.TypeDataModel {
 					validate: (tags) => tags.length === 2,
 				},
 			),
+			specials: new fields.ArrayField(
+				new fields.EmbeddedDataField(abstract.SpecialData),
+				{
+					initial: () =>
+						Array(2)
+							.fill()
+							.map(() => ({
+								id: foundry.utils.randomID(),
+								name: t("Litm.ui.name-special"),
+								description: t("Litm.ui.name-special-description"),
+								isActive: true,
+							})),
+				}
+			),
 			improve: new fields.NumberField({
 				integer: true,
 				min: 0,
@@ -74,6 +88,10 @@ export class ThemeData extends foundry.abstract.TypeDataModel {
 			}),
 			note: new fields.HTMLField({
 				initial: t("Litm.ui.name-note"),
+			}),
+			backside: new fields.BooleanField({
+				required: true,
+				initial: false,
 			}),
 		};
 	}

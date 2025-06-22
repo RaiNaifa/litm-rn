@@ -2,7 +2,14 @@
 	<img width="270px" class="litm--hero-bg-frame" src="systems/litm/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--hero-bg">
-		<div class="meta">{{localize 'Litm.other.hero-card'}}</div>
+		<div class="meta">
+			<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
+				data-tooltip="{{localize 'Specials'}}">
+				<img src="systems/litm/assets/media/icons/{{ifThen backside 'special_icn.svg' 'special-front_icn.svg'}}"
+					alt="Specials" class="litm--specials-backside"/>
+			</button>
+			{{localize 'Litm.other.hero-card'}}
+		</div>
 		<input class="title" name="name" value="{{name}}" />
 		<ul class="taglist">
 			{{#each hero as |tag|}}

@@ -137,14 +137,19 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const backpack = {
 			name: this.items.find((i) => i.type === "backpack")?.name,
 			id: this.items.find((i) => i.type === "backpack")?._id,
-			contents: this.system.backpack
+			backside: this.system.backpack.backside,
+			contents: this.system.backpack.contents
+				.sort((a, b) => a.name.localeCompare(b.name))
+				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+			specials: this.system.backpack.specials
 				.sort((a, b) => a.name.localeCompare(b.name))
 				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
 		const hero = {
 			name: this.items.find((i) => i.type === "hero")?.name,
 			id: this.items.find((i) => i.type === "hero")?._id,
-			contents: this.system.hero
+			backside: this.system.hero.backside,
+			contents: this.system.hero.contents
 				.sort((a, b) => a.name.localeCompare(b.name))
 				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
@@ -369,6 +374,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			case "select":
 				this.#select(event);
+				break;
+			case "toggle-backside":
+				this.#toggleBackside(id);
 				break;
 		}
 	}
@@ -614,6 +622,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			}),
 		);
 		backpack.sheet.render(true);
+	}
+
+	async #toggleBackside(id) {
+		const item = this.items.find((i) => i.id === id);
+		const backside = this.items.get(id).system.backside;
+
+		await item.update({ "system.backside": !backside });
 	}
 
 	async #handleUpdateEmbeddedItems(formData) {

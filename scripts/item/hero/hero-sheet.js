@@ -20,7 +20,11 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 
 	/** @override */
 	async getData() {
-		return { hero: this.system.contents, name: this.item.name };
+		return {
+			hero: this.system.contents,
+			name: this.item.name,
+			backside: this.system.backside,
+		};
 	}
 
 	activateListeners(html) {
@@ -57,6 +61,9 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			case "add-tag":
 				this.#addTag();
 				break;
+			case "toggle-backside":
+				this.#toggleBackside();
+				break;
 		}
 	}
 
@@ -86,12 +93,17 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		return this.item.update({ "system.contents": contents });
 	}
 
+	#toggleBackside() {
+		const backside = !this.system.backside;
+
+		return this.item.update({ "system.backside": backside });
+	}
+
 	async #removeTag(button) {
 		if (!(await confirmDelete("Litm.tags.relationship"))) return;
 
-		const index = button.dataset.id;
-		const contents = this.system.contents;
-		contents.splice(index, 1);
+		const id = button.dataset.id;
+		const contents = this.system.contents.filter((t) => t.id !== id);
 
 		return this.item.update({ "system.contents": contents });
 	}

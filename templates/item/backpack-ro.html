@@ -4,12 +4,26 @@
 	<img width="250px" class="litm--backpack-bg-frame" src="systems/litm/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--backpack-bg" data-context="menu">
-		<!-- <div class="meta">{{localize 'Litm.tags.item-tags'}}</div> -->
-		<div class="meta">{{backpack.name}}</div>
-		<ul class="taglist">
-			{{#each backpack.contents as |tag|}}
-				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../backpack.id ".system.contents") embedded=true remove=false}}
+		<div class="meta">
+			<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
+				data-type="backpack" data-id="{{backpack.id}}" data-tooltip="{{localize 'Specials'}}">
+				<img src="systems/litm/assets/media/icons/{{ifThen backpack.backside 'special_icn.svg' 'special-front_icn.svg'}}"
+					alt="Specials" class="litm--specials-backside"/>
+			</button>
+			{{backpack.name}}
+		</div>
+		{{#if backpack.backside}}
+			<ul class="taglist back">
+			{{#each backpack.specials as |special|}}
+				{{> systems/litm/templates/partials/special.html special=special key=@key path=(concat "items." ../backpack.id ".system.specials") embedded=true remove=false}}
 			{{/each}}
-		</ul>
+			</ul>
+		{{else}}
+			<ul class="taglist front">
+				{{#each backpack.contents as |tag|}}
+					{{> systems/litm/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../backpack.id ".system.contents") embedded=true remove=false}}
+				{{/each}}
+			</ul>
+		{{/if}}
 	</div>
 </div>

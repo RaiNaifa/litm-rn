@@ -1,0 +1,29 @@
+<li {{#if remove}}data-context="remove-special" {{/if}} data-id="{{special.id}}"
+	class="litm--theme-tag {{#if embedded}}embedded{{/if}}">
+	<!-- Tags embedded in the character sheet have different functionality -->
+	{{#if embedded}}
+		<!-- Select Special button -->
+		<button type="button" class="litm--theme-tag-button" data-id="{{special.id}}" data-tooltip="tooltip">
+			<!-- isActive indicator -->
+			<span class="litm--checkbox litm--checkbox-with-bg {{checked special.isActive}}"></span>
+			<!-- Name -->
+			<span class="special--name">{{special.name}}</span>
+			<!-- Description -->
+			<span class="special--description">{{special.description}}</span>
+		</button>
+	{{else}}
+		<!-- Tag functionality in Items -->
+		<!-- isActive checkbox -->
+		<label data-tooltip="{{localize (tagActiveString special false)}}"><span
+				class="litm--sro">{{localize "Litm.tags.isActive"}}</span>
+			<input class="litm--checkbox litm--checkbox-with-bg" type="checkbox" name="{{path}}.{{key}}.isActive"
+				{{checked special.isActive}} />
+		</label>
+		<!-- Name input -->
+		<input class="tag--name" type="text" name="{{path}}.{{key}}.name" value="{{special.name}}">
+		<!-- Description -->
+		<input class="special--description" type="text" name="{{path}}.{{key}}.description"
+			value="{{special.description}}">
+		<input type="hidden" name="{{path}}.{{key}}.id" value="{{special.id}}">
+	{{/if}}
+</li>

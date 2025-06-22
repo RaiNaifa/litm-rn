@@ -18,18 +18,18 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	get backpack() {
 		const backpack = this.parent.items.find((item) => item.type === "backpack");
 		if (!backpack) return [];
-		return backpack.system.contents;
+		return backpack.system;
 	}
 
 	get hero() {
 		const hero = this.parent.items.find((item) => item.type === "hero");
 		if (!hero) return [];
-		return hero.system.contents;
+		return hero.system;
 	}
 
 	get allTags() {
 		const hero = this.hero;
-		const backpack = this.backpack;
+		const backpack = this.backpack.contents;
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.allTags);
@@ -52,7 +52,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get availablePowerTags() {
-		const backpack = this.backpack.filter(
+		const backpack = this.backpack.contents.filter(
 			(tag) => tag.isActive && !tag.isBurnt,
 		);
 		const themeTags = this.parent.items
@@ -76,7 +76,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get availableRelationships() {
-		return this.hero.filter(
+		return this.hero.contents.filter(
 			(tag) => tag.isActive,
 		);
 	}
@@ -119,7 +119,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		}
 
 		// Make sure only one backpack is present
-		const backpacks = this.parent.items.filter(
+		const backpacks = this.parent.items.contents.filter(
 			(item) => item.type === "backpack",
 		);
 		if (backpacks.length > 1) {

@@ -11,6 +11,7 @@ import { SuperCheckbox } from "./scripts/components/super-checkbox.js";
 import { ToggledInput } from "./scripts/components/toggled-input.js";
 import { TagData } from "./scripts/data/abstract.js";
 import { RelationshipData } from "./scripts/data/abstract.js";
+import { SpecialData } from "./scripts/data/abstract.js";
 import { BackpackData } from "./scripts/item/backpack/backpack-data.js";
 import { BackpackSheet } from "./scripts/item/backpack/backpack-sheet.js";
 import { HeroData } from "./scripts/item/hero/hero-data.js";
@@ -46,6 +47,7 @@ Hooks.once("init", () => {
 		data: {
 			TagData,
 			RelationshipData,
+			SpecialData,
 		},
 		methods: {
 			calculatePower: LitmRollDialog.calculatePower,

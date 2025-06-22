@@ -57,3 +57,29 @@ export class RelationshipData extends foundry.abstract.DataModel {
 		};
 	}
 }
+
+export class SpecialData extends foundry.abstract.DataModel {
+	static defineSchema() {
+		const fields = foundry.data.fields;
+		return {
+			id: new fields.StringField({
+				required: true,
+				nullable: false,
+				validate: (id) => foundry.data.validators.isValidId(id),
+				initial: () => foundry.utils.randomID(),
+			}),
+			name: new fields.StringField({
+				required: true,
+				nullable: false,
+			}),
+			description: new fields.StringField({
+				required: true,
+				nullable: false,
+			}),
+			isActive: new fields.BooleanField({
+				required: true,
+				initial: false,
+			}),
+		};
+	}
+}

@@ -22,6 +22,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		data.system.weakness = this.system.weakness;
 		data.system.levels = this.system.levels;
 		data.system.themebooks = this.system.themebooks;
+		data.system.backside = this.system.backside;
 
 		const fallbackSrc = ["origin", "adventure", "greatness"].includes(
 			data.system.level,
@@ -69,11 +70,14 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		const action = t.dataset.click;
 		const id = t.dataset.id;
 		switch (action) {
-			case "add-tag":
-				this.#addTag();
+			case "add-power-tag":
+				this.#addTag("powerTag");
 				break;
-			case "remove-tag":
-				this.#removeTag(id);
+			case "add-weakness-tag":
+				this.#addTag("weaknessTag");
+				break;
+			case "add-special":
+				this.#addSpecial();
 				break;
 			case "increase":
 				this.#increase(id);
@@ -84,24 +88,39 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			case "select-level":
 				this.#selectlevel(event);
 				break;
+			case "toggle-backside":
+				this.#toggleBackside();
+				break;
 		}
 	}
 
 	#handleContextmenu(event) {
-		const t = event.currentTarget;
-		const action = t.dataset.context;
-		const id = t.dataset.id;
+		const button = event.currentTarget;
+		const action = button.dataset.context;
+		const id = button.dataset.id;
+
 		switch (action) {
 			case "decrease":
 				this.#decrease(id);
+				break;
+			case "remove-power-tag":
+				this.#removeTag(button, "powerTag");
+				break;
+			case "remove-weakness-tag":
+				this.#removeTag(button, "weaknessTag");
+				break;
+			case "remove-special":
+				this.#removeSpecial(button);
 				break;
 		}
 	}
 
 	#handleCloseLevels = (event) => {
 		const $dropdown = $(".litm--image-dropdown.open");
-		const $icon = $dropdown.find(".selected-image i.fas");
 		const dropdown = $dropdown[0];
+		if (!dropdown) return;
+
+		const $icon = $dropdown.find(".selected-image i.fas");
 		if (!dropdown.contains(event.target)) {
 			$dropdown.removeClass("open");
 			$icon.toggleClass("fa-angle-down fa-angle-up");
@@ -123,7 +142,6 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		} else {
 			$(document).off("click", this.#handleCloseLevels);
 		}
-
 	}
 
 	async #selectlevel(event) {
@@ -139,13 +157,56 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			await this.render();
 	}
 
-	async #addTag() {
-		throw new Error("Not implemented");
+	async #addTag(type) {
+		const item = {
+			name: t("Litm.ui.name-tag"),
+			isActive: false,
+			isBurnt: false,
+			type: type,
+			id: foundry.utils.randomID(),
+		};
+
+		const tags = this.system[`${type}s`];
+		tags.push(item);
+
+		await this.item.update({ [`system.${type}s`]: tags });
 	}
 
-	async #removeTag(_) {
+	async #removeTag(button, type) {
 		if (!(await confirmDelete("Litm.other.tag"))) return;
-		throw new Error("Not implemented");
+		const id = button.dataset.id;
+		const tags = this.system[`${type}s`].filter((t) => t.id !== id);
+
+		await this.item.update({ [`system.${type}s`]: tags });
+	}
+
+	async #addSpecial() {
+		const item = {
+			name: t("Litm.ui.name-special"),
+			description: t("Litm.ui.name-special-description"),
+			isActive: true,
+			id: foundry.utils.randomID(),
+		};
+
+		const specials = this.system.specials;
+		specials.push(item);
+
+		await this.item.update({ "system.specials": specials });
+	}
+
+	async #removeSpecial(button) {
+		if (!(await confirmDelete("Litm.other.special"))) return;
+
+		const id = button.dataset.id;
+		const specials = this.system.specials.filter((t) => t.id !== id);
+
+		await this.item.update({ "system.specials": specials });
+	}
+
+	async #toggleBackside() {
+		const backside = !this.system.backside;
+
+		await this.item.update({ "system.backside": backside });
 	}
 
 	async #increase(field) {

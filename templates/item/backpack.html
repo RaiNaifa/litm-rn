@@ -4,13 +4,32 @@
 	<img width="270px" class="litm--backpack-bg-frame" src="systems/litm/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--backpack-bg">
-		<div class="meta">{{localize 'Litm.tags.item-tags'}}</div>
+		<div class="meta">
+			<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
+				data-tooltip="{{localize 'Specials'}}">
+				<img src="systems/litm/assets/media/icons/{{ifThen backside 'special_icn.svg' 'special-front_icn.svg'}}"
+					alt="Specials" class="litm--specials-backside"/>
+			</button>
+			{{localize 'Litm.tags.item-tags'}}
+		</div>
 		<input class="title" name="name" value="{{name}}" />
-		<ul class="taglist">
-			{{#each backpack as |tag|}}
-				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
-			{{/each}}
-		</ul>
-		<button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button>
+		{{#if backside}}
+			<ul class="taglist">
+				{{#each specials as |special|}}
+					{{> systems/litm/templates/partials/special.html special=special key=@key path="system.specials" readonly=false remove=true}}
+				{{/each}}
+			</ul>
+		{{else}}
+			<ul class="taglist">
+				{{#each backpack as |tag|}}
+					{{> systems/litm/templates/partials/tag.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
+				{{/each}}
+			</ul>
+		{{/if}}
+		{{#if backside}}
+			<button type="button" data-click="add-special">{{localize "Litm.ui.add-special"}}</button>
+		{{else}}
+			<button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button>
+		{{/if}}
 	</div>
 </form>

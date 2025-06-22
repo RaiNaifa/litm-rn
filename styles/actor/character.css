@@ -281,6 +281,14 @@
 			& .taglist {
 				height: 13.125rem;
 			}
+
+			& .meta {
+				&:nth-child(1) {
+						& img {
+								margin-left: 0px;
+						}
+				}
+			}
 		}
 
 		& #context-menu {
@@ -327,6 +335,14 @@
 
 			& .taglist {
 				height: 16.35rem;
+			}
+
+			& .meta {
+					&:nth-child(1) {
+							& img {
+									margin-left: 0px;
+							}
+					}
 			}
 		}
 

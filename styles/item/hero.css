@@ -51,6 +51,9 @@
 		width: 260px;
 		/* Change to ../../assets/media/hero-top-bg.webp */
 		& .meta {
+			display: grid;
+			grid-template-columns: 1fr auto 1fr;
+			align-items: center;
 			background: url(../../assets/media/backpack-top-bg.webp) no-repeat bottom
 				/ cover;
 			color: var(--litm-color-accent);
@@ -59,6 +62,20 @@
 			font-size: var(--font-size-12);
 			text-align: center;
 			padding: var(--litm-space-2) var(--litm-space-3);
+
+			&:nth-child(1) {
+				justify-self: start;
+				grid-column: 1;
+
+				& img {
+					margin-left: 12px;
+				}
+			}
+
+			&:nth-child(2) {
+				justify-self: center;
+				grid-column: 2;
+			}
 		}
 
 		& .title {

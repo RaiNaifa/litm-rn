@@ -9,46 +9,48 @@
 			<div class="litm--theme-meta" style="--theme-src:url('/{{themesrc}}-theme-alt-bg-top.webp');">
 				<!-- <span class="litm--theme-meta-part" style="--theme-src:url('{{themeiconsrc}}_litm_icn.svg')">{{localize data.system.level}}
 					{{localize "TYPES.Item.theme"}}</span> -->
-				<button class="litm--specials litm--specials-button" type="button" data-click="" data-tooltip="{{localize 'Specials'}}">
-					<img src="systems/litm/assets/media/icons/special_icn.svg" alt="Specials" />
+				<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
+					data-type="theme" data-id="{{data._id}}" data-tooltip="{{localize 'Specials'}}">
+					<img src="systems/litm/assets/media/icons/{{ifThen data.system.backside 'special_icn.svg' 'special-front_icn.svg'}}"
+					alt="Specials" class="litm--specials-backside"/>
 				</button>
 				<span class="litm--theme-meta-part">
 					<img class="" src="{{themeiconsrc}}_litm_icn.svg" aria-hidden="true" />
 				</span>
 				<span class="litm--theme-meta-part">{{data.system.themebook}}</span>
 			</div>
-			<!-- <div class="litm--theme-legend">
-				<span>{{localize "Litm.tags.power"}}
-					{{localize "Litm.other.tags"}}</span><span>・</span><span>{{localize "Litm.tags.weakness"}}
-					{{localize "Litm.other.tag"}}</span>
-			</div> -->
-			<button type="button" class="litm--theme-title" data-id="{{data._id}}" {{#if (includes @root.rollTags
-				data._id 'id' )}}data-selected{{/if}} {{#if data.system.isActive}}data-click="select"
-				data-tooltip="{{localize (ifThen data.system.isBurnt 'Litm.ui.toggle-burnt' 'Litm.ui.toggle-roll')}}" {{/if}}>
-				<!-- isActive checkbox -->
-				<span class="litm--sro">{{localize (tagActiveString data.system true)}}</span>
-				<span class="litm--checkbox litm--checkbox-with-bg {{checked data.system.isActive}}"></span>
-				<!-- Name input -->
-				<span class="litm--theme-name">{{data.name}}</span>
-				<!-- isBurnt checkbox -->
-				<span class="litm--sro">{{localize (ifThen data.system.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}</span>
-				<span class="litm--burn {{checked (or data.system.isBurnt (includes @root.burntTags data._id 'id'))}}"
-					aria-hidden="true"></span>
-			</button>
-			<ul class="litm--theme-tags">
-				{{#each data.system.powerTags as |tag|}} {{> systems/litm/templates/partials/tag.html
-				tag=tag key=@key path=(concat 'items.' ../data._id '.system.powerTags') embedded=true}}
+			<div class="litm--theme-front">
+				<button type="button" class="litm--theme-title" data-id="{{data._id}}" {{#if (includes @root.rollTags
+					data._id 'id' )}}data-selected{{/if}} {{#if data.system.isActive}}data-click="select"
+					data-tooltip="{{localize (ifThen data.system.isBurnt 'Litm.ui.toggle-burnt' 'Litm.ui.toggle-roll')}}" {{/if}}>
+					<!-- isActive checkbox -->
+					<span class="litm--sro">{{localize (tagActiveString data.system true)}}</span>
+					<span class="litm--checkbox litm--checkbox-with-bg {{checked data.system.isActive}}"></span>
+					<!-- Name input -->
+					<span class="litm--theme-name">{{data.name}}</span>
+					<!-- isBurnt checkbox -->
+					<span class="litm--sro">{{localize (ifThen data.system.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}</span>
+					<span class="litm--burn {{checked (or data.system.isBurnt (includes @root.burntTags data._id 'id'))}}"
+						aria-hidden="true"></span>
+				</button>
+				<ul class="litm--theme-tags">
+					{{#each data.system.powerTags as |tag|}} {{> systems/litm/templates/partials/tag.html
+					tag=tag key=@key path=(concat 'items.' ../data._id '.system.powerTags') embedded=true}}
+					{{/each}}
+				</ul>
+				<!-- Weakness -->
+				{{#each data.system.weakness as |tag|}}
+				<button type="button" class="litm--weakness" data-click="select"
+					data-tooltip="{{localize 'Litm.ui.toggle-non-burnable-tag'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
+					tag.id 'id' )}}data-selected{{/if}}>
+					<!-- Weakness Name -->
+					<span class="litm--weakness-part">{{tag.name}}</span>
+				</button>
 				{{/each}}
-			</ul>
-			<!-- Weakness -->
-			{{#each data.system.weakness as |tag|}}
-			<button type="button" class="litm--weakness" data-click="select"
-				data-tooltip="{{localize 'Litm.ui.toggle-non-burnable-tag'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
-				tag.id 'id' )}}data-selected{{/if}}>
-				<!-- Weakness Name -->
-				<span class="litm--weakness-part">{{tag.name}}</span>
-			</button>
-			{{/each}}
+			</div>
+			<div class="litm--theme-back">
+				<span class="litm--theme-title litm--theme-title-back">{{data.name}}</span>
+			</div>
 			<div class="litm--theme-progression">
 				<!-- Abandon buttons -->
 				<div data-click="increase" data-context="decrease" data-id="system.abandon"

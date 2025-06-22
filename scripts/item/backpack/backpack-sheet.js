@@ -20,7 +20,12 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 
 	/** @override */
 	async getData() {
-		return { backpack: this.system.contents, name: this.item.name };
+		return {
+			backpack: this.system.contents,
+			specials: this.system.specials,
+			backside: this.system.backside,
+			name: this.item.name,
+		};
 	}
 
 	activateListeners(html) {
@@ -57,6 +62,12 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			case "add-tag":
 				this.#addTag();
 				break;
+			case "add-special":
+				this.#addSpecial();
+				break;
+			case "toggle-backside":
+				this.#toggleBackside();
+				break;
 		}
 	}
 
@@ -67,6 +78,9 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		switch (action) {
 			case "remove-tag":
 				this.#removeTag(button);
+				break;
+			case "remove-special":
+				this.#removeSpecial(button);
 				break;
 		}
 	}
@@ -86,13 +100,39 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		return this.item.update({ "system.contents": contents });
 	}
 
+	#addSpecial() {
+		const item = {
+			name: t("Litm.ui.name-special"),
+			description: t("Litm.ui.name-special-description"),
+			isActive: true,
+			id: foundry.utils.randomID(),
+		};
+
+		const specials = this.system.specials;
+		specials.push(item);
+
+		return this.item.update({ "system.specials": specials });
+	}
+
+	#toggleBackside() {
+		const backside = !this.system.backside;
+
+		return this.item.update({ "system.backside": backside });
+	}
+
 	async #removeTag(button) {
 		if (!(await confirmDelete("Litm.other.tag"))) return;
-
-		const index = button.dataset.id;
-		const contents = this.system.contents;
-		contents.splice(index, 1);
+		const id = button.dataset.id;
+		const contents = this.system.contents.filter((t) => t.id !== id);
 
 		return this.item.update({ "system.contents": contents });
+	}
+
+	async #removeSpecial(button) {
+		if (!(await confirmDelete("Litm.other.special"))) return;
+		const id = button.dataset.id;
+		const specials = this.system.specials.filter((t) => t.id !== id);
+
+		return this.item.update({ "system.specials": specials });
 	}
 }
