@@ -98,7 +98,7 @@
 			flex-direction: column;
 			list-style: none;
 			margin: var(--litm-space-1) 0px 0px;
-			padding: var(--litm-space-2) var(--litm-space-3);
+			padding: var(--litm-space-2) var(--litm-space-1) var(--litm-space-2) var(--litm-space-3);
 			height: 100%;
 			overflow: auto;
 
@@ -146,6 +146,27 @@
 					cursor: pointer;
 				}
 			}
+
+			& li.litm--special {
+				display: grid;
+				gap: 0;
+				grid-template-columns: auto 1fr;
+				grid-template-rows: auto auto;
+
+				& .litm--special-sro {
+					grid-column: 1;
+					grid-row: 1;
+					align-self: start;
+				}
+				& .litm--special-name {
+					grid-column: 2;
+					grid-row: 1;
+					align-self: start;
+				}
+				& .litm--special-description {
+					grid-column: 1 / -1;
+					grid-row: 2;
+				}
 		}
 
 		& button[data-click="add-tag"], button[data-click="add-special"] {

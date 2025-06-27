@@ -76,6 +76,50 @@
 	}
 }
 
+:where(.litm--checkbox-with-bg.litm--special-checkbox),
+.app.litm.litm :where(.litm--checkbox-with-bg.litm--special-checkbox) {
+	background: url("../assets/media/special-checkbox.svg") no-repeat;
+
+	&.checked,
+	&:checked {
+		background-image: url("../assets/media/special-checkbox-c.svg");
+	}
+}
+
+:where(.litm--checkbox-with-bg),
+.app.litm.litm :where(.litm--checkbox-with-bg) {
+	background: url("../assets/media/checkbox.svg") no-repeat;
+	height: 1.1em;
+	width: 1.1em;
+	background-size: contain;
+	background-position: center;
+	border: none;
+	rotate: 0deg;
+	position: relative;
+
+	&.checked,
+	&:checked {
+		background-image: url("../assets/media/checkbox-c.svg");
+	}
+
+	&::after {
+		display: none;
+	}
+
+	&:disabled {
+		cursor: auto;
+	}
+}
+
+:where(.litm--checkbox-with-bg.litm--special-checkbox),
+.app.litm.litm :where(.litm--checkbox-with-bg.litm--special-checkbox) {
+	background: url("../assets/media/special-checkbox.svg") no-repeat;
+		&.checked,
+	&:checked {
+		background-image: url("../assets/media/special-checkbox-c.svg");
+	}
+}
+
 :where(.litm--burn),
 .app.litm.litm :where(.litm--burn) {
 	-webkit-appearance: none;
@@ -303,6 +347,54 @@ litm-toggled-input {
 			filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 		}
 	}
+}
+
+li.litm--special {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-rows: auto auto;
+	gap: 0;
+	align-items: start;
+	margin-right: 4px;
+
+	& .litm--special--sro {
+		grid-column: 1;
+		grid-row: 1;
+		/* align-self: start; */
+	}
+	& label:has(.litm--special-sro) {
+		margin-right: var(--litm-space-3);
+	}
+	& .litm--special-name {
+		grid-column: 2;
+		grid-row: 1;
+		/* align-self: start; */
+	}
+	& .litm--special-description {
+		grid-column: 1 / -1; /* занимает всю ширину */
+		grid-row: 2;
+
+		text-align: center;
+		border: none;
+		border-radius: 0px;
+		padding-block: var(--litm-space-2);
+		min-height: var(--font-size-14);
+		height: auto;
+		background-color: transparent;
+		font-family: var(--litm-font-text);
+		color: var(--litm-color-primary);
+		width: 100%;
+
+		&:focus,
+		&:active {
+			box-shadow: none;
+		}
+
+		&:read-only {
+			cursor: auto;
+		}
+	}
+
 }
 
 /* Experimental Features */

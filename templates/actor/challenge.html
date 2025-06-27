@@ -49,7 +49,7 @@
 		<span class="litm--challenge-name" role="textbox" contenteditable
 			data-input="name">{{data.name}}</span>
 		<label class="litm--sro" for="note">{{localize "Notes"}}</label>
-		{{editor data.system.note target="system.note" owner=owner button=true editable=true}}
+		{{editor data.system.note target="system.note" owner=owner button=true editable=true engine="prosemirror"}}
 		{{> divider title="Litm.other.limits" add="limit"}}
 		<ul class="litm--challenge-limits">
 			{{#each data.system.limits as |limit|}}
@@ -84,7 +84,7 @@
 			{{/if}}
 		</div>
 		{{> divider title="Litm.ui.special-features"}}
-		{{editor data.system.special target="system.special" owner=owner button=true editable=true}}
+		{{editor data.system.special target="system.special" owner=owner button=true editable=true engine="prosemirror"}}
 		{{> divider title="Litm.ui.threats-consequences" add="threat"}}
 		<ul class="litm--challenge-threats item-list">
 			{{#each data.items as |item|}}

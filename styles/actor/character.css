@@ -473,7 +473,7 @@
 
 		& .litm--theme-title,
 		& .litm--weakness {
-			width: auto;
+			width: -webkit-fill-available;
 			padding: 0px;
 			position: relative;
 		}
@@ -643,6 +643,46 @@
 			cursor: pointer;
 			opacity: 1;
 		}
+	}
+
+	& li.litm--special {
+
+		& .litm--special-button {
+			display: block;
+			width: 100%;
+			padding: 0.5rem;
+			border: none;
+			background: none;
+			text-align: left;
+			font: inherit;
+			line-height: 1.4;
+			border-top: 1.5px solid rgb(0, 0, 0, 0.2);
+			border-image: url("../../assets/media/item-divider.webp") 14 / 2;
+
+			& .litm--special-inline {
+				display: inline;
+				white-space: nowrap;
+			}
+			& .litm--special-checkbox {
+				display: inline-block;
+				vertical-align: middle;
+				margin-right: 0.5rem;
+			}
+			& .litm--special-name {
+				display: inline-block;
+				font-weight: bold;
+				margin-right: 0.25rem;
+
+				&::after {
+					content: ":";
+				}
+			}
+			& .litm--special-description {
+				display: inline;
+				overflow-wrap: anywhere;
+			}
+		}
+
 	}
 
 	& [data-selected] {

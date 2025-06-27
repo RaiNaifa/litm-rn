@@ -24,7 +24,7 @@ export class BackpackData extends foundry.abstract.TypeDataModel {
 			),
 			backside: new fields.BooleanField({
 				required: true,
-				initial: true,
+				initial: false,
 			}),
 		};
 	}

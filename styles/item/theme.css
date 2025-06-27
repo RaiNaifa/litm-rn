@@ -316,6 +316,7 @@
 
 		& .litm--theme-bottom-bg {
 			height: 94%;
+			min-height: 120px;
 			margin: 0px 12px 0px 4px;
 			display: flex;
 			flex-direction: column;
@@ -375,12 +376,21 @@
 			font-size: var(--font-size-14);
 			letter-spacing: 1px;
 			text-align: center;
-			line-height: 1.45;
+			line-height: 1.5em;
 			overflow: hidden;
 			overflow: clip;
 
 			& .editor {
 				padding: 0px 16px 1.5rem;
+
+				& .editor-menu button {
+					color: var(--litm-color-accent);
+				}
+
+				& .editor-container {
+					min-height: 1.5em;
+					color: var(--litm-color-accent);
+				}
 			}
 
 			& [role="application"] {

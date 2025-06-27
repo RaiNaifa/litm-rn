@@ -63,6 +63,16 @@ body {
 		--color-level-error: rgba(105, 0, 8, 0.8);
 		--color-level-warning: rgba(214, 150, 0, 0.8);
 	}
+
+	&:has(.motivation:hover) #tooltip {
+		color: var(--litm-color-primary-bg);
+		-webkit-font-smoothing: antialiased;
+		font-family: var(--litm-font-text);
+		font-size: var(--font-size-14);
+		letter-spacing: 1px;
+		text-align: center;
+		line-height: 1.5em;
+	}
 }
 
 .app.litm,
@@ -141,18 +151,43 @@ body {
 		min-height: 100px;
 		height: 100%;
 
-		& .tox.tox-tinymce .tox-edit-area__iframe {
-			background-color: #fff;
+		& .editor-container {
+			background: var(--menu-background);
+	    border-radius: 6px;
 		}
 
-		blockquote {
-			border: none;
-			padding: 0px;
-			font-family: var(--litm-font-accent);
-			color: var(--litm-color-weakness);
+		& .editor-content {
 			font-size: var(--font-size-14);
-			margin: 0.8em 0px;
+
+			&:not([contenteditable]) {
+				padding: 0 6px 0 12px;
+	
+			}
 		}
+	}
+
+	& .prosemirror,
+	prose-mirror {
+		margin: 1em 0.3em 1em 1em;
+	}
+
+	& .prosemirror .editor-container,
+	prose-mirror .editor-container {
+		flex: unset;
+		max-height: 200px;
+		overflow: overlay;
+	}
+
+	& .prosemirror .editor-content,
+	prose-mirror .editor-content {
+		position: relative;
+		padding-left: 0.3rem;
+	}
+
+	& .prosemirror menu,
+	prose-mirror menu {
+		gap: 2px;
+		padding: 8px 0 8px 0;
 	}
 }
 

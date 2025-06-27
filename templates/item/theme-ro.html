@@ -48,9 +48,9 @@
 				</button>
 				{{/each}}
 			</div>
-			<div class="litm--theme-back">
+			<!-- <div class="litm--theme-back">
 				<span class="litm--theme-title litm--theme-title-back">{{data.name}}</span>
-			</div>
+			</div> -->
 			<div class="litm--theme-progression">
 				<!-- Abandon buttons -->
 				<div data-click="increase" data-context="decrease" data-id="system.abandon"
@@ -113,15 +113,15 @@
 	<div class="litm--theme-bottom">
 		<img class="litm--theme-border-bottom" src="{{themesrc}}-theme-border-bottom.webp" aria-hidden="true" />
 		<div class="litm--theme-bottom-bg" style="--theme-src:url('/{{themesrc}}-theme-bg-bottom.webp');">
-			<div class="motivation">
+			<div class="motivation" data-tooltip="{{data.system.note}}">
 				<span role="textbox">{{data.system.motivation}}</span>
 				<input type="hidden" name="items.{{data._id}}.system.motivation" value="{{data.system.motivation}}" />
 			</div>
-			<div class="note">
+			<!-- <div class="note">
 				{{editor data.system.note target='items.{{data._id}}.system.note' owner=owner
-				editable=false}}
+				editable=false engine="prosemirror"}}
 				<input type="hidden" name="items.{{data._id}}.system.note" value="{{data.system.note}}" />
-			</div>
+			</div> -->
 		</div>
 	</div>
 </div>

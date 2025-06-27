@@ -8,7 +8,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		width: 250,
 		height: 350,
 		left: window.innerWidth / 2 - 250,
-		top: window.innerHeight / 2 - 250,
+		top: window.innerHeight / 2 - 350,
 		scrollY: [".taglist", ".editor"],
 		resizable: false,
 	});
@@ -139,19 +139,19 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			id: this.items.find((i) => i.type === "backpack")?._id,
 			backside: this.system.backpack.backside,
 			contents: this.system.backpack.contents
-				.sort((a, b) => a.name.localeCompare(b.name))
-				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+				?.sort((a, b) => a.name.localeCompare(b.name))
+				?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 			specials: this.system.backpack.specials
-				.sort((a, b) => a.name.localeCompare(b.name))
-				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+				?.sort((a, b) => a.name.localeCompare(b.name))
+				?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
 		const hero = {
 			name: this.items.find((i) => i.type === "hero")?.name,
 			id: this.items.find((i) => i.type === "hero")?._id,
 			backside: this.system.hero.backside,
 			contents: this.system.hero.contents
-				.sort((a, b) => a.name.localeCompare(b.name))
-				.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+				?.sort((a, b) => a.name.localeCompare(b.name))
+				?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
 		return {
 			...this.object.system,
@@ -609,7 +609,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		// Add the loot to the backpack
 		await backpack.update({
-			"system.contents": [...this.system.backpack, ...loot],
+			"system.contents": [...this.system.backpack.contents, ...loot],
 		});
 		// Remove the loot from the item
 		await item.update({

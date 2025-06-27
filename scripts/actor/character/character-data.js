@@ -33,7 +33,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.allTags);
-		return [...hero, ...backpack, ...themeTags];
+		return [...hero.contents, ...backpack, ...themeTags];
 	}
 
 	get powerTags() {
