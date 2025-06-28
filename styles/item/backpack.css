@@ -97,8 +97,8 @@
 			display: flex;
 			flex-direction: column;
 			list-style: none;
-			margin: var(--litm-space-1) 0px 0px;
-			padding: var(--litm-space-2) var(--litm-space-1) var(--litm-space-2) var(--litm-space-3);
+			margin: var(--litm-space-1) 4px 0px 0px;
+			padding: var(--litm-space-1) var(--litm-space-1) var(--litm-space-2) var(--litm-space-3);
 			height: 100%;
 			overflow: auto;
 
@@ -107,6 +107,8 @@
 				align-items: center;
 				gap: var(--litm-space-3);
 				color: var(--litm-color);
+				border-top: 1.5px solid rgb(0, 0, 0, 0.2);
+				border-image: url("../../assets/media/item-divider.webp") 14 / 2;
 
 				&:nth-child(odd) {
 					background-image: linear-gradient(
@@ -128,8 +130,6 @@
 					font-family: var(--litm-font-text);
 					color: var(--litm-color-primary);
 					width: 100%;
-					border-top: 1.5px solid rgb(0, 0, 0, 0.2);
-					border-image: url("../../assets/media/item-divider.webp") 14 / 2;
 
 					&:focus,
 					&:active {

@@ -3,7 +3,11 @@
 	<!-- Tags embedded in the character sheet have different functionality -->
 	{{#if embedded}}
 		<!-- Select Special button -->
-		<button type="button" class="litm--special-button" data-id="{{special.id}}" data-tooltip="tooltip">
+		<button type="button" class="litm--special-button" data-id="{{special.id}}" data-tooltip="tooltip"
+			{{#if (includes @root.rollTags special.id 'id')}}data-selected{{/if}} {{#if special.isActive}}data-click="select"
+			{{/if}}
+			{{#if special.isActive}}data-tooltip="{{localize ('Litm.ui.toggle-roll')}}"
+			{{/if}}>
 			<div class="litm--special-inline">
 				<!-- isActive indicator -->
 				<span class="litm--checkbox litm--checkbox-with-bg litm--special-checkbox {{checked special.isActive}}"></span>

@@ -159,6 +159,12 @@
 				display: flex;
 				cursor: pointer;
 			}
+
+			& :where(.litm--checkbox-with-bg),
+			.app.litm.litm :where(.litm--checkbox-with-bg) {
+				height: 1.1rem;
+				width: 1.1rem;
+			}
 		}
 
 		& .litm--theme-tags {
@@ -411,9 +417,8 @@
 		width: max-content !important;
 
 		& img {
-			width: 26px;
-			height: 26px;
-			color: white;
+			width: 30px;
+			height: 30px;
 		}
 	}
 }
@@ -436,6 +441,10 @@
 .litm--image-dropdown .selected-image img {
 	width: 26px;
 	height: 26px;
+}
+
+.litm--image-dropdown .selected-image i {
+	color: var(--litm-color-accent);
 }
 
 .litm--image-dropdown .dropdown-options {
