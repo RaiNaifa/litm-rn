@@ -80,7 +80,7 @@
 
 		& .title {
 			color: var(--litm-color);
-			font-size: var(--font-size-32);
+			font-size: var(--font-size-28);
 			font-family: var(--litm-font-accent);
 			text-align: center;
 			background: none;
@@ -97,7 +97,7 @@
 			display: flex;
 			flex-direction: column;
 			list-style: none;
-			margin: var(--litm-space-1) 4px 0px 0px;
+			margin: 0 4px 0px 0px;
 			padding: var(--litm-space-1) var(--litm-space-1) var(--litm-space-2) var(--litm-space-3);
 			height: 100%;
 			overflow: auto;

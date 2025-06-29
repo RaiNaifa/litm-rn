@@ -28,12 +28,12 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get allTags() {
-		const hero = this.hero;
+		const hero = this.hero.contents;
 		const backpack = this.backpack.contents;
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.allTags);
-		return [...hero.contents, ...backpack, ...themeTags];
+		return [...hero, ...backpack, ...themeTags];
 	}
 
 	get powerTags() {

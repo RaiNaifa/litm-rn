@@ -104,8 +104,17 @@
 		"progress": {
       "abandon": "Abandon",
       "improve": "Improve",
-      "milestone": "Milestone"
+      "milestone": "Milestone",
+      "promise": "Promise"
     },
+		"fulfillment": {
+			"journeys-end": "Arrive at Journey’s End",
+			"reforged": "Be Reforged",
+			"quintessence": "Gain a Quintessence",
+			"magic": "Shake The Foundations Of Magic",
+			"words-eternal": "Speak Words Eternal",
+			"lost-truths": "Unearth Lost Truths"
+		},
 		"name": "Legend in the Mist",
 		"other": {
 			"action": "Action",

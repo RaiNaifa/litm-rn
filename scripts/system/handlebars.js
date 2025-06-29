@@ -59,6 +59,7 @@ export class HandlebarsPartials {
 		"systems/litm/templates/partials/tag.html",
 		"systems/litm/templates/partials/special.html",
 		"systems/litm/templates/partials/relationship.html",
+		"systems/litm/templates/partials/fulfillment.html",
 	];
 
 	static register() {

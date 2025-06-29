@@ -22,7 +22,7 @@ export class TagData extends foundry.abstract.DataModel {
 			}),
 			type: new fields.StringField({
 				required: true,
-				choices: ["weaknessTag", "powerTag", "backpack", "hero", "themeTag"],
+				choices: ["weaknessTag", "powerTag", "backpack", "hero", "themeTag", "fulfillment"],
 			}),
 		};
 	}

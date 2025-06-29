@@ -282,6 +282,19 @@
 				height: 13.125rem;
 			}
 
+			& .taglist.litm--hero-backside {
+				& .litm--theme-tag-button {
+					&:checked,
+					&.checked {
+						opacity: 1;
+					}
+				}
+
+				& .tag--name {
+					padding-block: 1px;
+				}
+			}
+
 			& .meta {
 				&:nth-child(1) {
 						& img {
@@ -289,6 +302,12 @@
 						}
 				}
 			}
+		}
+
+		& .litm--hero-progression {
+			position: absolute;
+			bottom: 0;
+			width: 100%;
 		}
 
 		& #context-menu {

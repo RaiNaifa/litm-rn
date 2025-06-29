@@ -11,11 +11,32 @@
 			{{localize 'Litm.other.hero-card'}}
 		</div>
 		<input class="title" name="name" value="{{name}}" />
-		<ul class="taglist">
-			{{#each hero as |tag|}}
-				{{> systems/litm/templates/partials/relationship.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
-			{{/each}}
-		</ul>
-		<button type="button" data-click="add-tag">{{localize "Litm.ui.add-relationship"}}</button>
+		{{#if hero.backside}}
+			<ul class="taglist litm--hero-backside">
+				{{#each hero.fulfillment as |tag|}}
+					{{> systems/litm/templates/partials/fulfillment.html tag=tag key=@key path="system.fulfillment" embedded=false remove=false}}
+				{{/each}}
+			</ul>
+			<div class="litm--hero-progression">
+				<!-- Promise buttons -->
+				<button data-click="increase" data-context="decrease" data-id="system.promise"
+					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+					<div>
+						{{#progress-buttons hero.promise 5}}
+						<span class="litm--checkbox litm--checkbox-with-bg hero {{#if @checked}}checked{{/if}}"></span>
+						{{/progress-buttons}}
+						<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
+					</div>
+					<label for="promise">{{localize "Litm.progress.promise"}}</label>
+				</button>
+			</div>
+		{{else}}
+			<ul class="taglist">
+				{{#each hero.contents as |tag|}}
+					{{> systems/litm/templates/partials/relationship.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
+				{{/each}}
+			</ul>
+			<button type="button" data-click="add-tag">{{localize "Litm.ui.add-relationship"}}</button>
+		{{/if}}
 	</div>
 </form>

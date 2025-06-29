@@ -155,6 +155,8 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			name: this.items.find((i) => i.type === "hero")?.name,
 			id: this.items.find((i) => i.type === "hero")?._id,
 			backside: this.system.hero.backside,
+			fulfillment: this.system.hero.fulfillment,
+			promise: this.system.hero.promise,
 			contents: this.system.hero.contents
 				?.sort((a, b) => a.name.localeCompare(b.name))
 				?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
@@ -505,8 +507,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const id = $(t).parents(".item").data("id");
 		const item = this.actor.items.get(id);
 		const value = foundry.utils.getProperty(item, attrib);
+		const maxValue = item.type === "hero" ? 5 : 3;
 
-		return item.update({ [attrib]: Math.min(value + 1, 3) });
+		return item.update({ [attrib]: Math.min(value + 1, maxValue) });
 	}
 
 	async #decrease(event) {

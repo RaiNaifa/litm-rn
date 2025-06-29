@@ -10,10 +10,44 @@
 			</button>
 			{{hero.name}}
 		</div>
-		<ul class="taglist">
-			{{#each hero.contents as |tag|}}
-				{{> systems/litm/templates/partials/relationship.html tag=tag key=@key path=(concat "items." ../hero.id ".system.contents") embedded=true remove=false}}
-			{{/each}}
-		</ul>
+		{{#if hero.backside}}
+			<ul class="taglist litm--hero-backside">
+				{{#each hero.fulfillment as |tag|}}
+					{{> systems/litm/templates/partials/fulfillment.html tag=tag key=@key path=(concat "items." ../hero.id ".system.fulfillment") embedded=true remove=false}}
+				{{/each}}
+			</ul>
+			<div class="litm--hero-progression">
+				<!-- Promise buttons -->
+				<button data-click="increase" data-context="decrease" data-id="system.promise"
+					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+					<div>
+						{{#progress-buttons hero.promise 5}}
+							<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
+						{{/progress-buttons}}
+						<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
+					</div>
+					<label for="promise">{{localize "Litm.progress.promise"}}</label>
+				</button>
+			</div>
+		{{else}}
+			<ul class="taglist">
+				{{#each hero.contents as |tag|}}
+					{{> systems/litm/templates/partials/relationship.html tag=tag key=@key path=(concat "items." ../hero.id ".system.contents") embedded=true remove=false}}
+				{{/each}}
+			</ul>
+			<div class="litm--hero-progression">
+				<!-- Promise buttons -->
+				<button data-click="increase" data-context="decrease" data-id="system.promise"
+					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+					<div>
+						{{#progress-buttons hero.promise 5}}
+							<span class="litm--checkbox litm--checkbox-with-bg hero {{#if @checked}}checked{{/if}}"></span>
+						{{/progress-buttons}}
+						<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
+					</div>
+					<label for="promise">{{localize "Litm.progress.promise"}}</label>
+				</button>
+			</div>
+		{{/if}}
 	</div>
 </div>

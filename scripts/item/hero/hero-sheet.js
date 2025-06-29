@@ -21,9 +21,11 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	/** @override */
 	async getData() {
 		return {
-			hero: this.system.contents,
+			hero: this.system,
 			name: this.item.name,
 			backside: this.system.backside,
+			promise: this.system.promise,
+			fulfillment: this.system.fulfillment,
 		};
 	}
 
@@ -56,6 +58,7 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	#onClick(event) {
 		const button = event.currentTarget;
 		const action = button.dataset.click;
+		const id = button.dataset.id;
 
 		switch (action) {
 			case "add-tag":
@@ -64,16 +67,23 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			case "toggle-backside":
 				this.#toggleBackside();
 				break;
+			case "increase":
+				this.#increase(id);
+				break;
 		}
 	}
 
 	#onContext(event) {
 		const button = event.currentTarget;
 		const action = button.dataset.context;
+		const id = button.dataset.id;
 
 		switch (action) {
 			case "remove-tag":
 				this.#removeTag(button);
+				break;
+			case "decrease":
+				this.#decrease(id);
 				break;
 		}
 	}

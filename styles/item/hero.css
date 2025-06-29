@@ -80,7 +80,7 @@
 
 		& .title {
 			color: var(--litm-color);
-			font-size: var(--font-size-32);
+			font-size: var(--font-size-28);
 			font-family: var(--litm-font-accent);
 			text-align: center;
 			background: none;
@@ -93,11 +93,17 @@
 			}
 		}
 
+		& .taglist.litm--hero-backside {
+			& .tag--name {
+				padding-block: var(--litm-space-1);
+			}
+		}
+
 		& .taglist {
 			display: flex;
 			flex-direction: column;
 			list-style: none;
-			margin: var(--litm-space-1) 4px 0px 0px;
+			margin: 0 4px 0px 0px;
 			padding: var(--litm-space-1) var(--litm-space-2);
 			height: 100%;
 			overflow: auto;
@@ -170,6 +176,49 @@
 				box-shadow: none;
 				text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
 			}
+		}
+	}
+
+	& .litm--hero-progression {
+		padding: 0 10px 4px;
+		display: flex;
+		justify-content: space-between;
+		background: url(../../assets/media/progress-bg.webp);
+		background-size: cover;
+		background-repeat: no-repeat;
+
+		& > button {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: var(--litm-space-1);
+			cursor: pointer;
+			font-size: var(--font-size-16);
+
+			& > div {
+				display: flex;
+			}
+
+			&:nth-child(2) {
+				flex-direction: column-reverse;
+
+				& > div {
+					margin-top: 5px;
+				}
+
+				& > label {
+					margin-top: 0px;
+				}
+			}
+		}
+
+		& label {
+			text-transform: uppercase;
+			font-family: var(--litm-font-primary);
+			font-size: var(--font-size-14);
+			line-height: 22px;
+			cursor: pointer;
 		}
 	}
 }
