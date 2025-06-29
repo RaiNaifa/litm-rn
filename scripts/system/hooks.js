@@ -43,6 +43,7 @@ export class LitmHooks {
 			"systems/litm/assets/media/challenge-bg.webp",
 			"systems/litm/assets/media/challenge-border.webp",
 			"systems/litm/assets/media/character-bg.webp",
+			"systems/litm/assets/media/character-default-portrait.webp",
 			"systems/litm/assets/media/connector.webp",
 			"systems/litm/assets/media/dice.webp",
 			"systems/litm/assets/media/effects.webp",
@@ -423,7 +424,7 @@ export class LitmHooks {
 					img = actor.img;
 					break;
 				case !hasImage && isCharacter:
-					img += "target.svg";
+					img = "systems/litm/assets/media/character-default-portrait.webp";
 					break;
 				case !hasImage && data.type === "challenge":
 					img += "skull.svg";
