@@ -373,17 +373,18 @@ li.litm--special {
 	& .litm--special-description {
 		grid-column: 1 / -1; /* занимает всю ширину */
 		grid-row: 2;
+		height: auto;
+		width: 100%;
 
 		text-align: center;
 		border: none;
 		border-radius: 0px;
 		padding-block: var(--litm-space-2);
 		min-height: var(--font-size-14);
-		height: auto;
 		background-color: transparent;
 		font-family: var(--litm-font-text);
 		color: var(--litm-color-primary);
-		width: 100%;
+		vertical-align: middle;
 
 		&:focus,
 		&:active {
@@ -394,7 +395,25 @@ li.litm--special {
 			cursor: auto;
 		}
 	}
+}
 
+.litm--add-tags-buttons {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 1rem;
+
+	& button {
+		flex: 1;
+		font-style: italic;
+		width: auto;
+	}
+
+	& img.litm--add-tags-separator {
+		flex: 0 0 auto;
+		height: 16px;
+		filter: grayscale(0.5) brightness(0.5);
+	}
 }
 
 /* Experimental Features */

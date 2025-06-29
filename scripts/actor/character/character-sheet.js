@@ -131,7 +131,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			this.items
 				.filter((i) => i.type === "theme")
 				.sort((a, b) => a.sort - b.sort)
-				.map((i) => i.sheet.getData()),
+				.map(async (i) => {
+					const data = await i.sheet.getData();
+					data.data.system.specials = data.data.system.specials
+						?.sort((a, b) => a.name.localeCompare(b.name))
+						?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1));
+					return data;
+				}),
 		);
 		const note = await TextEditor.enrichHTML(this.system.note);
 		const backpack = {

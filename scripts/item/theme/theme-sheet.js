@@ -1,6 +1,5 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
-import { confirmDelete } from "../../utils.js";
-
+import { confirmDelete, localize as t } from "../../utils.js";
 export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ItemSheet.defaultOptions, {
 		classes: ["litm", "litm--theme"],
@@ -23,6 +22,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		data.system.levels = this.system.levels;
 		data.system.themebooks = this.system.themebooks;
 		data.system.backside = this.system.backside;
+		data.system.specials = this.system.specials;
 
 		const fallbackSrc = ["origin", "adventure", "greatness"].includes(
 			data.system.level,
@@ -103,10 +103,10 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			case "decrease":
 				this.#decrease(id);
 				break;
-			case "remove-power-tag":
+			case "remove-tag":
 				this.#removeTag(button, "powerTag");
 				break;
-			case "remove-weakness-tag":
+			case "remove-weakness":
 				this.#removeTag(button, "weaknessTag");
 				break;
 			case "remove-special":
@@ -160,7 +160,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	async #addTag(type) {
 		const item = {
 			name: t("Litm.ui.name-tag"),
-			isActive: false,
+			isActive: true,
 			isBurnt: false,
 			type: type,
 			id: foundry.utils.randomID(),

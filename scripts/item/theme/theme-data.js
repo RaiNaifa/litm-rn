@@ -23,23 +23,22 @@ export class ThemeData extends foundry.abstract.TypeDataModel {
 				new fields.EmbeddedDataField(abstract.TagData),
 				{
 					initial: () =>
-						Array(10)
+						Array(2)
 							.fill()
 							.map((_, i) => ({
 								id: foundry.utils.randomID(),
-								name: `${i < 2 ? `${t("Litm.ui.name-power")}` : ""}`,
+								name: t("Litm.ui.name-power"),
 								type: "powerTag",
-								isActive: i < 2,
+								isActive: true,
 								isBurnt: false,
 							})),
-					validate: (tags) => tags.length === 10,
 				},
 			),
 			weaknessTags: new fields.ArrayField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{
 					initial: () =>
-						Array(2)
+						Array(1)
 							.fill()
 							.map(() => ({
 								id: foundry.utils.randomID(),
@@ -48,20 +47,19 @@ export class ThemeData extends foundry.abstract.TypeDataModel {
 								isBurnt: false,
 								type: "weaknessTag",
 							})),
-					validate: (tags) => tags.length === 2,
 				},
 			),
 			specials: new fields.ArrayField(
 				new fields.EmbeddedDataField(abstract.SpecialData),
 				{
 					initial: () =>
-						Array(2)
+						Array(1)
 							.fill()
 							.map(() => ({
 								id: foundry.utils.randomID(),
 								name: t("Litm.ui.name-special"),
 								description: t("Litm.ui.name-special-description"),
-								isActive: true,
+								isActive: false,
 							})),
 				}
 			),
@@ -94,48 +92,6 @@ export class ThemeData extends foundry.abstract.TypeDataModel {
 				initial: false,
 			}),
 		};
-	}
-
-	static migrateData(source) {
-		const numPowerTags = source.powerTags.length;
-		if (numPowerTags < 10) {
-			source.powerTags = [
-				...source.powerTags,
-				...Array(10 - numPowerTags)
-					.fill()
-					.map(() => ({
-						id: foundry.utils.randomID(),
-						name: "",
-						type: "powerTag",
-						isActive: false,
-						isBurnt: false,
-					})),
-			];
-		}
-		if (numPowerTags > 10) {
-			source.powerTags = source.powerTags.slice(0, 10);
-		}
-
-		const numWeaknessTags = source.weaknessTags.length;
-		if (numWeaknessTags < 2) {
-			source.weaknessTags = [
-				...source.weaknessTags,
-				...Array(2 - numWeaknessTags)
-					.fill()
-					.map(() => ({
-						id: foundry.utils.randomID(),
-						name: t("Litm.ui.name-weakness"),
-						isActive: true,
-						isBurnt: false,
-						type: "weaknessTag",
-					})),
-			];
-		}
-		if (numWeaknessTags > 2) {
-			source.weaknessTags = source.weaknessTags.slice(0, 2);
-		}
-
-		return super.migrateData(source);
 	}
 
 	get themeTag() {

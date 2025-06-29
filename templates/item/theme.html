@@ -37,42 +37,69 @@
 				<input list="litm--themebook" class="litm--theme-meta-part" type="text" name="system.themebook" data-size-input
 					value="{{data.system.themebook}}" />
 			</div>
-			<div class="litm--theme-title">
-				<!-- isActive checkbox -->
-				<label class="litm--sro" for="name--isActive"
-					aria-label="{{localize (tagActiveString data.system false)}}"></label>
-				<input class="litm--checkbox litm--checkbox-with-bg" type="checkbox" id="name--isActive" name="system.isActive"
-					data-tooltip="{{localize (tagActiveString data.system false)}}" {{checked data.system.isActive}} />
-				<!-- Name input -->
-				<input type="hidden" name="name" id="name" value="{{title}}" required />
-				<span class="litm--theme-name" role="textbox" contenteditable data-input="name">{{title}}</span>
-				<!-- isBurnt checkbox -->
-				<label>
-					<span class="litm--sro">{{localize (ifThen data.system.isBurnt "Litm.tags.isBurnt" "Litm.tags.burn")}}</span>
-					<input class="litm--burn" type="checkbox" name="system.isBurnt"
-						data-tooltip="{{localize (ifThen data.system.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}" {{checked
-						data.system.isBurnt}} />
-				</label>
-			</div>
-			<ul class="litm--theme-tags">
-				{{#each data.system.powerTags as |tag|}}
-				{{> systems/litm/templates/partials/tag.html tag=tag key=@key path="system.powerTags"}}
-				{{/each}}
-			</ul>
-			<ul class="litm--weakness">
-				{{#each data.system.weakness as |tag|}}
-				<li>
-					<!-- Name -->
-					<input class="litm--weakness-part" type="text" name="system.weaknessTags.{{@index}}.name" value="{{name}}" />
-					<!-- The way foundry validates data these have to be present else validation fails -->
-					<input type="hidden" name="system.weaknessTags.{{@index}}.type" value="{{type}}" />
-					<input type="hidden" name="system.weaknessTags.{{@index}}.id" value="{{id}}" />
-					<input type="hidden" name="system.weaknessTags.{{@index}}.isBurnt" data-dtype="Boolean" value="{{isBurnt}}" />
-					<input type="hidden" name="system.weaknessTags.{{@index}}.isActive" data-dtype="Boolean"
-						value="{{isActive}}" />
-				</li>
-				{{/each}}
-			</ul>
+			{{#if data.system.backside}}
+				<div class="litm--theme-back">
+					<button type="button" class="litm--theme-title" data-id="{{data._id}}" {{#if (includes @root.rollTags
+						data._id 'id' )}}data-selected{{/if}}>
+						<span class="litm--theme-name">{{data.name}}</span>
+					</button>
+					<ul class="taglist">
+						{{#each data.system.specials as |special|}}
+							{{> systems/litm/templates/partials/special.html special=special key=@key path="system.specials" readonly=false remove=true}}
+						{{/each}}
+					</ul>
+				</div>
+			{{else}}
+				<div class="litm--theme-front">
+					<div class="litm--theme-title">
+						<!-- isActive checkbox -->
+						<label class="litm--sro" for="name--isActive"
+							aria-label="{{localize (tagActiveString data.system false)}}"></label>
+						<input class="litm--checkbox litm--checkbox-with-bg" type="checkbox" id="name--isActive" name="system.isActive"
+							data-tooltip="{{localize (tagActiveString data.system false)}}" {{checked data.system.isActive}} />
+						<!-- Name input -->
+						<input type="hidden" name="name" id="name" value="{{title}}" required />
+						<span class="litm--theme-name" role="textbox" contenteditable data-input="name">{{title}}</span>
+						<!-- isBurnt checkbox -->
+						<label>
+							<span class="litm--sro">{{localize (ifThen data.system.isBurnt "Litm.tags.isBurnt" "Litm.tags.burn")}}</span>
+							<input class="litm--burn" type="checkbox" name="system.isBurnt"
+								data-tooltip="{{localize (ifThen data.system.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}" {{checked
+								data.system.isBurnt}} />
+						</label>
+					</div>
+					<ul class="litm--theme-tags">
+						{{#each data.system.powerTags as |tag|}}
+						{{> systems/litm/templates/partials/tag.html tag=tag key=@key path="system.powerTags" readonly=false remove=true}}
+						{{/each}}
+					</ul>
+					<ul class="litm--weakness">
+						{{#each data.system.weakness as |tag|}}
+						<li data-context="remove-weakness" data-id="{{tag.id}}">
+							<!-- Name -->
+							<input class="litm--weakness-part" type="text" name="system.weaknessTags.{{@index}}.name" value="{{name}}" />
+							<!-- The way foundry validates data these have to be present else validation fails -->
+							<input type="hidden" name="system.weaknessTags.{{@index}}.type" value="{{type}}" />
+							<input type="hidden" name="system.weaknessTags.{{@index}}.id" value="{{id}}" />
+							<input type="hidden" name="system.weaknessTags.{{@index}}.isBurnt" data-dtype="Boolean" value="{{isBurnt}}" />
+							<input type="hidden" name="system.weaknessTags.{{@index}}.isActive" data-dtype="Boolean"
+								value="{{isActive}}" />
+						</li>
+						{{/each}}
+					</ul>
+				</div>
+			{{/if}}
+			{{#if data.system.backside}}
+				<div class="litm--add-tags-buttons">
+					<button type="button" data-click="add-special">{{localize "Litm.ui.add-special"}}</button>
+				</div>
+			{{else}}
+				<div class="litm--add-tags-buttons">
+					<button type="button" data-click="add-power-tag">{{localize "Litm.ui.add-power-tag"}}</button>
+					<img src="systems/litm/assets/media/separator-small.webp" alt="" class="litm--add-tags-separator">
+					<button type="button" data-click="add-weakness-tag">{{localize "Litm.ui.add-weakness-tag"}}</button>
+				</div>
+			{{/if}}
 			<!-- Add Tag button -->
 			<!-- Might Reimplement later -->
 			<!-- <button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button> -->
@@ -110,25 +137,6 @@
 					</div>
 					<label for="milestone">{{localize "Litm.progress.milestone"}}</label>
 				</div>
-				<!-- Experience buttons -->
-				<!-- <div data-click="increase" data-context="decrease" data-id="system.experience"
-					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
-					{{#progress-buttons data.system.experience 3}}
-					<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
-					{{/progress-buttons}}
-					<input class="litm--sro" id="experience" type="number" name="system.experience"
-						value="{{data.system.experience}}" />
-					<label for="experience">{{localize "Litm.other.experience"}}</label>
-				</div> -->
-				<!-- Decay buttons -->
-				<!-- <div data-click="increase" data-context="decrease" data-id="system.decay"
-					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
-					{{#progress-buttons data.system.decay 3}}
-					<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
-					{{/progress-buttons}}
-					<input type="number" id="decay" class="litm--sro" name="system.decay" value="{{data.system.decay}}" />
-					<label for="decay">{{localize "Litm.tags.decay"}}</label>
-				</div> -->
 			</div>
 		</div>
 	</div>

@@ -460,6 +460,12 @@
 				display: flex;
 				flex-direction: column;
 
+				& div.litm--theme-back,
+				div.litm--theme-front {
+					min-height: 400px;
+					max-height: 400px;
+				}
+
 				& .litm--theme-tag .tag--name {
 					min-height: var(--font-size-28);
 				}
@@ -476,6 +482,29 @@
 			width: -webkit-fill-available;
 			padding: 0px;
 			position: relative;
+		}
+		& .litm--theme-title {
+			&:has(:only-child) {
+				margin-inline: 32px;
+				padding-right: 2px;
+
+				&:before {
+					background: unset;
+				}
+			}
+		}
+		& div.litm--theme-back,
+		div.litm--theme-front {
+			margin-right: -16px;
+			padding-right: 4px;
+			overflow: overlay;
+			scrollbar-gutter: stable;
+		}
+		& .litm--theme-back {
+			& ul.taglist {
+				margin: 0 0 1rem 0;
+  			padding: 0 1rem 0 1.1rem;
+			}
 		}
 	}
 

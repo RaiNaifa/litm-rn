@@ -77,6 +77,7 @@ export class LitmHooks {
 			"systems/litm/assets/media/scroll-border.webp",
 			"systems/litm/assets/media/section-bg.webp",
 			"systems/litm/assets/media/separator.webp",
+			"systems/litm/assets/media/separator-small.webp",
 			"systems/litm/assets/media/single-flower.webp",
 			"systems/litm/assets/media/skull.webp",
 			"systems/litm/assets/media/story-tag-bg.webp",
