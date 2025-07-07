@@ -86,5 +86,102 @@ export class Fonts {
 				},
 			],
 		});
+		foundry.applications.settings.menus.FontConfig.loadFont("AubreyPro", {
+			editor: true,
+			fonts: [
+				{
+					name: "AubreyPro",
+					urls: ["systems/litm/assets/fonts/aubrey-pro.otf"],
+					weight: "300 800",
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("Dudka", {
+			editor: true,
+			fonts: [
+				{
+					name: "Dudka",
+					urls: ["systems/litm/assets/fonts/dudka.ttf"],
+				},
+				{
+					name: "Dudka",
+					urls: ["systems/litm/assets/fonts/dudka-i.ttf"],
+					style: "italic",
+				},
+				{
+					name: "Dudka",
+					urls: ["systems/litm/assets/fonts/dudka-b.ttf"],
+					weight: "bold",
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("Dudka Italic", {
+			editor: true,
+			fonts: [
+				{
+					name: "Dudka Italic",
+					urls: ["systems/litm/assets/fonts/dudka-i.ttf"],
+					style: "italic",
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("TagesschriftCyrillic", {
+			editor: true,
+			fonts: [
+				{
+					name: "TagesschriftCyrillic",
+					urls: ["systems/litm/assets/fonts/tagesschrift-cyrillic.ttf"],
+					weight: "300 800",
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("TagesschriftCyrillicSC", {
+			editor: true,
+			fonts: [
+				{
+					name: "TagesschriftCyrillicSC",
+					urls: ["systems/litm/assets/fonts/tagesschrift-cyrillic.ttf"],
+					weight: "300 800",
+					sizeAdjust: "110%",
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("TorukSC", {
+			editor: true,
+			fonts: [
+				{
+					name: "TorukSC",
+					urls: ["systems/litm/assets/fonts/toruksc.ttf"],
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("TorukSC Primary", {
+			editor: true,
+			fonts: [
+				{
+					name: "TorukSC Primary",
+					urls: ["systems/litm/assets/fonts/toruksc.ttf"],
+					sizeAdjust: "95%",
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("GentiumPlus", {
+			editor: true,
+			fonts: [
+				{
+					name: "GentiumPlus",
+					urls: ["systems/litm/assets/fonts/gentium-plus.ttf"],
+				},
+			],
+		});
+		foundry.applications.settings.menus.FontConfig.loadFont("GentiumBookPlus", {
+			editor: true,
+			fonts: [
+				{
+					name: "GentiumBookPlus",
+					urls: ["systems/litm/assets/fonts/gentium-book-plus.ttf"],
+				},
+			],
+		});
 	}
 }

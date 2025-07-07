@@ -12,7 +12,7 @@
 	<label for="attach-to">
 		{{localize "Litm.ui.attach-to"}}
 		<select id="attach-to" name="target">
-			<option value="story" selected>{{concat (localize "Litm.tags.story") " " (localize "Litm.other.tag")}}</option>
+			<option value="story" selected>{{localize "Litm.other.story-tags"}}</option>
 			{{#each actors as |actor|}}
 				<option value="{{actor.id}}">{{actor.name}}</option>
 			{{/each}}

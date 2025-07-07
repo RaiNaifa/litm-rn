@@ -14,64 +14,13 @@ export class HeroData extends foundry.abstract.TypeDataModel {
 			fulfillment: new fields.ArrayField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{
-					initial: [
-						{
+					initial: CONFIG.litm.fulfillment.map((item) => ({
 							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.journeys-end"),
+							name: item,
 							type: "fulfillment",
 							isActive: false,
 							isBurnt: false,
-						},
-						{
-							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.reforged"),
-							type: "fulfillment",
-							isActive: false,
-							isBurnt: false,
-						},
-						{
-							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.quintessence"),
-							type: "fulfillment",
-							isActive: false,
-							isBurnt: false,
-						},
-						{
-							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.quintessence"),
-							type: "fulfillment",
-							isActive: false,
-							isBurnt: false,
-						},
-						{
-							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.quintessence"),
-							type: "fulfillment",
-							isActive: false,
-							isBurnt: false,
-						},
-						{
-							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.magic"),
-							type: "fulfillment",
-							isActive: false,
-							isBurnt: false,
-						},
-						{
-							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.words-eternal"),
-							type: "fulfillment",
-							isActive: false,
-							isBurnt: false,
-						},
-						{
-							id: foundry.utils.randomID(),
-							name: t("Litm.fulfillment.lost-truths"),
-							type: "fulfillment",
-							isActive: false,
-							isBurnt: false,
-						},
-					],
+					}))
 				}
 			),
 			backside: new fields.BooleanField({

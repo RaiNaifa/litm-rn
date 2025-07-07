@@ -31,14 +31,14 @@ body {
 	--litm-color-limit-bg: hsl(0 67.35% 63.41% / 70%);
 
 	/* Fonts */
-	--litm-font-heading: PackardAntique, CaslonAntique, "Palatino Linotype",
+	--litm-font-heading: PackardAntique, CaslonAntique, TagesschriftCyrillic, "Palatino Linotype",
 		"Book Antiqua", Palatino, serif;
-	--litm-font-primary: CaslonAntique, LibreCaslonText, "Palatino Linotype",
+	--litm-font-primary: CaslonAntique, LibreCaslonText, TorukSC Primary, "Palatino Linotype",
 		"Book Antiqua", Palatino, serif;
-	--litm-font-accent: AlchemyItalic, "Brush Script MT", "Bradley Hand ITC",
+	--litm-font-accent: AlchemyItalic, TagesschriftCyrillic, "Brush Script MT", "Bradley Hand ITC",
 		"Lucida Calligraphy", "Lucida Handwriting", "Apple Chancery", cursive;
-	--litm-font-text: Fraunces, LibreCaslonText, "Book Antiqua", Palatino, serif;
-	--litm-font-sc: PowellAntique, PackardAntique, Palatino, serif;
+	--litm-font-text: Fraunces, LibreCaslonText, TorukSC, "Book Antiqua", Palatino, serif;
+	--litm-font-sc: PowellAntique, PackardAntique, TagesschriftCyrillicSC, Palatino, serif;
 
 	/* Vertical spacing */
 	--litm-space-1: 0.25rem;
@@ -51,7 +51,7 @@ body {
 	&.game .app {
 		/* Foundry Overrides */
 		--font-size-26: 1.625rem;
-		--font-primary: Fraunces, BespokeSans, Lato, "PackardAntique", "Open Sans",
+		--font-primary: Fraunces, GentiumBookPlus, BespokeSans, Lato, "PackardAntique", "Open Sans",
 			sans-serif;
 		--color-text-light-1: var(--litm-color-accent);
 		--color-shadow-primary: var(--litm-color-primary);
@@ -67,8 +67,8 @@ body {
 	&:has(.motivation:hover) #tooltip {
 		color: var(--litm-color-primary-bg);
 		-webkit-font-smoothing: antialiased;
-		font-family: var(--litm-font-text);
-		font-size: var(--font-size-14);
+		font-family: var(--font-primary);
+		font-size: var(--font-size-16);
 		letter-spacing: 1px;
 		text-align: center;
 		line-height: 1.5em;

@@ -1,5 +1,5 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
-import { confirmDelete } from "../../utils.js";
+import { confirmDelete, localize as t } from "../../utils.js";
 
 export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) {
 	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ActorSheet.defaultOptions, {
@@ -117,7 +117,7 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	#addLimit() {
 		const limits = this.system.limits;
 		const limit = {
-			name: "New Limit",
+			name: t("Litm.ui.new-limit"),
 			value: 0,
 		};
 
@@ -127,7 +127,7 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 	async #addThreat() {
 		const threats = await this.actor.createEmbeddedDocuments("Item", [
-			{ name: "New Threat", type: "threat" },
+			{ name: t("Litm.ui.new-threat"), type: "threat" },
 		]);
 		threats[0].sheet.render(true);
 	}

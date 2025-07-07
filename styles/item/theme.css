@@ -45,6 +45,22 @@
 			background-size: cover;
 			background-repeat: no-repeat;
 			margin: 7px 13px 0px 6px;
+
+			& button[data-click="add-power-tag"],
+			button[data-click="add-weakness-tag"],
+			button[data-click="add-special"] {
+				color: var(--litm-color);
+				font-size: var(--font-size-20);
+				font-family: var(--litm-font-accent);
+				transition: all 0.15s;
+
+				&:hover,
+				&:focus,
+				&:active {
+					box-shadow: none;
+					text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
+				}
+			}
 		}
 
 		& .litm--theme-meta {
@@ -76,7 +92,7 @@
 				line-height: var(--font-size-32);
 
 				text-transform: uppercase;
-				min-width: 10px;
+				min-width: 30px;
 				width: auto;
 
 				& > option {
@@ -339,7 +355,7 @@
 				margin-top: 5px;
 				text-transform: uppercase;
 				font-family: var(--litm-font-primary);
-				font-size: var(--font-size-12);
+				font-size: var(--font-size-13);
 				cursor: pointer;
 			}
 		}
@@ -386,6 +402,7 @@
 				background: transparent;
 				color: var(--litm-color-accent);
 				font-family: var(--litm-font-accent);
+				font-style: italic;
 				border: none;
 				border-radius: 8px;
 				margin-inline: auto;

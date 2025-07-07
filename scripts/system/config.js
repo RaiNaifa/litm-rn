@@ -1,13 +1,15 @@
 export class LitmConfig {
 	challenge_types = [
-		"attacker",
-		"barrier-hazard",
+		"agressor",
 		"charge",
 		"countdown",
+		"influence",
 		"mystery",
+		"obstacle",
 		"pursuer",
 		"quarry",
-		"temptation",
+		"sapper",
+		"support",
 		"watcher",
 	];
 
@@ -108,31 +110,48 @@ export class LitmConfig {
 	theme_levels = {
 		origin: [
 			"circumstance",
-			"past",
 			"devotion",
-			"mystery",
+			"past",
 			"people",
-			"possessions",
 			"personality",
-			"trade-or-skill",
+			"skill-or-trade",
 			"trait",
-			"hedge-magic",
+			"companion",
+			"magic",
+			"possessions",
 		],
 		adventure: [
-			"prodigious-skill",
 			"duty",
+			"influence",
+			"knowledge",
+			"prodigious-ability",
 			"relic",
 			"uncanny-being",
-			"thaumaturgy",
+			"companion",
+			"magic",
+			"possessions",
 		],
 		greatness: [
-			"rulership",
 			"destiny",
+			"dominion",
 			"mastery",
 			"monstrosity",
-			"grand-thaumaturgy",
+			"companion",
+			"magic",
+			"possessions",
 		],
 	};
+
+	fulfillment = [
+		"journeys-end",
+		"reforged",
+		"quintessence",
+		"quintessence",
+		"quintessence",
+		"magic",
+		"words-eternal",
+		"lost-truths"
+	];
 
 	theme_src = {
 		origin: "systems/litm/assets/media/origin",

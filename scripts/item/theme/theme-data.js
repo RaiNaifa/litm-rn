@@ -129,7 +129,7 @@ export class ThemeData extends foundry.abstract.TypeDataModel {
 
 	get levels() {
 		return Object.keys(CONFIG.litm.theme_levels).reduce((acc, level) => {
-			acc[level] = t(level, "TYPES.Item.theme");
+			acc[level] = t(`Litm.levels.${level}`);
 			return acc;
 		}, {});
 	}

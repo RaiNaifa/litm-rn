@@ -239,6 +239,10 @@
 
 		& .editor {
 			padding-inline: var(--litm-space-2);
+
+			& button {
+				color: var(--litm-color-accent);
+			}
 		}
 
 		& [role="application"] {
@@ -479,6 +483,19 @@
 				display: flex;
 				flex-direction: column;
 
+				& button.litm--theme-title {
+					gap: var(--litm-space-1);
+
+					&:has(:only-child) {
+						margin-inline: 32px;
+						padding-right: 2px;
+
+						&:before {
+							background: unset;
+						}
+					}
+				}
+
 				& div.litm--theme-back,
 				div.litm--theme-front {
 					min-height: 400px;
@@ -502,7 +519,9 @@
 			padding: 0px;
 			position: relative;
 		}
-		& .litm--theme-title {
+		/* & button.litm--theme-title {
+			gap: var(--litm-space-1);
+
 			&:has(:only-child) {
 				margin-inline: 32px;
 				padding-right: 2px;
@@ -511,7 +530,7 @@
 					background: unset;
 				}
 			}
-		}
+		} */
 		& div.litm--theme-back,
 		div.litm--theme-front {
 			margin-right: -16px;

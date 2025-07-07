@@ -156,11 +156,11 @@
 			"people": "Folk",
 			"personality": "Personlighet",
 			"possessions": "Eiendeler",
-			"prodigious-skill": "Ferdighet",
+			"prodigious-ability": "Ferdighet",
 			"relic": "Forunderlighet",
 			"rulership": "Hersker",
 			"thaumaturgy": "Taumaturgi",
-			"trade-or-skill": "Arbeid eller ferdighet",
+			"skill-or-trade": "Arbeid eller ferdighet",
 			"trait": "Egenskap",
 			"uncanny-being": "Uhyre"
 		},

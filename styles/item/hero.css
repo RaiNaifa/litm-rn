@@ -106,7 +106,8 @@
 			margin: 0 4px 0px 0px;
 			padding: var(--litm-space-1) var(--litm-space-2);
 			height: 100%;
-			overflow: auto;
+			overflow-y: auto;
+			overflow-x: clip;
 
 			& li {
 				display: flex;

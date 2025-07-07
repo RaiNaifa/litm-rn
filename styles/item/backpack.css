@@ -167,6 +167,7 @@
 					grid-column: 1 / -1;
 					grid-row: 2;
 				}
+			}
 		}
 
 		& button[data-click="add-tag"], button[data-click="add-special"] {

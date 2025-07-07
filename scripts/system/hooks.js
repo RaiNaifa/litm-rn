@@ -603,7 +603,7 @@ export class LitmHooks {
 				if (tokenControls.tools.find((t) => t.name === "story-tags")) return;
 				tokenControls.tools.push({
 					name: "story-tags",
-					title: t("Litm.tags.story", "Litm.other.tags"),
+					title: t("Litm.other.story-tags"),
 					icon: "fas fa-tags",
 					button: true,
 					onClick: () => {
@@ -617,7 +617,7 @@ export class LitmHooks {
 			} else if (!tokenControls.tools["story-tags"])
 				tokenControls.tools["story-tags"] = {
 					name: "story-tags",
-					title: t("Litm.tags.story", "Litm.other.tags"),
+					title: t("Litm.other.story-tags"),
 					icon: "fas fa-tags",
 					button: true,
 					onClick: () => {
