@@ -391,7 +391,7 @@
 		}
 
 		& .motivation {
-			margin: var(--litm-space-1) var(--litm-space-3);
+			margin: var(--litm-space-2) var(--litm-space-3);
 			display: flex;
 			color: var(--litm-color-accent);
 			font-family: var(--litm-font-accent);
@@ -420,12 +420,12 @@
 				}
 
 				&::before {
-					content: "“";
-					margin-inline-start: 8px;
+					content: "❝";
+					margin-inline-end: 8px;
 				}
 
 				&::after {
-					content: '"';
+					content: '❞';
 					margin-inline-start: 4px;
 				}
 			}

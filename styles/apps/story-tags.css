@@ -12,7 +12,7 @@
 	}
 
 	& .window-header {
-		background: url(../../assets/media/origin-theme-alt-bg-top.webp) no-repeat
+		background: url(../../assets/media/base-theme-alt-bg-top.webp) no-repeat
 			bottom / cover;
 		padding-block-end: var(--litm-space-4);
 		flex-wrap: nowrap;
