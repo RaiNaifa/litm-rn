@@ -200,6 +200,7 @@
 :where(.litm--tag),
 :where(.litm--status),
 :where(.litm--limit),
+:where(.litm--might),
 :where(.litm--powerTag),
 :where(.litm--weaknessTag),
 :where(.litm--themeTag),
@@ -226,6 +227,19 @@
 	&.litm--limit,
 	&.litm--weaknessTag {
 		background: var(--litm-color-limit-bg);
+	}
+
+	&.litm--might {
+		display: inline-flex;
+		align-items: baseline;
+		background-color: transparent;
+
+		& img {
+			align-self: center;
+			width: 18px;
+			height: 18px !important;
+			margin-right: var(--litm-space-1);
+		}
 	}
 
 	&.litm--powerTag,

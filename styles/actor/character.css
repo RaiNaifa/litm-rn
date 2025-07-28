@@ -245,6 +245,14 @@
 			}
 		}
 
+		& .content-link {
+			color: color: var(--litm-color-primary-bg);
+
+			& i {
+				color: color: var(--litm-color-primary-bg);
+			}
+		}
+
 		& [role="application"] {
 			height: 100% !important;
 		}

@@ -221,14 +221,14 @@
 			display: flex;
 			justify-content: center;
 			align-items: center;
-			margin-inline: var(--litm-space-3);
+			margin: var(--litm-space-1) var(--litm-space-3);
 			font-size: var(--font-size-11);
-			height: 50px;
 			gap: var(--litm-space-2);
 			list-style: none;
 			padding: 0px 0px var(--litm-space-3);
 			overflow: auto hidden;
 			scrollbar-width: none;
+			flex-wrap: wrap;
 
 			& li {
 				flex: none;
@@ -298,7 +298,7 @@
 		& .litm--challenge-tags {
 			margin-inline: var(--litm-space-3);
 			text-align: center;
-			padding-block: var(--litm-space-1) var(--litm-space-2);
+			padding-block: var(--litm-space-2) var(--litm-space-1);
 			font-size: var(--font-size-14);
 
 			&>* {
@@ -309,6 +309,10 @@
 
 			& #tags {
 				color: var(--litm-color-weakness);
+
+				&>mark {
+					margin-bottom: var(--litm-space-1);
+				}
 			}
 
 			& [contenteditable] {
@@ -350,14 +354,24 @@
 				font-size: var(--font-size-14);
 
 				&:first-child {
-					font-style: italic;
+
 				}
 
 				&:not(:first-child) {
-					font-weight: 600;
 					margin-block-start: var(--litm-space-1);
 					margin-inline-start: 0.5em;
 				}
+			}
+
+			& .litm--threat-name {
+				background-color: #f1d2bc;
+				padding: 0.15em 0.6em;
+				border-radius: 0;
+				text-transform: uppercase;
+				letter-spacing: 0.025em;
+			}
+			& .litm--threat-desc {
+
 			}
 		}
 	}

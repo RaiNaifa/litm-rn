@@ -165,6 +165,7 @@ export class LitmConfig {
 		greatness: "systems/litm/assets/media/icons/greatness",
 	};
 
+	mightStringRe = /\[@([oag]) ([^\]]+?)\]/giu;
 	tagStringRe = /(?!\b|\s)(?:\[|\{)([^\d\[\]{}]+)(?:[\s\-\:](\d+))?(?:\}|\])/gi;
 	sceneLinkRe = /@ActivateScene\[([^\]]+)\](?:\{([^\}]+)\})?/gi;
 }

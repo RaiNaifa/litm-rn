@@ -2,7 +2,8 @@ body.theme-dark {
 	& :not(.litm) {
 		& .litm--tag,
 		& .litm--status,
-		& .litm--limit {
+		& .litm--limit,
+		& .litm--might {
 			color: var(--color-text-primary);
 		}
 	}

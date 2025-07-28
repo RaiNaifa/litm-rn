@@ -21,7 +21,7 @@ export class ChallengeData extends foundry.abstract.TypeDataModel {
 				}),
 			),
 			tags: new fields.StringField({
-				initial: "[tag] [status-2]",
+				initial: `[${t("Litm.other.tag").toLowerCase()}] [${t("Litm.other.status").toLowerCase()}-2] [@a o/a/g ${t("Litm.other.might").toLowerCase()}]`,
 			}),
 		};
 	}

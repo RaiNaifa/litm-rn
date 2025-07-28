@@ -24,6 +24,12 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 	async getData() {
 		const { data, rest } = super.getData();
+
+		const userId = game.user.id;
+		const ownership = this.actor.ownership ?? this.actor.data.permission ?? {};
+		const permissionLevel = ownership[userId] ?? ownership.default ?? 0;
+		data.permissionLevel = permissionLevel;
+
 		data.system.challenges = this.system.challenges;
 		data.system.special = await TextEditor.enrichHTML(data.system.special);
 		data.system.note = await TextEditor.enrichHTML(data.system.note);

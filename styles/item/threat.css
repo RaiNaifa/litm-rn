@@ -22,6 +22,14 @@
 		font-family: var(--litm-font-accent);
 	}
 
+	& .litm--threat-box span:first-child {
+		background-color: #cebeb3;
+		padding: 0.15em 0.6em;
+		border-radius: 0;
+		text-transform: uppercase;
+		letter-spacing: 0.075em;
+	}
+
 	& .litm--threat-wrapper {
 		display: flex;
 		flex-direction: column;

@@ -12,8 +12,11 @@
 
 <form class="{{cssClass}}" autocomplete="off">
 	<h2 id="threat-label">{{localize "Litm.other.threat"}}</h2>
-	<div class="litm--threat-box">> <span role="textbox" aria-labelledby="threat-label" contenteditable
-			data-input="threat">{{title}}</span><input type="hidden" name="name" id="threat" value="{{data.name}}" required />
+	<div class="litm--threat-box">
+		<span role="textbox" aria-labelledby="threat-label" contenteditable data-input="threat">{{title}}</span>
+		<span role="textbox" aria-labelledby="threat-desc-label" contenteditable data-input="threat-desc">> {{data.system.threat}}</span>
+		<input type="hidden" name="name" id="threat" value="{{data.name}}" required />
+		<input type="hidden" name="system.threat" id="threat-desc" value="{{data.system.threat}}" required />
 	</div>
 	<label class="litm--sro" for="consequence" id="consequence-label">{{localize 'Litm.other.consequence'}}</label>
 	<ul class="litm--threat-wrapper">
