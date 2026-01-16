@@ -39,10 +39,12 @@ export class Enrichers {
 						status ? `:${status}` : ""
 					}</mark>`,
 				)[0];
-			if (tag && status)
+			if (tag && status) {
+				const label = status === "0" ? "" : `-${status}`;
 				return $(
-					`<mark class="litm--status" draggable="true" data-tooltip="${tooltip}">${tag}-${status}</mark>`,
+					`<mark class="litm--status" draggable="true" data-tooltip="${tooltip}">${tag}${label}</mark>`,
 				)[0];
+			}
 			return $(
 				`<mark class="litm--tag" draggable="true" data-tooltip="${tooltip}">${tag}</mark>`,
 			)[0];
