@@ -320,7 +320,7 @@
 		& .litm--theme-progression {
 			padding: var(--litm-space-4) 10px 8px;
 			display: flex;
-			justify-content: space-between;
+			justify-content: space-evenly;
 			background: url(../../assets/media/progress-bg.webp);
 			background-size: cover;
 			background-repeat: no-repeat;
