@@ -7,7 +7,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "LitM Dice",
-					urls: ["systems/litm/assets/fonts/litm-dice.otf"],
+					urls: ["systems/litm-rn/assets/fonts/litm-dice.otf"],
 				},
 			],
 		});
@@ -16,18 +16,18 @@ export class Fonts {
 			fonts: [
 				{
 					name: "CaslonAntique",
-					urls: ["systems/litm/assets/fonts/caslon.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/caslon.ttf"],
 					sizeAdjust: "110%",
 				},
 				{
 					name: "CaslonAntique",
-					urls: ["systems/litm/assets/fonts/caslon-b.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/caslon-b.ttf"],
 					weight: "bold",
 					sizeAdjust: "110%",
 				},
 				{
 					name: "CaslonAntique",
-					urls: ["systems/litm/assets/fonts/caslon-i.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/caslon-i.ttf"],
 					style: "italic",
 					sizeAdjust: "110%",
 				},
@@ -38,12 +38,12 @@ export class Fonts {
 			fonts: [
 				{
 					name: "Fraunces",
-					urls: ["systems/litm/assets/fonts/fraunces.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/fraunces.ttf"],
 					weight: "300 800",
 				},
 				{
 					name: "Fraunces",
-					urls: ["systems/litm/assets/fonts/fraunces-i.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/fraunces-i.ttf"],
 					style: "italic",
 					weight: "300 800",
 				},
@@ -54,7 +54,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "AlchemyItalic",
-					urls: ["systems/litm/assets/fonts/alchemy-i.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/alchemy-i.ttf"],
 				},
 			],
 		});
@@ -63,11 +63,11 @@ export class Fonts {
 			fonts: [
 				{
 					name: "PackardAntique",
-					urls: ["systems/litm/assets/fonts/packard.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/packard.ttf"],
 				},
 				{
 					name: "PackardAntique",
-					urls: ["systems/litm/assets/fonts/packard-b.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/packard-b.ttf"],
 					weight: "bold",
 				},
 			],
@@ -77,11 +77,11 @@ export class Fonts {
 			fonts: [
 				{
 					name: "PowellAntique",
-					urls: ["systems/litm/assets/fonts/powell.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/powell.ttf"],
 				},
 				{
 					name: "PowellAntique",
-					urls: ["systems/litm/assets/fonts/powell-b.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/powell-b.ttf"],
 					weight: "bold",
 				},
 			],
@@ -91,7 +91,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "AubreyPro",
-					urls: ["systems/litm/assets/fonts/aubrey-pro.otf"],
+					urls: ["systems/litm-rn/assets/fonts/aubrey-pro.otf"],
 					weight: "300 800",
 				},
 			],
@@ -101,16 +101,16 @@ export class Fonts {
 			fonts: [
 				{
 					name: "Dudka",
-					urls: ["systems/litm/assets/fonts/dudka.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/dudka.ttf"],
 				},
 				{
 					name: "Dudka",
-					urls: ["systems/litm/assets/fonts/dudka-i.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/dudka-i.ttf"],
 					style: "italic",
 				},
 				{
 					name: "Dudka",
-					urls: ["systems/litm/assets/fonts/dudka-b.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/dudka-b.ttf"],
 					weight: "bold",
 				},
 			],
@@ -120,7 +120,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "Dudka Italic",
-					urls: ["systems/litm/assets/fonts/dudka-i.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/dudka-i.ttf"],
 					style: "italic",
 				},
 			],
@@ -130,7 +130,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "TagesschriftCyrillic",
-					urls: ["systems/litm/assets/fonts/tagesschrift-cyrillic.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/tagesschrift-cyrillic.ttf"],
 					weight: "300 800",
 				},
 			],
@@ -140,7 +140,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "TagesschriftCyrillicSC",
-					urls: ["systems/litm/assets/fonts/tagesschrift-cyrillic.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/tagesschrift-cyrillic.ttf"],
 					weight: "300 800",
 					sizeAdjust: "110%",
 				},
@@ -151,7 +151,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "TorukSC",
-					urls: ["systems/litm/assets/fonts/toruksc.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/toruksc.ttf"],
 				},
 			],
 		});
@@ -160,7 +160,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "TorukSC Primary",
-					urls: ["systems/litm/assets/fonts/toruksc.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/toruksc.ttf"],
 					sizeAdjust: "95%",
 				},
 			],
@@ -170,7 +170,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "GentiumPlus",
-					urls: ["systems/litm/assets/fonts/gentium-plus.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/gentium-plus.ttf"],
 				},
 			],
 		});
@@ -179,7 +179,7 @@ export class Fonts {
 			fonts: [
 				{
 					name: "GentiumBookPlus",
-					urls: ["systems/litm/assets/fonts/gentium-book-plus.ttf"],
+					urls: ["systems/litm-rn/assets/fonts/gentium-book-plus.ttf"],
 				},
 			],
 		});

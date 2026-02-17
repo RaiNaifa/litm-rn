@@ -12,13 +12,8 @@ export class TagData extends foundry.abstract.DataModel {
 				required: true,
 				nullable: false,
 			}),
-			isActive: new fields.BooleanField({
-				required: true,
-				initial: false,
-			}),
-			isBurnt: new fields.BooleanField({
-				required: true,
-				initial: false,
+			isScratched: new fields.BooleanField({
+				required: false,
 			}),
 			type: new fields.StringField({
 				required: true,
@@ -46,7 +41,7 @@ export class RelationshipData extends foundry.abstract.DataModel {
 				required: true,
 				nullable: false,
 			}),
-			isActive: new fields.BooleanField({
+			isScratched: new fields.BooleanField({
 				required: true,
 				initial: false,
 			}),

@@ -1,13 +1,13 @@
 <div class="litm--backpack-wrapper item" data-item-id="{{backpack.id}}" data-id="{{backpack.id}}">
-	<img width="300px" class="litm--backpack-img" src="systems/litm/assets/media/backpack.webp"
+	<img width="300px" class="litm--backpack-img" src="systems/litm-rn/assets/media/backpack.webp"
 		alt="Soft illustration of a rustic backpack" />
-	<img width="250px" class="litm--backpack-bg-frame" src="systems/litm/assets/media/background-frame.webp"
+	<img width="250px" class="litm--backpack-bg-frame" src="systems/litm-rn/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--backpack-bg" data-context="menu">
 		<div class="meta">
 			<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
 				data-type="backpack" data-id="{{backpack.id}}" data-tooltip="{{localize 'Litm.other.specials'}}">
-				<img src="systems/litm/assets/media/icons/{{ifThen backpack.backside 'special_icn.svg' 'special-front_icn.svg'}}"
+				<img src="systems/litm-rn/assets/media/icons/{{ifThen backpack.backside 'special_icn.svg' 'special-front_icn.svg'}}"
 					alt="{{localize 'Litm.other.specials'}}" class="litm--specials-backside"/>
 			</button>
 			{{backpack.name}}
@@ -15,13 +15,13 @@
 		{{#if backpack.backside}}
 			<ul class="taglist back">
 			{{#each backpack.specials as |special|}}
-				{{> systems/litm/templates/partials/special.html special=special key=@key path=(concat "items." ../backpack.id ".system.specials") embedded=true remove=false}}
+				{{> systems/litm-rn/templates/partials/special.html special=special key=@key path=(concat "items." ../backpack.id ".system.specials") embedded=true remove=false}}
 			{{/each}}
 			</ul>
 		{{else}}
 			<ul class="taglist front">
 				{{#each backpack.contents as |tag|}}
-					{{> systems/litm/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../backpack.id ".system.contents") embedded=true remove=false}}
+					{{> systems/litm-rn/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../backpack.id ".system.contents") embedded=true remove=false}}
 				{{/each}}
 			</ul>
 		{{/if}}

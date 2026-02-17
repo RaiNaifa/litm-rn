@@ -8,7 +8,7 @@ export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			classes: ["litm", "litm--threat"],
-			template: "systems/litm/templates/item/threat.html",
+			template: "systems/litm-rn/templates/item/threat.html",
 			width: 412,
 			height: 231,
 			resizable: true,
@@ -43,13 +43,19 @@ export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	activateListeners(html) {
 		super.activateListeners(html);
 
-		html.find("[data-click]").on("click", this.#handleClick.bind(this));
-		html
-			.find("[data-context]")
-			.on("contextmenu", this.#handleContextMenu.bind(this));
+		const htmlElement = html[0];
 
-		if (this.isEditing)
-			html.find("[contenteditable]:has(+#consequence)").focus();
+		htmlElement.querySelectorAll("[data-click]").forEach(element => {
+			element.addEventListener("click", this.#handleClick.bind(this));
+		});
+
+		htmlElement.querySelectorAll("[data-context]").forEach(element => {
+			element.addEventListener("contextmenu", this.#handleContextMenu.bind(this));
+		});
+
+		if (this.isEditing) {
+			htmlElement.querySelector("[contenteditable]:has(+#consequence)")?.focus();
+		}
 	}
 
 	async _updateObject(event, formData) {
@@ -76,7 +82,7 @@ export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 					name: tag,
 					label: tag,
 					flags: {
-						litm: {
+						["litm-rn"]: {
 							type,
 						},
 					},

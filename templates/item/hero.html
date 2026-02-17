@@ -1,11 +1,11 @@
 <form autocomplete="off" class="litm--hero-wrapper">
-	<img width="270px" class="litm--hero-bg-frame" src="systems/litm/assets/media/background-frame.webp"
+	<img width="270px" class="litm--hero-bg-frame" src="systems/litm-rn/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--hero-bg">
 		<div class="meta">
 			<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
 				data-tooltip="{{localize 'Litm.other.specials'}}">
-				<img src="systems/litm/assets/media/icons/{{ifThen backside 'special_icn.svg' 'special-front_icn.svg'}}"
+				<img src="systems/litm-rn/assets/media/icons/{{ifThen backside 'special_icn.svg' 'special-front_icn.svg'}}"
 					alt="{{localize 'Litm.other.specials'}}" class="litm--specials-backside"/>
 			</button>
 			{{localize 'Litm.other.hero-card'}}
@@ -14,7 +14,7 @@
 		{{#if hero.backside}}
 			<ul class="taglist litm--hero-backside">
 				{{#each hero.fulfillment as |tag|}}
-					{{> systems/litm/templates/partials/fulfillment.html tag=tag key=@key path="system.fulfillment" embedded=false remove=false}}
+					{{> systems/litm-rn/templates/partials/fulfillment.html tag=tag key=@key path="system.fulfillment" embedded=false remove=false}}
 				{{/each}}
 			</ul>
 			<div class="litm--hero-progression">
@@ -33,7 +33,7 @@
 		{{else}}
 			<ul class="taglist">
 				{{#each hero.contents as |tag|}}
-					{{> systems/litm/templates/partials/relationship.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
+					{{> systems/litm-rn/templates/partials/relationship.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
 				{{/each}}
 			</ul>
 			<button type="button" data-click="add-tag">{{localize "Litm.ui.add-relationship"}}</button>

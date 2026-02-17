@@ -1,8 +1,8 @@
 import { localize as t } from "../utils.js";
 
 export class LitmRoll extends Roll {
-	static CHAT_TEMPLATE = "systems/litm/templates/chat/message.html";
-	static TOOLTIP_TEMPLATE = "systems/litm/templates/chat/message-tooltip.html";
+	static CHAT_TEMPLATE = "systems/litm-rn/templates/chat/message.html";
+	static TOOLTIP_TEMPLATE = "systems/litm-rn/templates/chat/message-tooltip.html";
 
 	get litm() {
 		return this.options;
@@ -77,7 +77,7 @@ export class LitmRoll extends Roll {
 		isPrivate = false,
 	} = {}) {
 		if (!this._evaluated) await this.evaluate({ async: true });
-
+		
 		const chatData = {
 			actor: this.actor,
 			formula: isPrivate ? "???" : this._formula.replace(/\s\+0/, ""),
@@ -93,19 +93,23 @@ export class LitmRoll extends Roll {
 			modifier: isPrivate ? "???" : this.modifier,
 			user: game.user.id,
 			isOwner: game.user.isGM || this.actor.isOwner,
-			hasBurnedTags: !this.litm.isBurnt && this.litm.burnedTags.length > 0,
-			hasCrispyTags:
-				this.litm.isActive && this.litm.crispyTags.length > 0,
-			// hasWeaknessTags:
-			// 	!this.litm.gainedImp &&
-			// 	(this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
-			// 		0 || this.litm.crispyNegatives.filter(((t) => t.type === "crispy") || ((t) => t.type === "hero")).length >
-			// 		0),
-			hasWeaknessTags:
-				(!this.litm.gainedImp &&
-				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
-					0) || (this.litm.isActive && this.litm.state === "negative" && this.litm.heroWeaknessTags.length > 0)
 		};
+
+		// burnedTags here needs for the old ChatMessages
+		// DO NOT DELETE
+		if ("burnedTags" in this.litm) {
+			chatData.hasBurnedTags = !this.litm.isBurnt && this.litm.burnedTags.length > 0;
+			chatData.hasCrispyTags = this.litm.isActive && this.litm.crispyTags.length > 0;
+			chatData.hasWeaknessTags = (!this.litm.gainedImp &&
+				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
+					0) || (this.litm.isActive && this.litm.state === "negative" && this.litm.heroWeaknessTags.length > 0);
+		} else {
+			chatData.hasBurntTags = !this.litm.isScratched && this.litm.burntTags.length > 0; // ???
+			chatData.hasCrispyTags = this.litm.crispyTags.length > 0;
+			chatData.hasWeaknessTags = (!this.litm.gainedImp &&
+				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
+					0) || (this.litm.state === "negative" && this.litm.heroWeaknessTags.length > 0);
+		}
 
 		return foundry.applications.handlebars.renderTemplate(template, chatData);
 	}
@@ -120,7 +124,8 @@ export class LitmRoll extends Roll {
 		const { label: outcome } = this.outcome;
 		return {
 			mitigate: this.litm.type === "mitigate" && outcome === "success",
-			burnedTags: this.litm.burnedTags,
+			burntTags: this.litm.burntTags,
+			scratchedTags: this.litm.scratchedTags,
 			powerTags: this.litm.powerTags,
 			weaknessTags: this.litm.weaknessTags,
 			crispyTags: this.litm.crispyTags,

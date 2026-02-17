@@ -7,7 +7,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			classes: ["litm", "litm--story-tags"],
-			template: "systems/litm/templates/apps/story-tags.html",
+			template: "systems/litm-rn/templates/apps/story-tags.html",
 			title: t("Litm.ui.manage-tags"),
 			id: "litm-story-tags",
 			left: window.innerWidth - 605,
@@ -23,7 +23,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	}
 
 	get config() {
-		const config = game.settings.get("litm", "storytags");
+		const config = game.settings.get("litm-rn", "storytags");
 		if (!config || foundry.utils.isEmpty(config))
 			return { actors: [], tags: [] };
 		return config;
@@ -41,14 +41,14 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 					id: actor._id,
 					isOwner: actor.isOwner,
 					tags: actor.effects
-						.filter((e) => !!e.flags.litm?.type)
+						.filter((e) => !!e.flags["litm-rn"]?.type)
 						.map((e) => ({
 							id: e._id,
 							name: e.name,
-							values: e.flags.litm.values,
-							isBurnt: e.flags.litm.isBurnt,
-							value: e.flags.litm.values.findLast((v) => !!v),
-							type: e.flags.litm.values.some((v) => !!v) ? "status" : "tag",
+							values: e.flags["litm-rn"].values,
+							isScratched: e.flags["litm-rn"].isScratched,
+							value: e.flags["litm-rn"].values.findLast((v) => !!v),
+							type: e.flags["litm-rn"].values.some((v) => !!v) ? "status" : "tag",
 						}))
 						.sort((a, b) => a.name.localeCompare(b.name))
 						.sort((a, b) =>
@@ -65,12 +65,12 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	}
 
 	async setActors(actors) {
-		await game.settings.set("litm", "storytags", { ...this.config, actors });
+		await game.settings.set("litm-rn", "storytags", { ...this.config, actors });
 		return this.#broadcastRender();
 	}
 
 	async setTags(tags) {
-		await game.settings.set("litm", "storytags", { ...this.config, tags });
+		await game.settings.set("litm-rn", "storytags", { ...this.config, tags });
 		return this.#broadcastRender();
 	}
 
@@ -87,6 +87,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		super.activateListeners(html);
 		html.find("[data-click]").on("click", this.#onClick.bind(this));
 		html.find("[data-context]").on("contextmenu", this.#onContext.bind(this));
+
 		html
 			.find("[data-focus")
 			.on("focus", (event) => event.currentTarget.select());
@@ -95,7 +96,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			if (this.rendered) this.setPosition({ left: window.innerWidth - 605 });
 		});
 
-		game.socket.on("system.litm", async (data) => {
+		game.socket.on("system.litm-rn", async (data) => {
 			if (data.app !== "story-tags") return;
 			switch (data.type) {
 				case "update":
@@ -110,9 +111,9 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		// GM only listeners
 		if (!game.user.isGM) return;
 
-		this.#contextmenu = ContextMenu.create(
+		this.#contextmenu = foundry.applications.ux.ContextMenu.implementation.create(
 			this,
-			html,
+			html[0],
 			"[data-context='menu']",
 			[
 				{
@@ -132,13 +133,15 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			],
 			{
 				hookName: "LitmStoryTagsContextMenu",
+				jQuery: false,
 			},
 		);
-		this.#contextmenu._setPosition = function (html, target) {
+
+		this.#contextmenu._setPosition = function (contextMenuHtmlElement, targetHtmlElement) {
 			// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
-			html.toggleClass("expand-up", (this._expandUp = true));
-			target.append(html);
-			target.addClass("context");
+			contextMenuHtmlElement.classList.toggle("expand-up", (this._expandUp = true));
+			targetHtmlElement.appendChild(contextMenuHtmlElement);
+			targetHtmlElement.classList.add("context");
 		};
 	}
 
@@ -156,10 +159,10 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 						_id: tagId,
 						name: data.name,
 						flags: {
-							litm: {
+							["litm-rn"]: {
 								type: data.values.some((v) => v !== null) ? "status" : "tag",
 								values: data.values,
-								isBurnt: data.isBurnt,
+								isScratched: data.isScratched,
 							},
 						},
 					})),
@@ -171,7 +174,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			id: tagId,
 			name: data.name,
 			values: data.values,
-			isBurnt: data.isBurnt,
+			isScratched: data.isScratched,
 			type: data.values.some((v) => v !== null) ? "status" : "tag",
 			value: data.values.filter((v) => v !== null).at(-1),
 		}));
@@ -217,14 +220,14 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 				Array.from(tags).map(([_, name, value]) => ({
 					name,
 					flags: {
-						litm: {
+						["litm-rn"]: {
 							type: value ? "status" : "tag",
 							values: Array(6)
 								.fill()
 								.map((_, i) =>
 									Number.parseInt(value) === i + 1 ? value : null,
 								),
-							isBurnt: false,
+							isScratched: false,
 						},
 					},
 				})),
@@ -285,7 +288,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 				.fill()
 				.map(() => null),
 			type: "tag",
-			isBurnt: false,
+			isScratched: false,
 			id: foundry.utils.randomID(),
 		};
 
@@ -333,7 +336,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		await actor.createEmbeddedDocuments("ActiveEffect", [
 			{
 				name: tag.name,
-				flags: { litm: { type: "tag", values: tag.values, isBurnt: false } },
+				flags: { ["litm-rn"]: { type: "tag", values: tag.values, isScratched: false } },
 			},
 		]);
 		return this.#broadcastRender();

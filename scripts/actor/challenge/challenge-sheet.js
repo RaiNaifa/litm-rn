@@ -11,7 +11,7 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	});
 
 	get template() {
-		return "systems/litm/templates/actor/challenge.html";
+		return "systems/litm-rn/templates/actor/challenge.html";
 	}
 
 	get system() {

@@ -1,8 +1,8 @@
 {{#*inline 'divider' title add}}
 	<div class="litm--challenge-divider {{ifThen add 'grid-4' ''}}">
-		<img src="systems/litm/assets/media/left-div.webp" aria-hidden="true" />
+		<img src="systems/litm-rn/assets/media/left-div.webp" aria-hidden="true" />
 		<label for="limits">{{localize title}}</label>
-		<img src="systems/litm/assets/media/right-div.webp" aria-hidden="true" />
+		<img src="systems/litm-rn/assets/media/right-div.webp" aria-hidden="true" />
 		{{#if add}}
 			<button class="litm--challenge-add" type="button"
 				data-click="{{concat 'add-' add}}"
@@ -20,7 +20,7 @@
 	{{/each}}
 </datalist>
 <img class="litm--challenge-border"
-	src="systems/litm/assets/media/challenge-border.webp" aria-hidden="true">
+	src="systems/litm-rn/assets/media/challenge-border.webp" aria-hidden="true">
 <form class="{{cssClass}}" autocomplete="off">
 	<div class="litm--challenge-meta">
 		{{#if (gte data.permissionLevel 2)}}
@@ -28,14 +28,14 @@
 				for="category">{{localize "Litm.other.category"}}</label>
 			<input list="litm--challenge-types" type="text" data-size-input
 				id="category" name="system.category" value="{{data.system.category}}" />
-			<img src="systems/litm/assets/media/separator.webp" alt="">
+			<img src="systems/litm-rn/assets/media/separator.webp" alt="">
 			<label class="litm--sro"
 				for="rating">{{localize "Litm.other.rating"}}</label>
 			<div role="button" class="litm--challenge-rating" data-click="increase"
 				data-context="decrease" data-name="system.rating">
 				{{#progress-buttons data.system.rating 5}}
 					<span aria-hidden="true" class="{{ifThen @checked 'checked' ''}}"><img
-							src="systems/litm/assets/media/skull.webp" /></span>
+							src="systems/litm-rn/assets/media/skull.webp" /></span>
 				{{/progress-buttons}}
 			</div>
 			<input type="hidden" id="rating" name="system.rating"

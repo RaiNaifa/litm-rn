@@ -8,7 +8,7 @@ export class Sockets {
 		const senderIsGM = game.user.isGM;
 		const senderId = game.user.id;
 		const id = foundry.utils.randomID();
-		game.socket.emit("system.litm", {
+		game.socket.emit("system.litm-rn", {
 			id,
 			data,
 			event,
@@ -18,7 +18,7 @@ export class Sockets {
 	}
 
 	static on(event, cb) {
-		game.socket.on("system.litm", (data) => {
+		game.socket.on("system.litm-rn", (data) => {
 			const { event: e, senderId, ...d } = data;
 			if (e !== event || senderId === game.userId) return;
 			cb(d);
@@ -49,7 +49,8 @@ export class Sockets {
 			game.litm.LitmRollDialog.roll(data);
 		});
 
-		Sockets.on("rejectRoll", ({ data: { actorId, name } }) => {
+		Sockets.on("rejectRoll", ({ data: { userId, actorId, name } }) => {
+			if (userId !== game.userId) return;
 			ui.notifications.warn(
 				game.i18n.format("Litm.ui.roll-rejected", { name }),
 			);

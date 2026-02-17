@@ -26,7 +26,7 @@
 			</div>
 		</section>
 		{{/each}}
-		{{#each data.burnedTags as |tag|}}
+		{{#each data.burntTags as |tag|}}
 		{{> section name=tag.name value=3 flavor=(localize 'Litm.tags.isBurnt') flavorClass="burned"}}
 		{{/each}}
 		{{#each data.powerTags as |tag|}}

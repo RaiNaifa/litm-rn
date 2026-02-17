@@ -3,7 +3,7 @@
 		data-id="{{data.id}}">
 		<img
 			class="draggable {{#if (eq data.type 'status')}}litm--green-leaf{{/if}}"
-			data-drag="#story-tags" src="systems/litm/assets/media/yellow-leaf.webp"
+			data-drag="#story-tags" src="systems/litm-rn/assets/media/yellow-leaf.webp"
 			aria-hidden="true" width="220" />
 		<div class="{{data.type}}">
 			<label><span class="litm--sro">{{localize "Name"}}</span>
@@ -15,10 +15,10 @@
 					<div class="litm--story-tag-value">
 						{{#if (eq ../data.type 'status')}}
 							<label
-								for="effects.{{../data.id}}.flags.litm.values.{{@index}}">{{add @index 1}}</label>
+								for="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}">{{add @index 1}}</label>
 						{{/if}}
-						<input id="effects.{{../data.id}}.flags.litm.values.{{@index}}"
-							name="effects.{{../data.id}}.flags.litm.values" type="checkbox"
+						<input id="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}"
+							name="effects.{{../data.id}}.flags['litm-rn'].values" type="checkbox"
 							value="{{add @index 1}}" {{checked value}} />
 					</div>
 				{{/each}}
@@ -39,7 +39,7 @@
 			<button type="button" data-click="open" data-id="roll"
 				data-tooltip="{{localize 'Litm.ui.roll'}}"
 				aria-labelledby="dice-roll-button--{{_id}}">
-				<img src="systems/litm/assets/media/dice.webp" alt="Dice"
+				<img src="systems/litm-rn/assets/media/dice.webp" alt="Dice"
 					width="100px" />
 			</button>
 		</div>
@@ -48,7 +48,7 @@
 			<button type=" button" data-click="open" data-id="note"
 				data-tooltip="{{localize 'Notes'}}"
 				aria-labelledby="note-button--{{_id}}">
-				<img src="systems/litm/assets/media/note.webp" alt="Note"
+				<img src="systems/litm-rn/assets/media/note.webp" alt="Note"
 					width="80px" />
 			</button>
 		</div>
@@ -67,19 +67,19 @@
 	<div class="item-list litm--character-hero {{#if heroHovered}}hovered{{/if}}"
 		data-tooltip="{{localize 'Litm.ui.context-edit'}}"
 		data-tooltip-direction="LEFT" data-id="{{hero.id}}">
-		{{> systems/litm/templates/item/hero-ro.html hero=hero}}
+		{{> systems/litm-rn/templates/item/hero-ro.html hero=hero}}
 	</div>
 	{{/if}}
 	{{#if backpack.id}}
 		<div class="litm--character-backpack item-list {{#if backpackHovered}}hovered{{/if}}"
 			data-tooltip="{{localize 'Litm.ui.context-edit'}}"
 			data-tooltip-direction="LEFT" data-id="{{backpack.id}}">
-			{{> systems/litm/templates/item/backpack-ro.html backpack=backpack}}
+			{{> systems/litm-rn/templates/item/backpack-ro.html backpack=backpack}}
 		</div>
 	{{else}}
 		<div class="litm--character-backpack">
 			<img width="380px" class="litm--backpack-img"
-				src="systems/litm/assets/media/backpack.webp"
+				src="systems/litm-rn/assets/media/backpack.webp"
 				alt="Soft illustration of a rustic backpack" />
 		</div>
 	{{/if}}
@@ -88,7 +88,7 @@
 			<div
 				class="litm--character-theme item{{#if (eq item.data._id ../themeHovered)}} hovered{{/if}}"
 				data-id="{{item.data._id}}" data-item-id="{{item.data._id}}">
-				{{> systems/litm/templates/item/theme-ro.html data=item.data}}
+				{{> systems/litm-rn/templates/item/theme-ro.html data=item.data}}
 			</div>
 		{{/each}}
 	</div>
@@ -98,7 +98,7 @@
 		id="story-tags" style="{{tagsFocused}}">
 		<li class="litm--story-tag">
 			<button type="button" data-click="add-tag" data-id="story-tags">
-				<img src="systems/litm/assets/media/yellow-leaf.webp"
+				<img src="systems/litm-rn/assets/media/yellow-leaf.webp"
 					class="litm--red-leaf" alt="Leaf" width="220" />
 				<span><i class="fas fa-plus"></i>
 					{{localize "Litm.ui.add-tag"}}</span>

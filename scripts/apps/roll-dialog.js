@@ -4,7 +4,7 @@ import { sortTags, localize as t } from "../utils.js";
 export class LitmRollDialog extends FormApplication {
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {
-			template: "systems/litm/templates/apps/roll-dialog.html",
+			template: "systems/litm-rn/templates/apps/roll-dialog.html",
 			classes: ["litm", "litm--roll"],
 			width: 500,
 			height: "auto",
@@ -36,7 +36,7 @@ export class LitmRollDialog extends FormApplication {
 	static roll({ actorId, tags, title, type, speaker, modifier = 0 }) {
 		// Separate tags
 		const {
-			burnedTags,
+			burntTags,
 			powerTags,
 			weaknessTags,
 			positiveStatuses,
@@ -47,14 +47,14 @@ export class LitmRollDialog extends FormApplication {
 
 		// Values
 		const {
-			burnedValue,
+			burntValue,
 			powerValue,
 			weaknessValue,
 			positiveStatusValue,
 			negativeStatusValue,
 			totalPower,
 		} = game.litm.methods.calculatePower({
-			burnedTags,
+			burntTags,
 			powerTags,
 			weaknessTags,
 			positiveStatuses,
@@ -67,14 +67,14 @@ export class LitmRollDialog extends FormApplication {
 		const formula =
 			typeof CONFIG.litm.roll.formula === "function"
 				? CONFIG.litm.roll.formula({
-						burnedTags,
+						burntTags,
 						powerTags,
 						weaknessTags,
 						positiveStatuses,
 						negativeStatuses,
 						crispyTags,
 						heroWeaknessTags,
-						burnedValue,
+						burntValue,
 						powerValue,
 						weaknessValue,
 						positiveStatusValue,
@@ -86,13 +86,13 @@ export class LitmRollDialog extends FormApplication {
 						modifier,
 					})
 				: CONFIG.litm.roll.formula ||
-					"2d6 + (@burnedValue + @powerValue + @positiveStatusValue - @weaknessValue - @negativeStatusValue + @modifier)";
+					"2d6 + (@burntValue + @powerValue + @positiveStatusValue - @weaknessValue - @negativeStatusValue + @modifier)";
 
 		// Roll
 		const roll = new game.litm.LitmRoll(
 			formula,
 			{
-				burnedValue,
+				burntValue,
 				powerValue,
 				positiveStatusValue,
 				weaknessValue,
@@ -103,7 +103,7 @@ export class LitmRollDialog extends FormApplication {
 				actorId,
 				title,
 				type,
-				burnedTags,
+				burntTags,
 				powerTags,
 				weaknessTags,
 				positiveStatuses,
@@ -130,7 +130,7 @@ export class LitmRollDialog extends FormApplication {
 	}
 
 	static calculatePower(tags) {
-		const burnedValue = tags.burnedTags.length * 3;
+		const burntValue = tags.burntTags.length * 3;
 
 		const powerValue = tags.powerTags.length;
 
@@ -149,7 +149,7 @@ export class LitmRollDialog extends FormApplication {
 		const modifier = Number(tags.modifier) || 0;
 
 		const totalPower =
-			burnedValue +
+			burntValue +
 			powerValue +
 			positiveStatusValue -
 			weaknessValue -
@@ -157,7 +157,7 @@ export class LitmRollDialog extends FormApplication {
 			modifier;
 
 		return {
-			burnedValue,
+			burntValue,
 			powerValue,
 			weaknessValue,
 			positiveStatusValue,
@@ -168,7 +168,7 @@ export class LitmRollDialog extends FormApplication {
 	}
 
 	static #filterTags(tags) {
-		const burnedTags = tags.filter((t) => t.state === "burned");
+		const burntTags = tags.filter((t) => t.state === "burned");
 		const powerTags = tags.filter(
 			(t) => t.type && t.type !== "crispy" && t.type !== "status" && t.state === "positive",
 		);
@@ -189,7 +189,7 @@ export class LitmRollDialog extends FormApplication {
 		);
 
 		return {
-			burnedTags,
+			burntTags,
 			powerTags,
 			weaknessTags,
 			positiveStatuses,
@@ -376,16 +376,16 @@ export class LitmRollDialog extends FormApplication {
 				tag.states = ",negative,positive,burned";
 				break;
 		}
-		if (tag.type === "weaknessTag") {
-			tag.state = "negative";
-			tag.states = ",negative";
-		} else if (tag.type === "crispy" || tag.type === "hero") {
-			tag.state = "positive"; // crispy нельзя "burn", даже если toBurn === true
-			tag.states = ",negative,positive";
-		} else {
-			tag.state = toBurn ? "burned" : "positive";
-			tag.states = ",positive,burned";
-		}
+		// if (tag.type === "weaknessTag") {
+		// 	tag.state = "negative";
+		// 	tag.states = ",negative";
+		// } else if (tag.type === "crispy" || tag.type === "hero") {
+		// 	tag.state = "positive"; // crispy нельзя "burn", даже если toBurn === true
+		// 	tag.states = ",negative,positive";
+		// } else {
+		// 	tag.state = toBurn ? "burned" : "positive";
+		// 	tag.states = ",positive,burned";
+		// }
 		// tag.state =
 		// 	tag.type === "weaknessTag" ? "negative" : toBurn ? "burned" : "positive";
 		// tag.states = tag.type === "weaknessTag" ? ",negative" : ",positive,burned";
@@ -412,7 +412,7 @@ export class LitmRollDialog extends FormApplication {
 		this.characterTags = [];
 		this.#tagState = [];
 		this.#modifier = 0;
-		this.#shouldRoll = () => game.settings.get("litm", "skip_roll_moderation");
+		this.#shouldRoll = () => game.settings.get("litm-rn", "skip_roll_moderation");
 		if (this.actor.sheet.rendered) this.actor.sheet.render(true);
 	}
 
@@ -552,7 +552,7 @@ export class LitmRollDialog extends FormApplication {
 
 		ChatMessage.create({
 			content: await foundry.applications.handlebars.renderTemplate(
-				"systems/litm/templates/chat/moderation.html",
+				"systems/litm-rn/templates/chat/moderation.html",
 				{
 					title: t("Litm.ui.roll-moderation"),
 					id: this.actor.id,
@@ -567,7 +567,7 @@ export class LitmRollDialog extends FormApplication {
 				},
 			),
 			whisper: recipients,
-			flags: { litm: { id, userId, data } },
+			flags: { ["litm-rn"]: { id, userId, data } },
 		});
 	}
 

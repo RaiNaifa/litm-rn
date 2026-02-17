@@ -1,6 +1,6 @@
 import { localize as t } from "../../utils.js";
 
-export class HeroData extends foundry.abstract.TypeDataModel {
+export class HeroData extends foundry.abstract.DataModel {
 	static defineSchema() {
 		const fields = foundry.data.fields;
 		const abstract = game.litm.data;
@@ -8,7 +8,16 @@ export class HeroData extends foundry.abstract.TypeDataModel {
 			contents: new fields.ArrayField(
 				new fields.EmbeddedDataField(abstract.RelationshipData),
 				{
-					initial: [],
+					initial: () =>
+						Array(1)
+							.fill()
+							.map(() => ({
+								id: foundry.utils.randomID(),
+								name: t("Litm.tags.relationship"),
+								fellowName: t("Litm.ui.fellow-name"),
+								type: "hero",
+								isScratched: false,
+							})),
 				}
 			),
 			fulfillment: new fields.ArrayField(
@@ -19,7 +28,7 @@ export class HeroData extends foundry.abstract.TypeDataModel {
 							name: item,
 							type: "fulfillment",
 							isActive: false,
-							isBurnt: false,
+							isScratched: false,
 					}))
 				}
 			),

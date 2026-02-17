@@ -1,6 +1,6 @@
 export class LitmSettings {
 	static register() {
-		game.settings.register("litm", "welcomed", {
+		game.settings.register("litm-rn", "welcomed", {
 			name: "Welcome Screen",
 			hint: "Welcome Scene, Message, and Journal Entry has been created and displayed.",
 			scope: "world",
@@ -9,7 +9,7 @@ export class LitmSettings {
 			default: false,
 		});
 
-		game.settings.register("litm", "storytags", {
+		game.settings.register("litm-rn", "storytags", {
 			name: "Story Tags",
 			hint: "Tags that are shared between all users.",
 			scope: "world",
@@ -20,7 +20,7 @@ export class LitmSettings {
 				actors: [],
 			},
 		});
-		game.settings.register("litm", "show_tag_window_on_load", {
+		game.settings.register("litm-rn", "show_tag_window_on_load", {
 			name: "Litm.ui.show-tag-window-on-load",
 			hint: "Litm.ui.show-tag-window-on-load-hint",
 			scope: "client",
@@ -28,7 +28,7 @@ export class LitmSettings {
 			type: Boolean,
 			default: true,
 		});
-		game.settings.register("litm", "skip_roll_moderation", {
+		game.settings.register("litm-rn", "skip_roll_moderation", {
 			name: "Litm.settings.skip-roll-moderation",
 			hint: "Litm.settings.skip-roll-moderation-hint",
 			scope: "client",

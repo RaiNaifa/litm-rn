@@ -12,7 +12,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	}
 
 	get template() {
-		return "systems/litm/templates/item/theme.html";
+		return "systems/litm-rn/templates/item/theme.html";
 	}
 
 	getData() {
@@ -31,10 +31,10 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			: "origin";
 		const themesrc =
 			CONFIG.litm.theme_src[data.system.level] ||
-			`systems/litm/assets/media/${fallbackSrc}`;
+			`systems/litm-rn/assets/media/${fallbackSrc}`;
 		const themeiconsrc =
 			CONFIG.litm.themeicon_src[data.system.level] ||
-			`systems/litm/assets/media/icons/${fallbackSrc}`;
+			`systems/litm-rn/assets/media/icons/${fallbackSrc}`;
 
 		return { data, themesrc, themeiconsrc, ...rest };
 	}
@@ -52,7 +52,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			throw new Error(
 				"The FormApplication subclass has no registered form element",
 			);
-		const fd = new FormDataExtended(this.form, {
+		const fd = new foundry.applications.ux.FormDataExtended(this.form, {
 			editors: this.editors,
 			readonly: true,
 			disabled: true,
@@ -160,8 +160,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	async #addTag(type) {
 		const item = {
 			name: t("Litm.ui.name-tag"),
-			isActive: true,
-			isBurnt: false,
+			isScratched: false,
 			type: type,
 			id: foundry.utils.randomID(),
 		};

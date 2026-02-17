@@ -145,9 +145,10 @@
 			margin-inline: 10px;
 			padding-block: var(--litm-space-1) var(--litm-space-3);
 			display: flex;
-			justify-content: space-between;
+			/* justify-content: space-between; */
+			width: calc(100% - 20px);
 			align-items: center;
-			gap: var(--litm-space-2);
+			gap: var(--litm-space-1);
 			color: var(--litm-color);
 			font-size: var(--font-size-16);
 
@@ -158,6 +159,7 @@
 			}
 
 			& .litm--theme-name {
+				flex-grow: 1;
 				font-family: var(--litm-font-primary);
 				font-size: var(--font-size-28);
 				border: none;
@@ -171,6 +173,10 @@
 				&:focus {
 					outline: none;
 					background-color: rgb(0, 0, 0, 0.1);
+				}
+
+				&.scratched {
+					text-decoration: line-through var(--litm-color);
 				}
 			}
 
@@ -275,6 +281,12 @@
 				& label {
 					display: flex;
 					--checkbox-size: 10px;
+				}
+
+				&:has(.litm--scratch.disabled) {
+					& .tag--name {
+						text-decoration: line-through var(--litm-color);
+					}
 				}
 			}
 		}

@@ -139,6 +139,10 @@
 					&:read-only {
 						cursor: auto;
 					}
+
+					&.scratched {
+						text-decoration: line-through var(--litm-color);
+					}
 				}
 
 				& label {
@@ -166,6 +170,14 @@
 				& .litm--special-description {
 					grid-column: 1 / -1;
 					grid-row: 2;
+				}
+			}
+
+			& li.litm--theme-tag {
+				&:has(.litm--scratch.disabled) {
+					& .tag--name {
+						text-decoration: line-through var(--litm-color);
+					}
 				}
 			}
 		}

@@ -4,35 +4,37 @@
 	{{#if embedded}}
 		<!-- Select Tag button -->
 		<button type="button" class="litm--theme-tag-button" data-id="{{tag.id}}"
-			{{#if (includes @root.rollTags tag.id 'id')}}data-selected{{/if}} {{#if tag.isActive}}data-click="select"
-			{{/if}}
-			{{#if tag.isActive}}data-tooltip="{{localize (ifThen tag.isBurnt 'Litm.ui.toggle-burnt' 'Litm.ui.toggle-roll')}}"
-			{{/if}}>
+			{{#if (includes @root.rollTags tag.id 'id' )}}data-selected{{/if}} data-click="select"
+			data-tooltip="{{localize (ifThen tag.isScratched 'Litm.ui.toggle-scratch' 'Litm.ui.toggle-roll')}}">
 			<!-- isActive indicator -->
-			<span class="litm--checkbox litm--checkbox-with-bg {{checked tag.isActive}}"></span>
+			<!-- <span class="litm--checkbox litm--checkbox-with-bg {{#unless tag.isScratched}}checked{{/unless}}"></span> -->
 			<!-- Name -->
-			<span class="tag--name">{{tag.name}}</span>
+			<span class="tag--name {{#if tag.isScratched}}scratched{{/if}}">{{tag.name}}</span>
 			<!-- isBurnt indicator -->
-			<span class="litm--sro">{{localize (ifThen tag.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}</span>
-			<span class="litm--burn {{checked (or tag.isBurnt (includes @root.burntTags tag.id 'id'))}}"
+			<span class="litm--sro">{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+			<span class="litm--scratch {{checked (or tag.isScratched (includes @root.scratchedTags tag.id 'id'))}}{{#if (includes @root.burntTags tag.id 'id')}} burnt{{/if}}"
 				aria-hidden="true"></span>
 		</button>
+		<input type="hidden" name="{{path}}.{{key}}.type" value="{{tag.type}}">
+		<input type="hidden" name="{{path}}.{{key}}.id" value="{{tag.id}}">
+		<input type="hidden" name="{{path}}.{{key}}.name" value="{{tag.name}}">
+		<input type="hidden" name="{{path}}.{{key}}.isScratched" data-dtype="Boolean" value="{{tag.isScratched}}">
 	{{else}}
 		<!-- Tag functionality in Items -->
 		<!-- isActive checkbox -->
-		<label data-tooltip="{{localize (tagActiveString tag false)}}"><span
-				class="litm--sro">{{localize "Litm.tags.isActive"}}</span>
+		<!-- <label data-tooltip="{{localize (tagActiveString tag false)}}"><span
+				class="litm--sro">{{localize "Litm.tags.isScratched"}}</span>
 			<input class="litm--checkbox litm--checkbox-with-bg" type="checkbox" name="{{path}}.{{key}}.isActive"
-				{{checked tag.isActive}} />
-		</label>
+				{{#unless tag.isScratched}}checked{{/unless}} />
+		</label> -->
 		<!-- Name input -->
 		<input class="tag--name" type="text" name="{{path}}.{{key}}.name" value="{{tag.name}}">
-		<!-- isBurnt checkbox -->
+		<!-- isScratched checkbox -->
 		<label>
-			<span class="litm--sro">{{localize (ifThen tag.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}</span>
-			<input class="litm--burn" type="checkbox" name="{{path}}.{{key}}.isBurnt" {{#if tag.isActive}}
-				data-tooltip="{{localize (ifThen tag.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}" {{/if}}
-				{{checked tag.isBurnt}} {{disabled (not tag.isActive)}} />
+			<span class="litm--sro">{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+			<input class="litm--scratch {{disabled tag.isScratched}} {{#if (includes @root.burntTags tag.id 'id')}} burnt{{/if}}" type="checkbox" name="{{path}}.{{key}}.isScratched" {{#unless tag.isScratched}}
+				data-dtype="Boolean" data-tooltip="{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}" {{/unless}}
+				{{checked tag.isScratched}} />
 		</label>
 		<input type="hidden" name="{{path}}.{{key}}.type" value="{{tag.type}}">
 		<input type="hidden" name="{{path}}.{{key}}.id" value="{{tag.id}}">

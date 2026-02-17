@@ -34,7 +34,7 @@ import { LitmSettings } from "./scripts/system/settings.js";
 import { Sockets } from "./scripts/system/sockets.js";
 
 // Set the logo to the LitM logo
-$("#logo").attr("src", "systems/litm/assets/media/logo.webp");
+$("#logo").attr("src", "systems/litm-rn/assets/media/logo.webp");
 
 // Register Custom Elements
 ToggledInput.Register();
@@ -62,7 +62,7 @@ Hooks.once("init", () => {
 	CONFIG.Actor.dataModels.character = CharacterData;
 	CONFIG.Actor.dataModels.challenge = ChallengeData;
 	CONFIG.Actor.trackableAttributes.character =
-		CharacterData.getTrackableAttributes();
+	CharacterData.getTrackableAttributes();
 	CONFIG.Dice.terms[DENOMINATION] = DoubleSix;
 	CONFIG.Dice.rolls.push(LitmRoll);
 	CONFIG.Item.dataModels.backpack = BackpackData;
@@ -76,31 +76,31 @@ Hooks.once("init", () => {
 	foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
 	foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
 	// Register the new sheets
-	foundry.documents.collections.Actors.registerSheet("litm", CharacterSheet, {
+	foundry.documents.collections.Actors.registerSheet("litm-rn", CharacterSheet, {
 		types: ["character"],
 		makeDefault: true,
 	});
-	foundry.documents.collections.Actors.registerSheet("litm", ChallengeSheet, {
+	foundry.documents.collections.Actors.registerSheet("litm-rn", ChallengeSheet, {
 		types: ["challenge"],
 		makeDefault: true,
 	});
-	foundry.documents.collections.Items.registerSheet("litm", BackpackSheet, {
+	foundry.documents.collections.Items.registerSheet("litm-rn", BackpackSheet, {
 		types: ["backpack"],
 		makeDefault: true,
 	});
-	foundry.documents.collections.Items.registerSheet("litm", HeroSheet, {
+	foundry.documents.collections.Items.registerSheet("litm-rn", HeroSheet, {
 		types: ["hero"],
 		makeDefault: true,
 	});
-	// Items.registerSheet("litm", StoryThemeSheet, {
+	// Items.registerSheet("litm-rn", StoryThemeSheet, {
 	// 	types: ["storytheme"],
 	// 	makeDefault: true,
 	// });
-	foundry.documents.collections.Items.registerSheet("litm", ThemeSheet, {
+	foundry.documents.collections.Items.registerSheet("litm-rn", ThemeSheet, {
 		types: ["theme"],
 		makeDefault: true,
 	});
-	foundry.documents.collections.Items.registerSheet("litm", ThreatSheet, {
+	foundry.documents.collections.Items.registerSheet("litm-rn", ThreatSheet, {
 		types: ["threat"],
 		makeDefault: true,
 	});

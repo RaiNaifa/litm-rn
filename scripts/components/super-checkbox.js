@@ -104,7 +104,7 @@ export class SuperCheckbox extends HTMLElement {
 						position: relative;
 						top: -0.035em;
 						left: -0.045em;
-						background: url(systems/litm/assets/media/burn.svg);
+						background: url(systems/litm-rn/assets/media/burn.svg);
 						box-shadow: none;
 						background-size: cover;
 						background-position: center;

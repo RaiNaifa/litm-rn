@@ -6,7 +6,7 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			classes: ["litm", "litm--hero"],
-			template: "systems/litm/templates/item/hero.html",
+			template: "systems/litm-rn/templates/item/hero.html",
 			width: 400,
 			height: 450,
 			resizable: false,
@@ -42,7 +42,7 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			throw new Error(
 				"The FormApplication subclass has no registered form element",
 			);
-		const fd = new FormDataExtended(this.form, {
+		const fd = new foundry.applications.ux.FormDataExtended(this.form, {
 			editors: this.editors,
 			readonly: true,
 			disabled: true,
@@ -92,7 +92,7 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		const item = {
 			name: t("Litm.tags.relationship"),
 			fellowName: t("Litm.ui.fellow-name"),
-			isActive: false,
+			isScratched: false,
 			type: "hero",
 			id: foundry.utils.randomID(),
 		};

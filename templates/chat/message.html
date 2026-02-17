@@ -34,13 +34,13 @@
 		</p>
 		{{/if}}
 		{{/if}}
-		{{#if (and isOwner hasBurnedTags)}}
-		<button class="litm--roll-burn-button" data-click="burn-tags">{{localize 'Litm.ui.burn-tags'}}</button>
+		{{#if (and isOwner hasBurntTags)}}
+		<button class="litm--roll-burn-button" data-click="scratch-tags">{{localize 'Litm.ui.scratch-tags'}}</button>
 		{{/if}}
 		<!-- TODO: crispy action button, heroWeaknessTags action method -->
-		{{#if (and isOwner hasCrispyTags)}}
+		<!-- {{#if (and isOwner hasCrispyTags)}}
 		<button class="litm--roll-burn-button litm--roll-scratch-button" data-click="scratch-tags">{{localize 'Litm.ui.scratch-tags'}}</button>
-		{{/if}}
+		{{/if}} -->
 		{{#if (and isOwner hasWeaknessTags)}}
 		<button class="litm--roll-gain-imp-button" data-click="gain-improve">{{localize 'Litm.ui.gain-imp'}}</button>
 		{{/if}}

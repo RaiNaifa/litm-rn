@@ -154,15 +154,15 @@ export class LitmConfig {
 	];
 
 	theme_src = {
-		origin: "systems/litm/assets/media/origin",
-		adventure: "systems/litm/assets/media/adventure",
-		greatness: "systems/litm/assets/media/greatness",
+		origin: "systems/litm-rn/assets/media/origin",
+		adventure: "systems/litm-rn/assets/media/adventure",
+		greatness: "systems/litm-rn/assets/media/greatness",
 	};
 
 	themeicon_src = {
-		origin: "systems/litm/assets/media/icons/origin",
-		adventure: "systems/litm/assets/media/icons/adventure",
-		greatness: "systems/litm/assets/media/icons/greatness",
+		origin: "systems/litm-rn/assets/media/icons/origin",
+		adventure: "systems/litm-rn/assets/media/icons/adventure",
+		greatness: "systems/litm-rn/assets/media/icons/greatness",
 	};
 
 	mightStringRe = /\[@([oag]) ([^\]]+?)\]/giu;

@@ -6,7 +6,7 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			classes: ["litm", "litm--backpack"],
-			template: "systems/litm/templates/item/backpack.html",
+			template: "systems/litm-rn/templates/item/backpack.html",
 			width: 400,
 			height: 450,
 			resizable: false,
@@ -41,7 +41,7 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			throw new Error(
 				"The FormApplication subclass has no registered form element",
 			);
-		const fd = new FormDataExtended(this.form, {
+		const fd = new foundry.applications.ux.FormDataExtended(this.form, {
 			editors: this.editors,
 			readonly: true,
 			disabled: true,
@@ -88,8 +88,7 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	#addTag() {
 		const item = {
 			name: t("Litm.ui.name-tag"),
-			isActive: false,
-			isBurnt: false,
+			isScratched: false,
 			type: "backpack",
 			id: foundry.utils.randomID(),
 		};

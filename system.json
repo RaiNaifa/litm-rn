@@ -1,9 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/foundryvtt-system-manifest.json",
-	"id": "litm",
-	"version": 29,
+	"id": "litm-rn",
+	"version": 10.0,
 	"license": "LICENSE",
-	"title": "Legend in the Mist Demo",
+	"title": "Legend in the Mist",
 	"description": "A <strong>Rustic Fantasy</strong> Game for Foundry Virtual Tabletop.",
 	"authors": [
 		{
@@ -11,13 +11,17 @@
 			"discord": "aMediocreDad#2483",
 			"email": "hello@amediocre.dev",
 			"ko-fi": "amediocredad"
+		},
+		{
+			"name": "RaiNaifa",
+			"discord": "rainaifa"
 		}
 	],
 	"esmodules": [
-		"litm.js"
+		"litm-rn.js"
 	],
 	"styles": [
-		"litm.css"
+		"litm-rn.css"
 	],
 	"documentTypes": {
 		"Actor": {
@@ -82,16 +86,6 @@
 		"verified": 13,
 		"maximum": 13
 	},
-	"packs": [
-		{
-			"label": "Tinderbox Demo",
-			"type": "Adventure",
-			"name": "tinderbox-demo",
-			"path": "packs/tinderbox-demo",
-			"system": "litm",
-			"flags": {}
-		}
-	],
 	"flags": {
 		"hotReload": {
 			"extensions": [
@@ -117,10 +111,5 @@
 			}
 		]
 	},
-	"background": "systems/litm/assets/media/litm_splash.webp",
-	"url": "https://github.com/aMediocreDad/litm",
-	"bugs": "https://github.com/aMediocreDad/litm/issues?q=is:issue+is:open+sort:updated-desc",
-	"manifest": "https://raw.githubusercontent.com/aMediocreDad/litm/main/system.json",
-	"download": "https://github.com/aMediocreDad/litm/archive/refs/tags/v29.zip",
-	"readme": "https://github.com/aMediocreDad/litm/blob/main/README.md"
+	"background": "systems/litm-rn/assets/media/litm_splash.webp"
 }

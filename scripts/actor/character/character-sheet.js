@@ -24,11 +24,11 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	#roll = game.litm.LitmRollDialog.create({
 		actorId: this.actor._id,
 		characterTags: [],
-		shouldRoll: () => game.settings.get("litm", "skip_roll_moderation"),
+		shouldRoll: () => game.settings.get("litm-rn", "skip_roll_moderation"),
 	});
 
 	get template() {
-		return "systems/litm/templates/actor/character.html";
+		return "systems/litm-rn/templates/actor/character.html";
 	}
 
 	get items() {
@@ -57,7 +57,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		this.render();
 	}
 
-	async toggleBurnTag(tag) {
+	async toggleScratchTag(tag) {
 		switch (tag.type) {
 			case "powerTag": {
 				const parentTheme = this.items.find(
@@ -66,7 +66,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 						i.system.powerTags.some((t) => t.id === tag.id),
 				);
 				const { powerTags } = parentTheme.system.toObject();
-				powerTags.find((t) => t.id === tag.id).isBurnt = !tag.isBurnt;
+				powerTags.find((t) => t.id === tag.id).isScratched = !tag.isScratched;
 				this.actor.updateEmbeddedDocuments("Item", [
 					{
 						_id: parentTheme.id,
@@ -76,19 +76,24 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			}
 			case "themeTag": {
-				const theme = this.items.get(tag.id);
+				const parentTheme = this.items.find(
+					(i) =>
+						i.type === "theme" &&
+						i.system.themeTag.id === tag.id,
+				);
 				this.actor.updateEmbeddedDocuments("Item", [
 					{
-						_id: theme.id,
-						"system.isBurnt": !tag.isBurnt,
+						_id: parentTheme.id,
+						"system.themeTag.isScratched": !tag.isScratched,
 					},
 				]);
+				this.render(); 
 				break;
 			}
 			case "backpack": {
 				const backpack = this.items.find((i) => i.type === "backpack");
 				const { contents } = backpack.system.toObject();
-				contents.find((i) => i.id === tag.id).isBurnt = !tag.isBurnt;
+				contents.find((i) => i.id === tag.id).isScratched = !tag.isScratched;
 				this.actor.updateEmbeddedDocuments("Item", [
 					{
 						_id: backpack.id,
@@ -97,18 +102,6 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				]);
 				break;
 			}
-			// case "hero": {
-			// 	const hero = this.items.find((i) => i.type === "hero");
-			// 	const { contents } = hero.system.toObject();
-			// 	contents.find((i) => i.id === tag.id).isBurnt = !tag.isBurnt;
-			// 	this.actor.updateEmbeddedDocuments("Item", [
-			// 		{
-			// 			_id: hero.id,
-			// 			"system.contents": contents,
-			// 		},
-			// 	]);
-			// 	break;
-			// }
 		}
 	}
 
@@ -134,8 +127,8 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				.map(async (i) => {
 					const data = await i.sheet.getData();
 					data.data.system.specials = data.data.system.specials
-						?.sort((a, b) => a.name.localeCompare(b.name))
-						?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1));
+						// ?.sort((a, b) => a.name.localeCompare(b.name));
+						// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1));
 					return data;
 				}),
 		);
@@ -144,12 +137,12 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			name: this.items.find((i) => i.type === "backpack")?.name,
 			id: this.items.find((i) => i.type === "backpack")?._id,
 			backside: this.system.backpack.backside,
-			contents: this.system.backpack.contents
-				?.sort((a, b) => a.name.localeCompare(b.name))
-				?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
-			specials: this.system.backpack.specials
-				?.sort((a, b) => a.name.localeCompare(b.name))
-				?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+			contents: this.system.backpack.contents,
+				// ?.sort((a, b) => a.name.localeCompare(b.name)),
+				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+			specials: this.system.backpack.specials,
+				// ?.sort((a, b) => a.name.localeCompare(b.name)),
+				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
 		const hero = {
 			name: this.items.find((i) => i.type === "hero")?.name,
@@ -157,9 +150,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			backside: this.system.hero.backside,
 			fulfillment: this.system.hero.fulfillment,
 			promise: this.system.hero.promise,
-			contents: this.system.hero.contents
-				?.sort((a, b) => a.name.localeCompare(b.name))
-				?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
+			contents: this.system.hero.contents,
+				// ?.sort((a, b) => a.name.localeCompare(b.name)),
+				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
 		return {
 			...this.object.system,
@@ -168,8 +161,11 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			note,
 			themes,
 			_id: this.actor.id,
+			scratchedTags: this.#roll.characterTags.filter(
+				(t) => t.isScratched || t.state === "scratched",
+			),
 			burntTags: this.#roll.characterTags.filter(
-				(t) => t.isBurnt || t.state === "burned",
+				(t) => t.state === "burned", // For an old roll messages?
 			),
 			img: this.actor.img,
 			name: this.actor.name,
@@ -230,16 +226,16 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			else this.#tagsHovered = false;
 		});
 
-		this.#contextmenu = ContextMenu.create(
+		this.#contextmenu = foundry.applications.ux.ContextMenu.implementation.create(
 			this,
-			html,
+			html[0],
 			"[data-context='menu']",
 			[
 				{
 					name: game.i18n.localize("Litm.ui.edit"),
 					icon: '<i class="fas fa-edit"></i>',
-					callback: (html) => {
-						const id = html.parent().data("id");
+					callback: (targetElement) => {
+						const id = targetElement.parentElement.dataset.id;
 						const item = this.actor.items.get(id);
 						item.sheet.render(true);
 					},
@@ -247,8 +243,8 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				{
 					name: game.i18n.localize("Litm.ui.remove"),
 					icon: "<i class='fas fa-trash'></i>",
-					callback: (html) => {
-						const id = html.parent().data("id");
+					callback: (targetElement) => {
+						const id = targetElement.parentElement.dataset.id;
 						this.#removeItem(id);
 					},
 				},
@@ -256,23 +252,16 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			{
 				hookName: "LitmItemContextMenu",
 				fixed: true,
+				jQuery: false,
 			},
 		);
-
-		if (Number.parseFloat(game.version) < 13)
-			this.#contextmenu._setPosition = function (html, target) {
-				this._expandUp = true;
-				html.toggleClass("expand-up", this._expandUp);
-				target.append(html);
-				target.addClass("context");
-			};
 	}
 
 	// Hack to allow updating the embedded items
-	async _updateObject(event, formData) {
-		const cleaned = await this.#handleUpdateEmbeddedItems(formData);
-		return super._updateObject(event, cleaned);
-	}
+	// async _updateObject(event, formData) {
+	// 	const cleaned = await this.#handleUpdateEmbeddedItems(formData);
+	// 	return super._updateObject(event, cleaned);
+	// }
 
 	async _onDrop(dragEvent) {
 		const dragData = dragEvent.dataTransfer.getData("text/plain");
@@ -285,10 +274,10 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			{
 				name: data.name,
 				flags: {
-					litm: {
+					["litm-rn"]: {
 						type: data.type,
 						values: data.values,
-						isBurnt: data.isBurnt,
+						isScratched: data.isScratched,
 					},
 				},
 			},
@@ -333,7 +322,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			throw new Error(
 				"The FormApplication subclass has no registered form element",
 			);
-		const fd = new FormDataExtended(this.form, {
+		const fd = new foundry.applications.ux.FormDataExtended(this.form, {
 			editors: this.editors,
 			readonly: true,
 			disabled: true,
@@ -465,10 +454,10 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			{
 				name: t("Litm.ui.name-tag"),
 				flags: {
-					litm: {
+					["litm-rn"]: {
 						type: "tag",
 						values: new Array(6).fill(false),
-						isBurnt: false,
+						isScratched: false,
 					},
 				},
 			},
@@ -550,22 +539,28 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		const t = event.currentTarget;
 		const toBurn = event.shiftKey;
-		const toBurnNoRoll = event.altKey;
+		const toScratch = event.altKey;
 		const id = t.dataset.id;
 		const tag = this.system.allTags.find((t) => t.id === id).toObject();
 		const selected = t.hasAttribute("data-selected");
 
-		if (toBurnNoRoll) return this.toggleBurnTag(tag);
-		if (!selected && tag?.isBurnt) return;
-
-		// Add or remove the tag from the roll
-		switch (selected) {
-			case true:
+		if (toScratch) {
+			if (selected) {
 				this.#roll.removeTag(tag);
-				break;
-			case false:
+				if (this.#roll.rendered) this.#roll.render();
+			}
+			return this.toggleScratchTag(tag);
+		}
+
+		if (!selected && tag.isScratched) return;
+
+		if (selected) {
+			this.#roll.removeTag(tag);
+			if (toBurn) {
 				this.#roll.addTag(tag, toBurn);
-				break;
+			}
+		} else {
+			this.#roll.addTag(tag, toBurn);
 		}
 
 		// Render the roll dialog if it's open
@@ -589,7 +584,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const chosenLoot = await Dialog.wait({
 			title: game.i18n.localize("Litm.ui.item-transfer-title"),
 			content: await foundry.applications.handlebars.renderTemplate(
-				"systems/litm/templates/apps/loot-dialog.html",
+				"systems/litm-rn/templates/apps/loot-dialog.html",
 				{ contents, cssClass: "litm--loot-dialog" },
 			),
 			buttons: {
@@ -640,56 +635,56 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		await item.update({ "system.backside": !backside });
 	}
 
-	async #handleUpdateEmbeddedItems(formData) {
-		const itemMap = {};
-		for (const [key, value] of Object.entries(formData)) {
-			if (!key.startsWith("items.")) continue;
+	// async #handleUpdateEmbeddedItems(formData) {
+	// 	const itemMap = {};
+	// 	for (const [key, value] of Object.entries(formData)) {
+	// 		if (!key.startsWith("items.")) continue;
 
-			delete formData[key];
-			const [_, _id, subkey, ...rest] = key.split(".");
-			itemMap[_id] ??= {};
-			itemMap[_id][subkey] ??= {};
-			if (rest.length === 0) itemMap[_id][subkey] = value;
-			else itemMap[_id][subkey][rest.join(".")] = value;
-		}
+	// 		delete formData[key];
+	// 		const [_, _id, subkey, ...rest] = key.split(".");
+	// 		itemMap[_id] ??= {};
+	// 		itemMap[_id][subkey] ??= {};
+	// 		if (rest.length === 0) itemMap[_id][subkey] = value;
+	// 		else itemMap[_id][subkey][rest.join(".")] = value;
+	// 	}
 
-		const itemsToUpdate = Object.entries(itemMap).reduce((acc, [id, data]) => {
-			acc.push({ _id: id, ...data });
-			return acc;
-		}, []);
+	// 	const itemsToUpdate = Object.entries(itemMap).reduce((acc, [id, data]) => {
+	// 		acc.push({ _id: id, ...data });
+	// 		return acc;
+	// 	}, []);
 
-		if (itemsToUpdate.length)
-			await this.actor.updateEmbeddedDocuments("Item", itemsToUpdate);
+	// 	if (itemsToUpdate.length)
+	// 		await this.actor.updateEmbeddedDocuments("Item", itemsToUpdate);
 
-		const effectMap = {};
-		for (const [key, value] of Object.entries(formData)) {
-			if (!key.startsWith("effects.")) continue;
+	// 	const effectMap = {};
+	// 	for (const [key, value] of Object.entries(formData)) {
+	// 		if (!key.startsWith("effects.")) continue;
 
-			delete formData[key];
-			const [_, _id, subkey, ...rest] = key.split(".");
-			effectMap[_id] ??= {};
-			effectMap[_id][subkey] ??= {};
-			if (rest.length === 0) effectMap[_id][subkey] = value;
-			else effectMap[_id][subkey][rest.join(".")] = value;
-		}
+	// 		delete formData[key];
+	// 		const [_, _id, subkey, ...rest] = key.split(".");
+	// 		effectMap[_id] ??= {};
+	// 		effectMap[_id][subkey] ??= {};
+	// 		if (rest.length === 0) effectMap[_id][subkey] = value;
+	// 		else effectMap[_id][subkey][rest.join(".")] = value;
+	// 	}
 
-		const effectsToUpdate = Object.entries(effectMap).reduce(
-			(acc, [id, data]) => {
-				acc.push({ _id: id, ...data });
-				return acc;
-			},
-			[],
-		);
+	// 	const effectsToUpdate = Object.entries(effectMap).reduce(
+	// 		(acc, [id, data]) => {
+	// 			acc.push({ _id: id, ...data });
+	// 			return acc;
+	// 		},
+	// 		[],
+	// 	);
 
-		if (effectsToUpdate.length) {
-			await this.actor.updateEmbeddedDocuments("ActiveEffect", effectsToUpdate);
-			game.litm.storyTags.render();
-			dispatch({
-				app: "story-tags",
-				type: "render",
-			});
-		}
+	// 	if (effectsToUpdate.length) {
+	// 		await this.actor.updateEmbeddedDocuments("ActiveEffect", effectsToUpdate);
+	// 		game.litm.storyTags.render();
+	// 		dispatch({
+	// 			app: "story-tags",
+	// 			type: "render",
+	// 		});
+	// 	}
 
-		return formData;
-	}
+	// 	return formData;
+	// }
 }

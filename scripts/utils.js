@@ -31,7 +31,7 @@ export function titleCase(str) {
 export function dispatch(data) {
 	const isGM = game.user.isGM;
 	const user = game.user.id;
-	return game.socket.emit("system.litm", { ...data, isGM, user });
+	return game.socket.emit("system.litm-rn", { ...data, isGM, user });
 }
 
 export async function newTagDialog(actors) {
@@ -40,7 +40,7 @@ export async function newTagDialog(actors) {
 		{
 			title: t("Litm.ui.add-tag"),
 			content: await foundry.applications.handlebars.renderTemplate(
-				"systems/litm/templates/partials/new-tag.html",
+				"systems/litm-rn/templates/partials/new-tag.html",
 				{ actors },
 			),
 			acceptLabel: t("Litm.ui.create"),
@@ -52,7 +52,7 @@ export async function newTagDialog(actors) {
 					label: t("Litm.ui.create"),
 					callback: (html) => {
 						const form = html.find("form")[0];
-						const formData = new FormDataExtended(form);
+						const formData = new foundry.applications.ux.FormDataExtended(form);
 						const expanded = foundry.utils.expandObject(formData.object);
 						return expanded;
 					},

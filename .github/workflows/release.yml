@@ -23,7 +23,7 @@ jobs:
           customHeaders: '{ "Content-Type": "application/json", "Authorization": "${{ secrets.FOUNDRY_API_KEY }}" }'
           data:
             '{
-              "id": "litm",
+              "id": "litm-rn",
               "release": {
                 "version": "${{ steps.tag.outputs.version }}",
                 "manifest": "https://raw.githubusercontent.com/aMediocreDad/litm/${{ github.event.release.tag_name }}/system.json",

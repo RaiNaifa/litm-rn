@@ -2,17 +2,17 @@ import { localize as t } from "../utils.js";
 
 function createTag(data, type) {
 	if (type === "hero") return {
-		...(data || { name: "", fellowName: "", isActive: false }),
+		...(data || { name: "", fellowName: "", isScratched: false }),
 		type,
 		id: foundry.utils.randomID(),
 	}
 	if (type === "crispy") return {
-		...(data || { name: "", isActive: false }),
+		...(data || { name: "" }),
 		type,
 		id: foundry.utils.randomID(),
 	}
 	return {
-		...(data || { name: "", isBurnt: false, isActive: false }),
+		...(data || { name: "", isScratched: false }),
 		type,
 		id: foundry.utils.randomID(),
 	};
@@ -24,11 +24,11 @@ function createStatus(data) {
 			name: data,
 			type: "ActiveEffect",
 			flags: {
-				litm: {
+				["litm-rn"]: {
 					type: "tag",
 					values: Array(6).fill(null),
 					value: "",
-					isBurnt: false,
+					isScratched: false,
 				},
 			},
 		};
@@ -43,18 +43,18 @@ function createStatus(data) {
 		name: data.name || t("Litm.other.unnamed"),
 		type: "ActiveEffect",
 		flags: {
-			litm: {
+			["litm-rn"]: {
 				type,
 				values,
 				value,
-				isBurnt: false,
+				isScratched: false,
 			},
 		},
 	};
 }
 
 export async function importCharacter(data) {
-	if (data.compatibility && !["litm", "empty"].includes(data.compatibility))
+	if (data.compatibility && !["litm-rn", "empty"].includes(data.compatibility))
 		return ui.notifications.warn("Litm.ui.warn-incompatible-data", {
 			localize: true,
 		});
@@ -69,14 +69,14 @@ export async function importCharacter(data) {
 		)
 		.map(([_, theme]) => ({
 			name:
-				theme.content.mainTag.name ||
+				theme.content.themeTag.name ||
 				t("Litm.other.unnamed", "TYPES.Item.theme"),
 			type: "theme",
 			system: {
 				themebook: theme.content.themebook,
 				level: theme.content.level?.toLowerCase(),
-				isActive: theme.content.mainTag.isActive,
-				isBurnt: theme.content.mainTag.isBurnt,
+				// isScratched: theme.content.mainTag.isScratched,
+				themeTag: createTag(theme.content.themeTag, "themeTag"),
 				powerTags: Array(5)
 					.fill()
 					.map((_, i) => createTag(theme.content.powerTags[i], "powerTag")),
@@ -84,8 +84,6 @@ export async function importCharacter(data) {
 					createTag(
 						{
 							name: theme.content.weaknessTags[0] || "",
-							isBurnt: false,
-							isActive: true,
 						},
 						"weaknessTag",
 					),

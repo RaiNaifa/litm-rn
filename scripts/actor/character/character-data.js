@@ -28,8 +28,8 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get allTags() {
-		const hero = this.hero.contents;
-		const backpack = this.backpack.contents;
+		const hero = this.hero.contents || [];
+		const backpack = this.backpack.contents || [];
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.allTags);
@@ -53,7 +53,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 
 	get availablePowerTags() {
 		const backpack = this.backpack.contents.filter(
-			(tag) => tag.isActive && !tag.isBurnt,
+			(tag) => !tag.isScratched,
 		);
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
@@ -63,12 +63,12 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 
 	get statuses() {
 		return this.parent.appliedEffects
-			.filter((item) => item.getFlag("litm", "values")?.some((v) => !!v))
+			.filter((item) => item.getFlag("litm-rn", "values")?.some((v) => !!v))
 			.map((item) => {
 				return {
-					...item.flags.litm,
+					...item.flags["litm-rn"],
 					type: "status",
-					value: item.flags.litm.values.findLast((v) => !!v),
+					value: item.flags["litm-rn"].values.findLast((v) => !!v),
 					id: item._id,
 					name: item.name,
 				};
@@ -77,18 +77,18 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 
 	get availableRelationships() {
 		return this.hero.contents.filter(
-			(tag) => tag.isActive,
+			(tag) => !tag.isScratched,
 		);
 	}
 
 	get storyTags() {
 		return this.parent.appliedEffects
-			.filter((item) => item.getFlag("litm", "values")?.every((v) => !v))
+			.filter((item) => item.getFlag("litm-rn", "values")?.every((v) => !v))
 			.map((item) => {
 				return {
-					...item.flags.litm,
+					...item.flags["litm-rn"],
 					type: "tag",
-					value: item.flags.litm.values.findLast((v) => !!v),
+					value: item.flags["litm-rn"].values.findLast((v) => !!v),
 					id: item._id,
 					name: item.name,
 				};

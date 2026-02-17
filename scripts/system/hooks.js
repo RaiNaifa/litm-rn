@@ -26,68 +26,68 @@ export class LitmHooks {
 
 	static #addLinkPreloadsToHead() {
 		const assets = [
-			"systems/litm/assets/media/adventure-theme-alt-bg-top.webp",
-			"systems/litm/assets/media/adventure-theme-bg-bottom.webp",
-			"systems/litm/assets/media/adventure-theme-border-bottom.webp",
-			"systems/litm/assets/media/adventure-theme-border-top.webp",
-			"systems/litm/assets/media/background-frame.webp",
-			"systems/litm/assets/media/background.webp",
-			"systems/litm/assets/media/backpack-top-bg.webp",
-			"systems/litm/assets/media/backpack.webp",
-			"systems/litm/assets/media/bg-alt.webp",
-			"systems/litm/assets/media/birb.webp",
-			"systems/litm/assets/media/bottom-branch.webp",
-			"systems/litm/assets/media/bottom-frame-branches.webp",
-			"systems/litm/assets/media/button-bg.webp",
-			"systems/litm/assets/media/button-border.webp",
-			"systems/litm/assets/media/challenge-bg.webp",
-			"systems/litm/assets/media/challenge-border.webp",
-			"systems/litm/assets/media/character-bg.webp",
-			"systems/litm/assets/media/character-default-portrait.webp",
-			"systems/litm/assets/media/connector.webp",
-			"systems/litm/assets/media/dice.webp",
-			"systems/litm/assets/media/effects.webp",
-			"systems/litm/assets/media/feather.webp",
-			"systems/litm/assets/media/flowers-top.webp",
-			"systems/litm/assets/media/greatness-theme-alt-bg-top.webp",
-			"systems/litm/assets/media/greatness-theme-bg-bottom.webp",
-			"systems/litm/assets/media/greatness-theme-border-bottom.webp",
-			"systems/litm/assets/media/greatness-theme-border-top.webp",
-			"systems/litm/assets/media/green-leaf.webp",
-			"systems/litm/assets/media/header-bg.webp",
-			"systems/litm/assets/media/item-divider.webp",
-			"systems/litm/assets/media/left-div.webp",
-			"systems/litm/assets/media/limit-bg.webp",
-			"systems/litm/assets/media/limit-label.webp",
-			"systems/litm/assets/media/limit-value.webp",
-			"systems/litm/assets/media/litm_splash.webp",
-			"systems/litm/assets/media/logo-b.webp",
-			"systems/litm/assets/media/logo.webp",
-			"systems/litm/assets/media/marshal-crest.webp",
-			"systems/litm/assets/media/middle-branches.webp",
-			"systems/litm/assets/media/necklace.webp",
-			"systems/litm/assets/media/note.webp",
-			"systems/litm/assets/media/origin-theme-alt-bg-top.webp",
-			"systems/litm/assets/media/origin-theme-bg-bottom.webp",
-			"systems/litm/assets/media/origin-theme-border-bottom.webp",
-			"systems/litm/assets/media/origin-theme-border-top.webp",
-			"systems/litm/assets/media/progress-bg.webp",
-			"systems/litm/assets/media/raven.webp",
-			"systems/litm/assets/media/right-div.webp",
-			"systems/litm/assets/media/scroll-background.webp",
-			"systems/litm/assets/media/scroll-border.webp",
-			"systems/litm/assets/media/section-bg.webp",
-			"systems/litm/assets/media/separator.webp",
-			"systems/litm/assets/media/separator-small.webp",
-			"systems/litm/assets/media/single-flower.webp",
-			"systems/litm/assets/media/skull.webp",
-			"systems/litm/assets/media/story-tag-bg.webp",
-			"systems/litm/assets/media/tabs-bg.webp",
-			"systems/litm/assets/media/tabs-collapse.webp",
-			"systems/litm/assets/media/tag-divider.webp",
-			"systems/litm/assets/media/theme-bg-top.webp",
-			"systems/litm/assets/media/top-frame-branches.webp",
-			"systems/litm/assets/media/yellow-leaf.webp",
+			"systems/litm-rn/assets/media/adventure-theme-alt-bg-top.webp",
+			"systems/litm-rn/assets/media/adventure-theme-bg-bottom.webp",
+			"systems/litm-rn/assets/media/adventure-theme-border-bottom.webp",
+			"systems/litm-rn/assets/media/adventure-theme-border-top.webp",
+			"systems/litm-rn/assets/media/background-frame.webp",
+			"systems/litm-rn/assets/media/background.webp",
+			"systems/litm-rn/assets/media/backpack-top-bg.webp",
+			"systems/litm-rn/assets/media/backpack.webp",
+			"systems/litm-rn/assets/media/bg-alt.webp",
+			"systems/litm-rn/assets/media/birb.webp",
+			"systems/litm-rn/assets/media/bottom-branch.webp",
+			"systems/litm-rn/assets/media/bottom-frame-branches.webp",
+			"systems/litm-rn/assets/media/button-bg.webp",
+			"systems/litm-rn/assets/media/button-border.webp",
+			"systems/litm-rn/assets/media/challenge-bg.webp",
+			"systems/litm-rn/assets/media/challenge-border.webp",
+			"systems/litm-rn/assets/media/character-bg.webp",
+			"systems/litm-rn/assets/media/character-default-portrait.webp",
+			"systems/litm-rn/assets/media/connector.webp",
+			"systems/litm-rn/assets/media/dice.webp",
+			"systems/litm-rn/assets/media/effects.webp",
+			"systems/litm-rn/assets/media/feather.webp",
+			"systems/litm-rn/assets/media/flowers-top.webp",
+			"systems/litm-rn/assets/media/greatness-theme-alt-bg-top.webp",
+			"systems/litm-rn/assets/media/greatness-theme-bg-bottom.webp",
+			"systems/litm-rn/assets/media/greatness-theme-border-bottom.webp",
+			"systems/litm-rn/assets/media/greatness-theme-border-top.webp",
+			"systems/litm-rn/assets/media/green-leaf.webp",
+			"systems/litm-rn/assets/media/header-bg.webp",
+			"systems/litm-rn/assets/media/item-divider.webp",
+			"systems/litm-rn/assets/media/left-div.webp",
+			"systems/litm-rn/assets/media/limit-bg.webp",
+			"systems/litm-rn/assets/media/limit-label.webp",
+			"systems/litm-rn/assets/media/limit-value.webp",
+			"systems/litm-rn/assets/media/litm_splash.webp",
+			"systems/litm-rn/assets/media/logo-b.webp",
+			"systems/litm-rn/assets/media/logo.webp",
+			"systems/litm-rn/assets/media/marshal-crest.webp",
+			"systems/litm-rn/assets/media/middle-branches.webp",
+			"systems/litm-rn/assets/media/necklace.webp",
+			"systems/litm-rn/assets/media/note.webp",
+			"systems/litm-rn/assets/media/origin-theme-alt-bg-top.webp",
+			"systems/litm-rn/assets/media/origin-theme-bg-bottom.webp",
+			"systems/litm-rn/assets/media/origin-theme-border-bottom.webp",
+			"systems/litm-rn/assets/media/origin-theme-border-top.webp",
+			"systems/litm-rn/assets/media/progress-bg.webp",
+			"systems/litm-rn/assets/media/raven.webp",
+			"systems/litm-rn/assets/media/right-div.webp",
+			"systems/litm-rn/assets/media/scroll-background.webp",
+			"systems/litm-rn/assets/media/scroll-border.webp",
+			"systems/litm-rn/assets/media/section-bg.webp",
+			"systems/litm-rn/assets/media/separator.webp",
+			"systems/litm-rn/assets/media/separator-small.webp",
+			"systems/litm-rn/assets/media/single-flower.webp",
+			"systems/litm-rn/assets/media/skull.webp",
+			"systems/litm-rn/assets/media/story-tag-bg.webp",
+			"systems/litm-rn/assets/media/tabs-bg.webp",
+			"systems/litm-rn/assets/media/tabs-collapse.webp",
+			"systems/litm-rn/assets/media/tag-divider.webp",
+			"systems/litm-rn/assets/media/theme-bg-top.webp",
+			"systems/litm-rn/assets/media/top-frame-branches.webp",
+			"systems/litm-rn/assets/media/yellow-leaf.webp",
 		];
 
 		for (const asset of assets) {
@@ -219,126 +219,115 @@ export class LitmHooks {
 		Hooks.on("renderPause", (_, html) => {
 			html
 				.find("img")
-				.attr("src", "systems/litm/assets/media/marshal-crest.webp")
+				.attr("src", "systems/litm-rn/assets/media/marshal-crest.webp")
 				.removeAttr("class");
 		});
 		Hooks.on("renderGamePause", (_, html) => {
 			const img = html.querySelector("img");
 			if (!img) return;
-			img.src = "systems/litm/assets/media/marshal-crest.webp";
+			img.src = "systems/litm-rn/assets/media/marshal-crest.webp";
 			img.classList.remove("fa-spin");
 		});
 	}
 
 	static #attachChatMessageListeners() {
-		Hooks.on("renderChatMessage", (app, html) => {
-			html.find("[data-click]").on("click", async (event) => {
-				const target = event.currentTarget;
-				const { click } = target.dataset;
+		Hooks.on("renderChatMessageHTML", (app, html) => {
+			const clickTargets = html.querySelectorAll("[data-click]");
+			for (const target of clickTargets) {
+				target.addEventListener("click", async (event) => {
+					event.stopPropagation();
+					event.preventDefault();
 
-				switch (click) {
-					case "burn-tags": {
-						event.stopPropagation();
-						event.preventDefault();
-
-						const roll = app.rolls[0];
-						const actor = game.actors.get(roll?.litm?.actorId);
-						if (!roll || !actor) return;
-
-						for (const tag of roll.litm.burnedTags)
-							await actor.sheet.toggleBurnTag(tag);
-						roll.options.isBurnt = true;
-						app.update({ rolls: [roll] });
-						break;
-					}
-					case "scratch-tags": {
-						event.stopPropagation();
-						event.preventDefault();
-
-						// TO DO
-						const roll = app.rolls[0];
-						const actor = game.actors.get(roll?.litm?.actorId);
-						if (!roll || !actor) return;
-
-						for (const tag of roll.litm.crispyPositives.filter(
-							(t) => t.type === "crispy" || t.type === "hero",
-						))
-							await actor.sheet.gainImprove(tag);
-
-						for (const tag of roll.litm.burnedTags)
-							await actor.sheet.toggleBurnTag(tag);
-						roll.options.isBurnt = true;
-						app.update({ rolls: [roll] });
-						break;
-					}
-					case "gain-improve": {
-						event.stopPropagation();
-						event.preventDefault();
-
-						const roll = app.rolls[0];
-						const actor = game.actors.get(roll?.litm?.actorId);
-						if (!roll || !actor) return;
-
-						// TO DO: for (crispy negative)
-						for (const tag of roll.litm.weaknessTags.filter(
-							(t) => t.type === "weaknessTag",
-						))
-							await actor.sheet.gainImprove(tag);
-						roll.options.gainedImp = true;
-						app.update({ rolls: [roll] });
-						break;
-					}
-					// biome-ignore lint/suspicious/noFallthroughSwitchClause: Intentional fallthrough
-					case "skip-moderation":
-						Sockets.dispatch("skipModeration", {
-							name: game.user.name,
-						});
-					case "approve-moderation": {
-						const data = await app.getFlag("litm", "data");
-						const userId = await app.getFlag("litm", "userId");
-
-						// Delete Message
-						app.delete();
-
-						// Roll
-						if (userId === game.userId) game.litm.LitmRollDialog.roll(data);
-						else
-							Sockets.dispatch("rollDice", {
-								userId,
-								data,
+					const { click } = target.dataset;
+		
+					switch (click) {
+						case "scratch-tags": {
+							// TO DO
+							const roll = app.rolls[0];
+							const actor = game.actors.get(roll?.litm?.actorId);
+							if (!roll || !actor) return;
+		
+							// for (const tag of roll.litm.crispyPositives.filter(
+							// 	(t) => t.type === "crispy" || t.type === "hero",
+							// ))
+							// 	await actor.sheet.gainImprove(tag);
+		
+							// for (const tag of roll.litm.scratchedTags)
+							for (const tag of roll.litm.burntTags)
+								await actor.sheet.toggleScratchTag(tag);
+							roll.options.isScratched = true;
+							app.update({ rolls: [roll] });
+							break;
+						}
+						case "gain-improve": {
+							const roll = app.rolls[0];
+							const actor = game.actors.get(roll?.litm?.actorId);
+							if (!roll || !actor) return;
+		
+							// TO DO: for (crispy negative)
+							for (const tag of roll.litm.weaknessTags.filter(
+								(t) => t.type === "weaknessTag",
+							))
+								await actor.sheet.gainImprove(tag);
+							roll.options.gainedImp = true;
+							app.update({ rolls: [roll] });
+							break;
+						}
+						// biome-ignore lint/suspicious/noFallthroughSwitchClause: Intentional fallthrough
+						case "skip-moderation":
+							Sockets.dispatch("skipModeration", {
+								name: game.user.name,
 							});
-
-						// Dispatch order to reset Roll Dialog
-						Sockets.dispatch("resetRollDialog", {
-							actorId: data.actorId,
-						});
-						break;
+						case "approve-moderation": {
+							const data = await app.getFlag("litm-rn", "data");
+							const userId = await app.getFlag("litm-rn", "userId");
+		
+							// Delete Message
+							app.delete();
+		
+							// Roll
+							if (userId === game.userId) game.litm.LitmRollDialog.roll(data);
+							else
+								Sockets.dispatch("rollDice", {
+									userId,
+									data,
+								});
+		
+							// Dispatch order to reset Roll Dialog
+							Sockets.dispatch("resetRollDialog", {
+								actorId: data.actorId,
+							});
+							break;
+						}
+						case "reject-moderation": {
+							const data = await app.getFlag("litm-rn", "data");
+							// Delete Message
+							app.delete();
+							// Reopen Roll Dialog
+							const actor = game.actors.get(data.actorId);
+							actor.sheet.renderRollDialog();
+							ui.notifications.warn(
+								game.i18n.format("Litm.ui.roll-rejected", { name: t("You") }),
+							);
+							const actorId = data.actorId;
+							const	userId = game.users.find(u => u.character?.id === actorId && !u.isGM)?.id || null;
+							// Dispatch order to reopen
+							Sockets.dispatch("rejectRoll", {
+								name: game.user.name,
+								actorId,
+								userId
+							});
+							break;
+						}
 					}
-					case "reject-moderation": {
-						const data = await app.getFlag("litm", "data");
-						// Delete Message
-						app.delete();
-						// Reopen Roll Dialog
-						const actor = game.actors.get(data.actorId);
-						actor.sheet.renderRollDialog();
-						ui.notifications.warn(
-							game.i18n.format("Litm.ui.roll-rejected", { name: t("You") }),
-						);
-						// Dispatch order to reopen
-						Sockets.dispatch("rejectRoll", {
-							name: game.user.name,
-							actorId: data.actorId,
-						});
-						break;
-					}
-				}
-			});
+				})
+			}
 		});
 	}
 
 	static #attachGMIndicatorToMessage() {
-		Hooks.on("renderChatMessage", (_, html) => {
-			html.attr("data-user", game.user.isGM ? "gm" : "player");
+		Hooks.on("renderChatMessageHTML", (_, html) => {
+			html.setAttribute("data-user", game.user.isGM ? "gm" : "player");
 		});
 	}
 
@@ -349,9 +338,9 @@ export class LitmHooks {
 				name: `${t(category)}: ${t(`Litm.effects.${key}.key`)}`,
 				icon: `<i class="${effect.icon}"></i>`,
 				condition: (li) => {
-					if (typeof li.find === "function")
-						return li.find("[data-type='tracked']:not([data-result='failure'])")
-							.length;
+					// if (typeof li.find === "function")
+					// 	return li.find("[data-type='tracked']:not([data-result='failure'])")
+					// 		.length;
 					return !!li.querySelector(
 						"[data-type='tracked']:not([data-result='failure'])",
 					);
@@ -379,21 +368,18 @@ export class LitmHooks {
 				name: `${t("Litm.ui.change-roll-type")}: ${t(`Litm.ui.roll-${type}`)}`,
 				icon: '<i class="fas fa-dice"></i>',
 				condition: (li) => {
-					if (typeof li.find === "function")
-						return (
-							li.find(".litm.dice-roll[data-type]").length &&
-							!li.find(`[data-type='${type}']`).length
-						);
+					// if (typeof li.find === "function")
+					// 	return (
+					// 		li.find(".litm.dice-roll[data-type]").length &&
+					// 		!li.find(`[data-type='${type}']`).length
+					// 	);
 					return (
 						!!li.querySelector(".litm.dice-roll[data-type]") &&
 						!li.querySelector(`[data-type='${type}']`)
 					);
 				},
 				callback: (li) => {
-					const data =
-						typeof li.data === "function"
-							? li.data("message-id")
-							: li.dataset.messageId;
+					const data = li.dataset.messageId;
 					const message = game.messages.get(data);
 					const roll = message.rolls[0];
 					roll.options.type = type;
@@ -424,7 +410,7 @@ export class LitmHooks {
 					img = actor.img;
 					break;
 				case !hasImage && isCharacter:
-					img = "systems/litm/assets/media/character-default-portrait.webp";
+					img = "systems/litm-rn/assets/media/character-default-portrait.webp";
 					break;
 				case !hasImage && data.type === "challenge":
 					img += "skull.svg";
@@ -486,9 +472,14 @@ export class LitmHooks {
 
 	static #prepareThemeOnCreate() {
 		Hooks.on("preCreateItem", (item, data) => {
+			if (data.type === "theme") {
+				item.updateSource({
+					'system.themeTag.name': data.name
+				});
+			}
 			if (item.img !== "icons/svg/item-bag.svg") return;
 
-			const base = "systems/litm/assets/media/icons/";
+			const base = "systems/litm-rn/assets/media/icons/";
 			let img = base;
 			switch (data.type) {
 				case "theme":
@@ -512,7 +503,7 @@ export class LitmHooks {
 		game.litm.storyTags = app;
 
 		Hooks.once("ready", async (_app, html) => {
-			if (game.settings.get("litm", "show_tag_window_on_load")) {
+			if (game.settings.get("litm-rn", "show_tag_window_on_load")) {
 				app.render(true);
 			}
 		});
@@ -549,7 +540,7 @@ export class LitmHooks {
 					values: Array(6)
 						.fill(null)
 						.map((_, i) => (Number.parseInt(status) === i + 1 ? status : null)),
-					isBurnt: false,
+					isScratched: false,
 					value: status,
 				};
 				event.originalEvent.dataTransfer.setData(
@@ -562,20 +553,20 @@ export class LitmHooks {
 
 	static #customizeDiceSoNice() {
 		Hooks.on("diceSoNiceReady", (dice3d) => {
-			dice3d.addSystem({ id: "litm", name: "Legend in the Mist" }, "preferred");
+			dice3d.addSystem({ id: "litm-rn", name: "Legend in the Mist" }, "preferred");
 			dice3d.addDicePreset(
 				{
 					type: "d6",
 					labels: ["1", "2", "3", "4", "5", "F", "1", "2", "3", "4", "5", "F"],
 					font: "LitM Dice",
-					system: "litm",
+					system: "litm-rn",
 				},
 				"d12",
 			);
 
 			dice3d.addColorset(
 				{
-					name: "litm",
+					name: "litm-rn",
 					description: "Legend in the Mist Default",
 					category: "Legend in the Mist",
 					foreground: ["#c9c9c9", "#c9c9c9", "#433a28", "#433a28", "#433a28"],
@@ -643,7 +634,7 @@ export class LitmHooks {
 
 	static #rendeWelcomeScreen() {
 		Hooks.once("ready", async () => {
-			if (game.settings.get("litm", "welcomed")) return;
+			if (game.settings.get("litm-rn", "welcomed")) return;
 			if (!game.user.isGM) return;
 
 			const scene = await Scene.create({
@@ -651,7 +642,7 @@ export class LitmHooks {
 				permission: { default: 2 },
 				navigation: true,
 				background: {
-					src: "systems/litm/assets/media/litm_splash.webp",
+					src: "systems/litm-rn/assets/media/litm_splash.webp",
 				},
 				width: 1920,
 				height: 1080,
@@ -775,9 +766,6 @@ export class LitmHooks {
 					uuid
 				}" data-id="${id}" data-type="JournalEntryPage" data-tooltip="${t("Litm.ui.user-manual")}"><i class="fas fa-file-lines"></i>Legend in the Mist</a> journal entry. It contains some important information about the system, and what to expect.</p>
 				<p>Once you've read the journal entry, you can click the button below to import all the rules and content required to play the Tinderbox Demo.</p>
-				<button type="button" id="litm--import-adventure" style="background: var(--litm-color-status-bg);"><strong>${t(
-					"Litm.ui.import-adventure",
-				)}</strong></button>
 				<p style="text-align:center;">Good luck, and have fun!</p>
 			`,
 			});
@@ -792,29 +780,29 @@ export class LitmHooks {
 			});
 
 			// We're done!
-			game.settings.set("litm", "welcomed", true);
+			game.settings.set("litm-rn", "welcomed", true);
 		});
 
-		Hooks.on("renderChatMessage", (_app, html) => {
-			html.find("#litm--import-adventure").on("click", async () => {
-				const adventure = await game.packs
-					.get("litm.tinderbox-demo")
-					.getDocuments();
-				adventure?.[0]?.sheet.render(true);
-			});
-		});
+		// Hooks.on("renderChatMessageHTML", (_app, html) => {
+		// 	html.find("#litm--import-adventure").on("click", async () => {
+		// 		const adventure = await game.packs
+		// 			.get("litm.tinderbox-demo")
+		// 			.getDocuments();
+		// 		adventure?.[0]?.sheet.render(true);
+		// 	});
+		// });
 
-		Hooks.on("importAdventure", async () => {
-			const updates = await Promise.all(
-				game.scenes
-					.filter((s) => /litm\/assets/.test(s.thumb))
-					.map(async (s) => {
-						const { thumb } = await s.createThumbnail();
-						return { _id: s.id, thumb };
-					}),
-			);
-			await Scene.updateDocuments(updates);
-			game.journal.getName("Tinderbox Demo Rules").sheet.render(true);
-		});
+		// Hooks.on("importAdventure", async () => {
+		// 	const updates = await Promise.all(
+		// 		game.scenes
+		// 			.filter((s) => /litm\/assets/.test(s.thumb))
+		// 			.map(async (s) => {
+		// 				const { thumb } = await s.createThumbnail();
+		// 				return { _id: s.id, thumb };
+		// 			}),
+		// 	);
+		// 	await Scene.updateDocuments(updates);
+		// 	game.journal.getName("Tinderbox Demo Rules").sheet.render(true);
+		// });
 	}
 }

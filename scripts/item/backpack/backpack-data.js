@@ -1,6 +1,6 @@
 import { localize as t } from "../../utils.js";
 
-export class BackpackData extends foundry.abstract.TypeDataModel {
+export class BackpackData extends foundry.abstract.DataModel {
 	static defineSchema() {
 		const fields = foundry.data.fields;
 		const abstract = game.litm.data;
@@ -15,8 +15,7 @@ export class BackpackData extends foundry.abstract.TypeDataModel {
 								id: foundry.utils.randomID(),
 								name: t("Litm.ui.name-tag"),
 								type: "backpack",
-								isActive: true,
-								isBurnt: false,
+								isScratched: false,
 							}))
 				}
 			),

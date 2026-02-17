@@ -41,25 +41,33 @@ export class HandlebarsHelpers {
 					? "Litm.tags.isInactive"
 					: "Litm.tags.activate",
 		);
+
+		Handlebars.registerHelper("tagScratchedString", (tag, readonly) =>
+			tag.isScratched
+				? "Litm.tags.isScratched"
+				: readonly
+					? "Litm.tags.isInactive"
+					: "Litm.tags.activate",
+		);
 	}
 }
 
 export class HandlebarsPartials {
 	static partials = [
-		"systems/litm/templates/apps/loot-dialog.html",
-		"systems/litm/templates/apps/roll-dialog.html",
-		"systems/litm/templates/apps/story-tags.html",
-		"systems/litm/templates/chat/message.html",
-		"systems/litm/templates/chat/message-tooltip.html",
-		"systems/litm/templates/chat/moderation.html",
-		"systems/litm/templates/item/backpack-ro.html",
-		"systems/litm/templates/item/hero-ro.html",
-		"systems/litm/templates/item/theme-ro.html",
-		"systems/litm/templates/partials/new-tag.html",
-		"systems/litm/templates/partials/tag.html",
-		"systems/litm/templates/partials/special.html",
-		"systems/litm/templates/partials/relationship.html",
-		"systems/litm/templates/partials/fulfillment.html",
+		"systems/litm-rn/templates/apps/loot-dialog.html",
+		"systems/litm-rn/templates/apps/roll-dialog.html",
+		"systems/litm-rn/templates/apps/story-tags.html",
+		"systems/litm-rn/templates/chat/message.html",
+		"systems/litm-rn/templates/chat/message-tooltip.html",
+		"systems/litm-rn/templates/chat/moderation.html",
+		"systems/litm-rn/templates/item/backpack-ro.html",
+		"systems/litm-rn/templates/item/hero-ro.html",
+		"systems/litm-rn/templates/item/theme-ro.html",
+		"systems/litm-rn/templates/partials/new-tag.html",
+		"systems/litm-rn/templates/partials/tag.html",
+		"systems/litm-rn/templates/partials/special.html",
+		"systems/litm-rn/templates/partials/relationship.html",
+		"systems/litm-rn/templates/partials/fulfillment.html",
 	];
 
 	static register() {

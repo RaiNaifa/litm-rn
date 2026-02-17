@@ -146,6 +146,10 @@
 					&:read-only {
 						cursor: auto;
 					}
+
+					&.scratched {
+						text-decoration: line-through var(--litm-color);
+					}
 				}
 
 				& label {
