@@ -7,7 +7,8 @@
 			aria-hidden="true" width="220" />
 		<div class="{{data.type}}">
 			<label><span class="litm--sro">{{localize "Name"}}</span>
-				<input type="text" name="effects.{{data.id}}.name"
+				<!-- <input type="text" name="effects.{{data.id}}.name" -->
+				<input type="text"
 					value="{{data.name}}" />
 			</label>
 			<div class="litm--story-tag-values">
@@ -17,8 +18,9 @@
 							<label
 								for="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}">{{add @index 1}}</label>
 						{{/if}}
+						<!-- name="effects.{{../data.id}}.flags['litm-rn'].values" type="checkbox" -->
 						<input id="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}"
-							name="effects.{{../data.id}}.flags['litm-rn'].values" type="checkbox"
+							type="checkbox"
 							value="{{add @index 1}}" {{checked value}} />
 					</div>
 				{{/each}}

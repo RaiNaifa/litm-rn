@@ -194,6 +194,10 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		html
 			.find("[data-drag]")
 			.on("mousedown", this.#onDragHandleMouseDown.bind(this));
+		html.find("li.litm--story-tag input[type='text']")
+			.on("change", this.#onEffectNameChange.bind(this));
+    html.find("li.litm--story-tag input[type='checkbox']")
+			.on("change", this.#onEffectValueChange.bind(this));
 		html.on("mouseover", (event) => {
 			html.find(".litm--character-theme").removeClass("hovered");
 			html.find(".litm--character-backpack").removeClass("hovered");
@@ -258,10 +262,15 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	}
 
 	// Hack to allow updating the embedded items
-	// async _updateObject(event, formData) {
-	// 	const cleaned = await this.#handleUpdateEmbeddedItems(formData);
-	// 	return super._updateObject(event, cleaned);
-	// }
+	async _updateObject(event, formData) {
+		delete formData.effects;
+		for (const key of Object.keys(formData)) {
+			if (key.startsWith("effects.")) {
+				delete formData[key];
+			}
+		}
+		return super._updateObject(event, formData);
+	}
 
 	async _onDrop(dragEvent) {
 		const dragData = dragEvent.dataTransfer.getData("text/plain");
@@ -449,6 +458,37 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		$(document).on("mouseup", handleMouseUp);
 	}
 
+	async #onEffectNameChange(event) {
+    const li = $(event.currentTarget).closest("li[data-id]");
+    const id = li.data("id");
+    if (!id) return;
+
+    await this.actor.updateEmbeddedDocuments("ActiveEffect", [
+        { _id: id, name: event.currentTarget.value },
+    ]);
+
+    game.litm.storyTags.render();
+    dispatch({ app: "story-tags", type: "render" });
+	}
+
+	async #onEffectValueChange(event) {
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+
+		if (!id) return;
+
+		const checkboxes = li.find("input[type='checkbox']");
+		
+		const values = checkboxes.map((i, cb) => cb.checked ? i + 1 : false).get();
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
+			{ _id: id, "flags.litm-rn.values": values },
+		]);
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+	}
+
 	async #addTag() {
 		await this.actor.createEmbeddedDocuments("ActiveEffect", [
 			{
@@ -634,57 +674,4 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		await item.update({ "system.backside": !backside });
 	}
-
-	// async #handleUpdateEmbeddedItems(formData) {
-	// 	const itemMap = {};
-	// 	for (const [key, value] of Object.entries(formData)) {
-	// 		if (!key.startsWith("items.")) continue;
-
-	// 		delete formData[key];
-	// 		const [_, _id, subkey, ...rest] = key.split(".");
-	// 		itemMap[_id] ??= {};
-	// 		itemMap[_id][subkey] ??= {};
-	// 		if (rest.length === 0) itemMap[_id][subkey] = value;
-	// 		else itemMap[_id][subkey][rest.join(".")] = value;
-	// 	}
-
-	// 	const itemsToUpdate = Object.entries(itemMap).reduce((acc, [id, data]) => {
-	// 		acc.push({ _id: id, ...data });
-	// 		return acc;
-	// 	}, []);
-
-	// 	if (itemsToUpdate.length)
-	// 		await this.actor.updateEmbeddedDocuments("Item", itemsToUpdate);
-
-	// 	const effectMap = {};
-	// 	for (const [key, value] of Object.entries(formData)) {
-	// 		if (!key.startsWith("effects.")) continue;
-
-	// 		delete formData[key];
-	// 		const [_, _id, subkey, ...rest] = key.split(".");
-	// 		effectMap[_id] ??= {};
-	// 		effectMap[_id][subkey] ??= {};
-	// 		if (rest.length === 0) effectMap[_id][subkey] = value;
-	// 		else effectMap[_id][subkey][rest.join(".")] = value;
-	// 	}
-
-	// 	const effectsToUpdate = Object.entries(effectMap).reduce(
-	// 		(acc, [id, data]) => {
-	// 			acc.push({ _id: id, ...data });
-	// 			return acc;
-	// 		},
-	// 		[],
-	// 	);
-
-	// 	if (effectsToUpdate.length) {
-	// 		await this.actor.updateEmbeddedDocuments("ActiveEffect", effectsToUpdate);
-	// 		game.litm.storyTags.render();
-	// 		dispatch({
-	// 			app: "story-tags",
-	// 			type: "render",
-	// 		});
-	// 	}
-
-	// 	return formData;
-	// }
 }
