@@ -60,7 +60,6 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 	get tags() {
 		return this.config.tags
-			.sort((a, b) => a.name.localeCompare(b.name))
 			.sort((a, b) => (a.type === b.type ? 0 : a.type === "status" ? -1 : 1));
 	}
 
