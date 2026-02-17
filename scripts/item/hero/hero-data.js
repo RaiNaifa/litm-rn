@@ -16,6 +16,7 @@ export class HeroData extends foundry.abstract.DataModel {
 								name: t("Litm.tags.relationship"),
 								fellowName: t("Litm.ui.fellow-name"),
 								type: "hero",
+								isActive: true,
 								isScratched: false,
 							})),
 				}

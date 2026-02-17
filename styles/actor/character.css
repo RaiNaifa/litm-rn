@@ -299,7 +299,7 @@
 					&:checked,
 					&.checked {
 						/* text-decoration: none; */
-						/* opacity: 1; */
+						opacity: 1;
 					}
 				}
 
@@ -725,7 +725,7 @@
 		padding: 0px;
 		cursor: auto;
 		/* text-decoration: line-through var(--litm-color); */
-		/* opacity: 0.5; */
+		opacity: 0.5;
 
 		&[data-click="select"] {
 			cursor: pointer;

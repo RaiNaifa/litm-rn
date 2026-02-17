@@ -41,6 +41,10 @@ export class RelationshipData extends foundry.abstract.DataModel {
 				required: true,
 				nullable: false,
 			}),
+			isActive: new fields.BooleanField({
+				required: true,
+				initial: false,
+			}),
 			isScratched: new fields.BooleanField({
 				required: true,
 				initial: false,
