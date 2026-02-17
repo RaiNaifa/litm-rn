@@ -59,7 +59,10 @@ export class LitmRoll extends Roll {
 
 		if (typeof resolver === "function") return resolver(this);
 
-		if (this.total > 9)
+		if (this.dice[0].total === 2)
+			return { label: "failure", description: "Litm.ui.roll-failure" };
+
+		if (this.total > 9 || this.dice[0].total === 12)
 			return { label: "success", description: "Litm.ui.roll-success" };
 
 		if (this.total > 6)
