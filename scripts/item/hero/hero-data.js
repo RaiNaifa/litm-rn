@@ -33,10 +33,6 @@ export class HeroData extends foundry.abstract.DataModel {
 					}))
 				}
 			),
-			backside: new fields.BooleanField({
-				required: true,
-				initial: true,
-			}),
 			promise: new fields.NumberField({
 				integer: true,
 				min: 0,

@@ -14,6 +14,8 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		});
 	}
 
+	#backside = false;
+
 	get system() {
 		return this.item.system;
 	}
@@ -23,7 +25,7 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		return {
 			backpack: this.system.contents,
 			specials: this.system.specials,
-			backside: this.system.backside,
+			backside: this.#backside,
 			name: this.item.name,
 		};
 	}
@@ -114,9 +116,9 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	}
 
 	#toggleBackside() {
-		const backside = !this.system.backside;
+		this.#backside = !this.#backside;
 
-		return this.item.update({ "system.backside": backside });
+		this.render(false); // with no save in DB
 	}
 
 	async #removeTag(button) {

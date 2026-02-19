@@ -13,6 +13,7 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			scrollY: [".taglist"],
 		});
 	}
+	#backside = false;
 
 	get system() {
 		return this.item.system;
@@ -23,7 +24,7 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		return {
 			hero: this.system,
 			name: this.item.name,
-			backside: this.system.backside,
+			backside: this.#backside,
 			promise: this.system.promise,
 			fulfillment: this.system.fulfillment,
 		};
@@ -104,9 +105,9 @@ export class HeroSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	}
 
 	#toggleBackside() {
-		const backside = !this.system.backside;
+		this.#backside = !this.#backside;
 
-		return this.item.update({ "system.backside": backside });
+		this.render(false);
 	}
 
 	async #removeTag(button) {

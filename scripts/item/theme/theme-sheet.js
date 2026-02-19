@@ -7,6 +7,8 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		height: 700,
 	});
 
+	#backside = false;
+
 	get system() {
 		return this.item.system;
 	}
@@ -21,7 +23,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		data.system.weakness = this.system.weakness;
 		data.system.levels = this.system.levels;
 		data.system.themebooks = this.system.themebooks;
-		data.system.backside = this.system.backside;
+		data.system.backside = this.#backside,
 		data.system.specials = this.system.specials;
 
 		const fallbackSrc = ["origin", "adventure", "greatness"].includes(
@@ -203,9 +205,9 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	}
 
 	async #toggleBackside() {
-		const backside = !this.system.backside;
+		this.#backside = !this.#backside;
 
-		await this.item.update({ "system.backside": backside });
+		this.render(false);
 	}
 
 	async #increase(field) {

@@ -19,6 +19,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	#tagsHovered = false;
 	#themeHovered = null;
 	#backpackHovered = null;
+	#backsideStates = new Map();
 	#heroHovered = null;
 	#contextmenu = null;
 	#roll = game.litm.LitmRollDialog.create({
@@ -129,14 +130,16 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 					data.data.system.specials = data.data.system.specials
 						// ?.sort((a, b) => a.name.localeCompare(b.name));
 						// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1));
+					data.data.system.backside = this.#getBackside(i.id);
 					return data;
 				}),
 		);
 		const note = await TextEditor.enrichHTML(this.system.note);
+		const backpackItem = this.items.find((i) => i.type === "backpack");
 		const backpack = {
-			name: this.items.find((i) => i.type === "backpack")?.name,
-			id: this.items.find((i) => i.type === "backpack")?._id,
-			backside: this.system.backpack.backside,
+			name: backpackItem?.name,
+			id: backpackItem?._id,
+			backside: this.#getBackside(backpackItem?._id),
 			contents: this.system.backpack.contents,
 				// ?.sort((a, b) => a.name.localeCompare(b.name)),
 				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
@@ -144,10 +147,11 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				// ?.sort((a, b) => a.name.localeCompare(b.name)),
 				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
+		const heroItem = this.items.find((i) => i.type === "hero");
 		const hero = {
-			name: this.items.find((i) => i.type === "hero")?.name,
-			id: this.items.find((i) => i.type === "hero")?._id,
-			backside: this.system.hero.backside,
+			name: heroItem?.name,
+			id: heroItem?._id,
+			backside: this.#getBackside(heroItem?.id),
 			fulfillment: this.system.hero.fulfillment,
 			promise: this.system.hero.promise,
 			contents: this.system.hero.contents,
@@ -668,10 +672,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		backpack.sheet.render(true);
 	}
 
-	async #toggleBackside(id) {
-		const item = this.items.find((i) => i.id === id);
-		const backside = this.items.get(id).system.backside;
+	#getBackside(id) {
+    return this.#backsideStates.get(id) ?? false;
+	}
 
-		await item.update({ "system.backside": !backside });
+	async #toggleBackside(id) {
+		if (!id) return;
+		this.#backsideStates.set(id, !this.#getBackside(id));
+		this.render(false);
 	}
 }

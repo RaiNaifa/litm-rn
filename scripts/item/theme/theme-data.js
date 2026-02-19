@@ -93,10 +93,6 @@ export class ThemeData extends foundry.abstract.DataModel {
 			note: new fields.HTMLField({
 				initial: t("Litm.ui.name-note"),
 			}),
-			backside: new fields.BooleanField({
-				required: true,
-				initial: false,
-			}),
 		};
   }
 

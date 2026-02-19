@@ -33,10 +33,6 @@ export class BackpackData extends foundry.abstract.DataModel {
 							})),
 				}
 			),
-			backside: new fields.BooleanField({
-				required: true,
-				initial: false,
-			}),
 		};
 	}
 }
