@@ -11,7 +11,7 @@
 			{{localize 'Litm.other.hero-card'}}
 		</div>
 		<input class="title" name="name" value="{{name}}" />
-		{{#if hero.backside}}
+		{{#if backside}}
 			<ul class="taglist litm--hero-backside">
 				{{#each hero.fulfillment as |tag|}}
 					{{> systems/litm-rn/templates/partials/fulfillment.html tag=tag key=@key path="system.fulfillment" embedded=false remove=false}}
