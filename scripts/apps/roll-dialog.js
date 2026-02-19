@@ -6,7 +6,7 @@ export class LitmRollDialog extends FormApplication {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			template: "systems/litm-rn/templates/apps/roll-dialog.html",
 			classes: ["litm", "litm--roll"],
-			width: 500,
+			width: 686,
 			height: "auto",
 			resizable: true,
 			title: game.i18n.localize("Litm.ui.roll-title"),

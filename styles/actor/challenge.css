@@ -112,10 +112,10 @@
 	& .litm--challenge-avatar {
 		position: absolute;
 		top: 0px;
-		height: 380px;
+		height: 312px;
 		width: 100%;
 		object-fit: cover;
-		object-position: center;
+		object-position: top;
 		background: var(--litm-color-accent-2);
 	}
 
