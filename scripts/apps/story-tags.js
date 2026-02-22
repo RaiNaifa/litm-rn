@@ -231,11 +231,12 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	}
 
 	#resolveActor(ref) {
-		const worldActor = game.actors.get(ref);
+		const id = ref.replaceAll('___', '.');
+		const worldActor = game.actors.get(id);
 		if (worldActor) return worldActor;
 
 		try {
-			const doc = fromUuidSync(ref);
+			const doc = fromUuidSync(id);
 			if (doc instanceof TokenDocument) return doc.actor;
 			if (doc instanceof Actor) return doc;
 		} catch (_) { /* no-op */ }
