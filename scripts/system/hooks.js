@@ -92,7 +92,7 @@ export class LitmHooks {
 
 		for (const asset of assets) {
 			const link = Object.assign(document.createElement("link"), {
-				rel: "preload",
+				rel: "prefetch",
 				href: asset,
 				as: "image",
 				type: "image/webp",
@@ -597,7 +597,7 @@ export class LitmHooks {
 					title: t("Litm.other.story-tags"),
 					icon: "fas fa-tags",
 					button: true,
-					onClick: () => {
+					onChange: () => {
 						if (game.litm.storyTags) {
 							if (!game.litm.storyTags.rendered)
 								game.litm.storyTags.render(true);
@@ -611,7 +611,7 @@ export class LitmHooks {
 					title: t("Litm.other.story-tags"),
 					icon: "fas fa-tags",
 					button: true,
-					onClick: () => {
+					onChange: () => {
 						if (game.litm.storyTags) {
 							if (!game.litm.storyTags.rendered)
 								game.litm.storyTags.render(true);

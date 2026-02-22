@@ -1,6 +1,7 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
 import { confirmDelete, dispatch } from "../../utils.js";
 import { localize as t } from "../../utils.js";
+const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
 export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) {
 	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ActorSheet.defaultOptions, {

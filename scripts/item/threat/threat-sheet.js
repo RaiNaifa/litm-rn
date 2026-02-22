@@ -1,5 +1,6 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
 import { confirmDelete, localize as t } from "../../utils.js";
+const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
 export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	isEditing = false;

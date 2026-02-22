@@ -1,3 +1,5 @@
+const TextEditor = foundry.applications.ux.TextEditor.implementation;
+
 export class ToggledInput extends HTMLElement {
 	#input = Object.assign(document.createElement("textarea"), {
 		style: "resize: none;",
