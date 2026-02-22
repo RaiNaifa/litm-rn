@@ -382,7 +382,6 @@ export class LitmRollDialog extends FormApplication {
 		if (this.actor?.effects) {
 			for (const e of this.actor.effects) {
 				const flags = e.flags?.["litm-rn"];
-				console.log("flags", flags);
 				if (!flags?.type) continue;
 				freshMap.set(e._id, {
 					id: e._id,
