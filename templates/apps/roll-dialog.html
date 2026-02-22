@@ -18,6 +18,7 @@
 		</div>
 	</div>
 	<div class="litm--roll-dialog-tags-summary">
+		<hr />
 		<ul>
 			<!-- Tags selected on Character Sheet -->
 			{{#each characterTags as |tag|}}
@@ -26,24 +27,27 @@
 		</ul>
 		<hr />
 		<ul>
-			<!-- Statuses -->
+			<!-- Personal (leaf) Statuses -->
 			{{#each statuses as |status|}}
 			{{> tag tag=status}}
 			{{/each}}
-			<!-- Story Tags -->
+			<!-- Personal (leaf) Story Tags -->
 			{{#each tags as |tag|}}
 			{{> tag tag=tag}}
 			{{/each}}
 		</ul>
-		{{#if isGM}}
 		<hr />
 		<ul>
-			<!-- GM Tags -->
-			{{#each gmTags as |tag|}}
+			<!-- Selected Story Statuses -->
+			{{#each storyStatuses as |status|}}
+			{{> tag tag=status}}
+			{{/each}}
+			<!-- Selected Story Tags -->
+			{{#each storyTags as |tag|}}
 			{{> tag tag=tag}}
 			{{/each}}
 		</ul>
-		{{/if}}
+		<hr />
 	</div>
 	<div class="litm--roll-dialog-modifier">
 		<label for="modifier-input">

@@ -1,5 +1,5 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
-import { confirmDelete, localize as t } from "../../utils.js";
+import { confirmDelete, dispatch, localize as t } from "../../utils.js";
 
 export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) {
 	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ActorSheet.defaultOptions, {
@@ -20,6 +20,12 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 	get items() {
 		return this.actor.items;
+	}
+
+	get #storyRef() {
+		return (this.actor.isToken && !this.token?.actorLink)
+			? this.token.uuid
+			: this.actor.id;
 	}
 
 	async getData() {
@@ -49,6 +55,15 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		html
 			.find("[data-context]")
 			.on("contextmenu", this.#handleContext.bind(this));
+		html
+			.find("li.litm--tag-item input[type='text']")
+			.on("change", this.#onEffectNameChange.bind(this));
+		html
+			.find("li.litm--tag-item input.litm--tag-item-tier[type='checkbox']")
+			.on("change", this.#onEffectValueChange.bind(this));
+		html
+			.find("li.litm--tag-item input.litm--hindering-checkbox[type='checkbox']")
+			.on("change", this.#onEffectHinderingChange.bind(this));
 
 		if (this.isEditing) html.find("[contenteditable]:has(+#tags)").focus();
 	}
@@ -81,6 +96,12 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			case "add-threat":
 				this.#addThreat();
+				break;
+			case "add-effect":
+				this.#addEffect();
+				break;
+			case "move-to-story":
+				this.#moveToStory();
 				break;
 			case "increase":
 				this.#increase(button);
@@ -116,6 +137,11 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			case "decrease":
 				this.#decrease(button);
+				break;
+			case "remove-effect":
+				event.preventDefault();
+				event.stopPropagation();
+				this.#removeEffect(button.dataset.id);
 				break;
 		}
 	}
@@ -153,6 +179,37 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		item.delete();
 	}
 
+	async #removeEffect(id) {
+		const effect = this.actor.effects.get(id);
+		if (!effect) return;
+		if (!(await confirmDelete())) return;
+
+		const config = game.settings.get("litm-rn", "storytags");
+		if (config?.selectedTags?.some(t => t.id === id)) {
+			const selectedTags = config.selectedTags.filter(t => t.id !== id);
+
+			if (game.user.isGM) {
+				await game.settings.set("litm-rn", "storytags", { ...config, selectedTags });
+			} else {
+				dispatch({ 
+					app: "story-tags", 
+					type: "update", 
+					component: "selectedTags", 
+					data: selectedTags 
+				});
+			}
+		}
+
+		await effect.delete();
+
+		game.litm.storyTags.render();
+		dispatch({
+			app: "story-tags",
+			type: "render",
+		});
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
 	async #increase(target) {
 		const attrib = target.dataset.name;
 		const value = foundry.utils.getProperty(this.actor, attrib);
@@ -179,5 +236,122 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		formData["system.tags"] = tags ? tags.join(" ") : "";
 
 		return formData;
+	}
+
+	async #onEffectNameChange(event) {
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+		if (!id) return;
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
+			{ _id: id, name: event.currentTarget.value },
+		]);
+
+		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #onEffectValueChange(event) {
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+
+		if (!id) return;
+
+		const checkboxes = li.find("input.litm--tag-item-tier[type='checkbox']");
+		
+		const values = checkboxes.map((i, cb) => cb.checked ? i + 1 : false).get();
+		const value = values.findLast((v) => !!v);
+		const type = values.some((v) => !!v) ? "status" : "tag";
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [{
+			_id: id,
+			"flags.litm-rn.values": values,
+			"flags.litm-rn.type": type,
+			"flags.litm-rn.value": value
+		}]);
+
+		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #onEffectHinderingChange(event) {
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+
+		if (!id) return;
+
+		const isHindering = event.currentTarget.checked;
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [{
+			_id: id,
+			"flags.litm-rn.isHindering": isHindering,
+		}]);
+
+		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #addEffect() {
+		await this.actor.createEmbeddedDocuments("ActiveEffect", [
+			{
+				name: t("Litm.ui.name-tag"),
+				flags: {
+					["litm-rn"]: {
+						type: "tag",
+						values: new Array(6).fill(false),
+						isScratched: false,
+						isHindering: false,
+					},
+				},
+			},
+		]);
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+	}
+
+	async #moveToStory() {
+		const storyTags = game.litm.storyTags;
+		const ref = this.#storyRef;
+
+		if (storyTags.config.actors.includes(ref)) {
+			return ui.notifications.warn("Litm.ui.warn-actor-exists", { localize: true });
+		}
+
+		await storyTags.setActors([...storyTags.config.actors, ref]);
+	}
+
+	async _onDrop(dragEvent) {
+		const dragData = dragEvent.dataTransfer.getData("text/plain");
+		const data = JSON.parse(dragData);
+
+		// Handle dropping tags and statuses
+		if (!["tag", "status"].includes(data.type)) return super._onDrop(dragEvent);
+
+		await this.actor.createEmbeddedDocuments("ActiveEffect", [
+			{
+				name: data.name,
+				flags: {
+					["litm-rn"]: {
+						type: data.type,
+						values: data.values,
+						isScratched: data.isScratched,
+						isHindering: data.isHindering || false,
+					},
+				},
+			},
+		]);
+
+		game.litm.storyTags.render();
+		dispatch({
+			app: "story-tags",
+			type: "render",
+		});
 	}
 }

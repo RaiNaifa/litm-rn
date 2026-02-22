@@ -1,5 +1,13 @@
-{{#*inline 'divider' title add}}
-	<div class="litm--challenge-divider {{ifThen add 'grid-4' ''}}">
+{{#*inline 'divider' title add move}}
+	<div class="litm--challenge-divider {{ifThen move 'grid-5' ''}}{{ifThen (and add (not move)) 'grid-4' ''}}">
+		{{#if move}}
+			<button class="litm--challenge-move" type="button"
+				data-click="{{concat 'move-to-' move}}"
+				aria-label="{{localize (concat 'Litm.ui.move-to-' move)}}"
+				data-tooltip="{{localize (concat 'Litm.ui.move-to-' move) }}">
+				<i class="far fa-tags"></i>
+			</button>
+		{{/if}}
 		<img src="systems/litm-rn/assets/media/left-div.webp" aria-hidden="true" />
 		<label for="limits">{{localize title}}</label>
 		<img src="systems/litm-rn/assets/media/right-div.webp" aria-hidden="true" />
@@ -12,6 +20,48 @@
 			</button>
 		{{/if}}
 	</div>
+{{/inline}}
+{{#*inline 'tagItem' tag source editable}}
+	<li
+		class="litm--tag-item litm--{{ifThen (eq tag.flags.litm-rn.type 'status') 'status' 'tag'}}"
+		data-context="remove-effect" data-id="{{tag._id}}"
+		data-tooltip="{{localize (concat 'Litm.other.' tag.flags.litm-rn.type)}}: {{tag.name}}{{#if tag.value}}{{concat '-' tag.value}}{{/if}}">
+		<div class="litm--tag-item-container">
+			<input class="litm--tag-item-name {{tag.flags.litm-rn.type}}" data-focus="select"
+				name="{{source}}.{{tag._id}}.name" value="{{tag.name}}" type="text"
+				{{#if (includes @root.selectedTags tag.id 'id' )}}data-selected{{/if}}
+				{{ifThen editable "" "readonly"}} />
+		</div>
+		<div class="litm--tag-item-control">
+			{{> toggle-hindering source=source tag=tag editable=editable}}
+			<div class="litm--tag-item-status">
+				{{#each tag.flags.litm-rn.values as |status|}} <input
+					class="litm--tag-item-tier"
+					name="{{../source}}.{{../tag._id}}.values" type="checkbox"
+					value="{{add @index 1}}" {{disabled (not ../editable)}}
+					{{checked status}} />
+				{{/each}}
+			</div>
+		</div>
+	</li>
+{{/inline}} {{#*inline 'add-button' id}}
+	<button type="button" data-click="add-tag" data-id="{{id}}"
+		data-tooltip="{{localize 'Litm.ui.add-tag'}}">
+		<span class="litm--sro">{{localize "Litm.ui.add-tag"}}</span>
+		<i class="far fa-add"></i>
+	</button>
+{{/inline}} {{#*inline 'add-theme-button' id}}
+	<button type="button" data-click="add-story-theme" data-id="{{id}}"
+		data-tooltip="{{localize 'Litm.ui.add-story-theme'}}"
+		style="margin-right: 2px; padding-right: 2px;">
+		<span class="litm--sro">{{localize "Litm.ui.add-story-theme"}}</span>
+		<i class="fas fa-file-circle-plus"></i>
+	</button>
+{{/inline}} {{#*inline 'toggle-hindering' source tag editable}}
+	<input class="litm--checkbox litm--checkbox-with-bg litm--hindering-checkbox" type="checkbox"
+		name="{{source}}.{{tag._id}}.isHindering"
+		data-tooltip="{{localize (ifThen tag.flags.litm-rn.isHindering 'Litm.tags.isHindering' 'Litm.tags.toHindering')}}" 
+		{{disabled (not editable)}} {{checked tag.flags.litm-rn.isHindering}} />
 {{/inline}}
 
 <datalist id="litm--challenge-types">
@@ -85,6 +135,15 @@
 						{{{data.system.renderedTags}}}
 					</div>
 				{{/if}}
+			</div>
+			<!-- Active Effects -->
+			{{> divider title="Litm.ui.active-effects" add="effect" move="story"}}
+			<div class="litm--story-effects">
+				<ul>
+					{{#each data.effects as |tag|}}
+						{{> tagItem tag=tag source=../data._id editable=true}}
+					{{/each}}
+				</ul>
 			</div>
 			{{> divider title="Litm.ui.special-features"}}
 			{{editor data.system.special target="system.special" owner=owner button=true editable=true engine="prosemirror"}}

@@ -1,27 +1,32 @@
-{{#*inline 'tagItem' tag source editable}}
+{{#*inline 'tagItem' tag source editable isLocked}}
 	<li
 		class="litm--tag-item litm--{{ifThen (eq tag.type 'status') 'status' 'tag'}}"
 		data-context="remove-tag" data-id="{{tag.id}}" data-type="{{source}}"
 		data-tooltip="{{localize (concat 'Litm.other.' tag.type)}}: {{tag.name}}{{#if tag.value}}{{concat '-' tag.value}}{{/if}}">
-		{{#if (eq tag.type "tag")}}
-			<label class="litm--burn-label"><span
-					class="litm--sro">{{localize "Litm.ui.burn-tag"}}</span>
-				<input class="litm--burn" type="checkbox"
-					name="{{source}}.{{tag.id}}.isBurnt"
-					data-tooltip="{{localize (ifThen tag.isBurnt 'Litm.tags.isBurnt' 'Litm.tags.burn')}}" {{disabled
-			(not
-			editable)}} {{checked
-			tag.isBurnt}} />
-			</label>
-		{{/if}} <input class="litm--tag-item-name {{tag.type}}" data-focus="select"
-			name="{{source}}.{{tag.id}}.name" value="{{tag.name}}"
-			{{ifThen editable "" "readonly"}} />
-		<div class="litm--tag-item-status">
-			{{#each tag.values as |status|}} <input
-					name="{{../source}}.{{../tag.id}}.values" type="checkbox"
-					value="{{add @index 1}}" {{disabled (not ../editable)}}
-					{{checked status}} />
-			{{/each}}
+		<div class="litm--tag-item-container">
+			{{#if isLocked}}
+				<span class="litm--tag-item-name {{tag.type}}" 
+					name="{{source}}.{{tag.id}}.name" data-click="select" 
+					data-id="{{tag.id}}" data-type="{{source}}"
+					{{#if (includes @root.selectedTags tag.id 'id' )}}data-selected{{/if}}
+					{{ifThen (and editable (not isLocked)) "" "readonly"}} >{{tag.name}}</span>
+				<input type="hidden" name="{{source}}.{{tag.id}}.name" value="{{tag.name}}">
+			{{else}}
+					<input class="litm--tag-item-name {{tag.type}}" data-focus="select"
+						name="{{source}}.{{tag.id}}.name" value="{{tag.name}}"
+						{{#if (includes @root.selectedTags tag.id 'id' )}}data-selected{{/if}}
+						{{ifThen (and editable (not isLocked)) "" "readonly"}} />
+			{{/if}}
+		</div>
+		<div class="litm--tag-item-control">
+			{{> toggle-hindering source=source tag=tag editable=editable}}
+			<div class="litm--tag-item-status">
+				{{#each tag.values as |status|}} <input
+						name="{{../source}}.{{../tag.id}}.values" type="checkbox"
+						value="{{add @index 1}}" {{disabled (not ../editable)}}
+						{{checked status}} />
+				{{/each}}
+			</div>
 		</div>
 	</li>
 {{/inline}} {{#*inline 'add-button' id}}
@@ -30,6 +35,18 @@
 		<span class="litm--sro">{{localize "Litm.ui.add-tag"}}</span>
 		<i class="far fa-add"></i>
 	</button>
+{{/inline}} {{#*inline 'add-theme-button' id}}
+	<button type="button" data-click="add-story-theme" data-id="{{id}}"
+		data-tooltip="{{localize 'Litm.ui.add-story-theme'}}"
+		style="margin-right: 2px; padding-right: 2px;">
+		<span class="litm--sro">{{localize "Litm.ui.add-story-theme"}}</span>
+		<i class="fas fa-file-circle-plus"></i>
+	</button>
+{{/inline}} {{#*inline 'toggle-hindering' source tag editable}}
+	<input class="litm--checkbox litm--checkbox-with-bg litm--hindering-checkbox" type="checkbox"
+		name="{{source}}.{{tag.id}}.isHindering"
+		data-tooltip="{{localize (ifThen tag.isHindering 'Litm.tags.isHindering' 'Litm.tags.toHindering')}}" 
+		{{disabled (not editable)}} {{checked tag.isHindering}} />
 {{/inline}}
 <form class="{{cssClass}}" autocomplete="off" data-context='menu'>
 	<section>
@@ -41,11 +58,12 @@
 					<legend>
 						{{localize "Litm.other.story-tags"}}
 					</legend>
+					{{> add-theme-button id="story-theme"}}
 					{{> add-button id="story"}}
 				</div>
 				<ul>
 					{{#each tags as |tag|}}
-						{{> tagItem tag=tag source="story" editable=true}} {{/each}}
+						{{> tagItem tag=tag source="story" editable=true isLocked=../isLocked}} {{/each}}
 				</ul>
 			</fieldset>
 		</div>
@@ -59,14 +77,13 @@
 						<legend aria-label="{{actor.name}} tags" data-click="open-sheet"
 							data-context="remove-actor" data-id="{{actor.id}}"
 							data-tooltip="{{localize 'Litm.ui.click-open-context-remove'}}">
-							<!-- <img src="{{actor.img}}" alt="" aria-hidden="true"> -->
 							{{actor.name}}
 						</legend>
 						{{#if actor.isOwner}} {{> add-button id=actor.id}} {{/if}}
 					</div>
 					<ul>
 						{{#each actor.tags as |tag|}}
-							{{> tagItem tag=tag source=../id editable=actor.isOwner}}
+							{{> tagItem tag=tag source=../formKey editable=actor.isOwner isLocked=../../isLocked}}
 						{{/each}}
 					</ul>
 				</fieldset>

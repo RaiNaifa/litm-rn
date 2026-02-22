@@ -16,6 +16,8 @@ body {
 	--litm-color-accent: hsl(46.61 81.44% 92.99%);
 	--litm-color-accent-2: hsl(24deg 20.72% 43.81%);
 	--litm-color-accent-3: hsl(17, 84%, 31%);
+	--litm-color-lock: hsl(10, 100%, 32%);
+	--litm-color-open: hsl(96, 84%, 32.36%);
 	--litm-color-primary-bg: color-mix(
 		in hsl,
 		var(--litm-color-accent) 75%,

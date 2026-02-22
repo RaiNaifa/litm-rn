@@ -54,41 +54,6 @@
 :where(.litm--checkbox-with-bg),
 .app.litm.litm :where(.litm--checkbox-with-bg) {
 	background: url("../assets/media/checkbox.svg") no-repeat;
-	height: 1.1rem;
-	width: 1.1rem;
-	background-size: contain;
-	background-position: center;
-	border: none;
-	rotate: 0deg;
-	position: relative;
-
-	&.checked,
-	&:checked {
-		background-image: url("../assets/media/checkbox-c.svg");
-	}
-
-	&::after {
-		display: none;
-	}
-
-	&:disabled {
-		cursor: auto;
-	}
-}
-
-:where(.litm--checkbox-with-bg.litm--special-checkbox),
-.app.litm.litm :where(.litm--checkbox-with-bg.litm--special-checkbox) {
-	background: url("../assets/media/special-checkbox.svg") no-repeat;
-
-	&.checked,
-	&:checked {
-		background-image: url("../assets/media/special-checkbox-c.svg");
-	}
-}
-
-:where(.litm--checkbox-with-bg),
-.app.litm.litm :where(.litm--checkbox-with-bg) {
-	background: url("../assets/media/checkbox.svg") no-repeat;
 	height: 1rem;
 	width: 1rem;
 	background-size: contain;
@@ -114,9 +79,20 @@
 :where(.litm--checkbox-with-bg.litm--special-checkbox),
 .app.litm.litm :where(.litm--checkbox-with-bg.litm--special-checkbox) {
 	background: url("../assets/media/special-checkbox.svg") no-repeat;
-		&.checked,
+
+	&.checked,
 	&:checked {
 		background-image: url("../assets/media/special-checkbox-c.svg");
+	}
+}
+
+:where(.litm--checkbox-with-bg.litm--hindering-checkbox),
+.app.litm.litm :where(.litm--checkbox-with-bg.litm--hindering-checkbox) {
+	background: url("../assets/media/icons/weakness-marker-litm_inactive.svg") no-repeat;
+
+	&.checked,
+	&:checked {
+		background-image: url("../assets/media/icons/weakness-marker-litm_active.svg");
 	}
 }
 
@@ -136,10 +112,6 @@
 	background-size: contain;
 	background-position: center;
 
-	/* &.transparent {
-		background-image: url("../assets/media/burn-t.svg");
-		filter: none;
-	} */
 
 	&:checked,
 	&.checked {
@@ -466,6 +438,16 @@ li.litm--special {
 		flex: 0 0 auto;
 		height: 16px;
 		filter: grayscale(0.5) brightness(0.5);
+	}
+}
+
+.litm--lock-btn {
+	& .fa-lock {
+		color: var(--litm-color-lock);
+	}
+
+	& .fa-lock-open {
+		color: var(--litm-color-open);
 	}
 }
 

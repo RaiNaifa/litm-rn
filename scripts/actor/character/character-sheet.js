@@ -54,6 +54,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	}
 
 	resetRollDialog() {
+		if (this.#roll.rendered) this.#roll.close();
 		this.#roll.reset();
 		this.render();
 	}
@@ -128,8 +129,6 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				.map(async (i) => {
 					const data = await i.sheet.getData();
 					data.data.system.specials = data.data.system.specials
-						// ?.sort((a, b) => a.name.localeCompare(b.name));
-						// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1));
 					data.data.system.backside = this.#getBackside(i.id);
 					return data;
 				}),
@@ -141,11 +140,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			id: backpackItem?._id,
 			backside: this.#getBackside(backpackItem?._id),
 			contents: this.system.backpack.contents,
-				// ?.sort((a, b) => a.name.localeCompare(b.name)),
-				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 			specials: this.system.backpack.specials,
-				// ?.sort((a, b) => a.name.localeCompare(b.name)),
-				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
 		const heroItem = this.items.find((i) => i.type === "hero");
 		const hero = {
@@ -155,8 +150,6 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			fulfillment: this.system.hero.fulfillment,
 			promise: this.system.hero.promise,
 			contents: this.system.hero.contents,
-				// ?.sort((a, b) => a.name.localeCompare(b.name)),
-				// ?.sort((a, b) => (a.isActive && b.isActive ? 0 : a.isActive ? -1 : 1)),
 		};
 		return {
 			...this.object.system,
@@ -200,7 +193,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			.on("mousedown", this.#onDragHandleMouseDown.bind(this));
 		html.find("li.litm--story-tag input[type='text']")
 			.on("change", this.#onEffectNameChange.bind(this));
-    html.find("li.litm--story-tag input[type='checkbox']")
+		html.find("li.litm--story-tag input[type='checkbox']")
 			.on("change", this.#onEffectValueChange.bind(this));
 		html.on("mouseover", (event) => {
 			html.find(".litm--character-theme").removeClass("hovered");
@@ -463,16 +456,19 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	}
 
 	async #onEffectNameChange(event) {
-    const li = $(event.currentTarget).closest("li[data-id]");
-    const id = li.data("id");
-    if (!id) return;
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+		if (!id) return;
 
-    await this.actor.updateEmbeddedDocuments("ActiveEffect", [
-        { _id: id, name: event.currentTarget.value },
-    ]);
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
+			{ _id: id, name: event.currentTarget.value },
+		]);
 
-    game.litm.storyTags.render();
-    dispatch({ app: "story-tags", type: "render" });
+		this.#roll.refreshTags();
+		if (this.#roll.rendered) this.#roll.render();
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
 	}
 
 	async #onEffectValueChange(event) {
@@ -488,6 +484,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
 			{ _id: id, "flags.litm-rn.values": values },
 		]);
+
+		this.#roll.refreshTags();
+		if (this.#roll.rendered) this.#roll.render();
 
 		game.litm.storyTags.render();
 		dispatch({ app: "story-tags", type: "render" });
@@ -506,6 +505,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				},
 			},
 		]);
+
+		this.#roll.refreshTags();
+		if (this.#roll.rendered) this.#roll.render();
 
 		game.litm.storyTags.render();
 		dispatch({
@@ -526,6 +528,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		if (!(await confirmDelete())) return;
 
 		await effect.delete();
+
+		this.#roll.refreshTags();
+		if (this.#roll.rendered) this.#roll.render();
 
 		game.litm.storyTags.render();
 		dispatch({

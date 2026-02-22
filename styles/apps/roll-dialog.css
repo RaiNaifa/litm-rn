@@ -152,6 +152,8 @@
 			gap: var(--litm-space-3);
 			padding-block: var(--litm-space-2);
 			margin-inline: var(--litm-space-4);
+			margin-top: 0;
+			margin-bottom: 0;
 
 			& .litm--roll-dialog-tag {
 				display: flex;

@@ -1,5 +1,5 @@
 import { Sockets } from "../system/sockets.js";
-import { sortTags, localize as t } from "../utils.js";
+import { sortTags, dispatch, localize as t } from "../utils.js";
 
 export class LitmRollDialog extends FormApplication {
 	static get defaultOptions() {
@@ -216,6 +216,19 @@ export class LitmRollDialog extends FormApplication {
 			options.speaker || ChatMessage.getSpeaker({ actor: this.actor });
 		this.rollName = options.title || LitmRollDialog.defaultOptions.title;
 		this.type = options.type || "tracked";
+
+		this._storyTagsHookId = Hooks.on("litmStoryTagsUpdated", () => {
+			this.refreshTags();
+			if (this.rendered) this.render();
+		});
+	}
+
+	async close(options) {
+		if (this._storyTagsHookId !== undefined) {
+			Hooks.off("litmStoryTagsUpdated", this._storyTagsHookId);
+			this._storyTagsHookId = undefined;
+		}
+		return super.close(options);
 	}
 
 	get actor() {
@@ -223,21 +236,44 @@ export class LitmRollDialog extends FormApplication {
 	}
 
 	get statuses() {
-		const { tags } = game.litm.storyTags;
-		const statuses = tags.filter((tag) => tag.values.some((v) => !!v));
-		return [...statuses, ...this.actor.system.statuses].map((tag) => ({
+		const { selectedTags } = game.litm.storyTags;
+		const selectedMap = new Map(selectedTags.map(t => [t.id, t]));
+
+		return [...this.actor.system.statuses].map((tag) => {
+			const selected = selectedMap.get(tag.id);
+
+			return ({
 			...tag,
-			state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
+			state: this.#tagState.find((t) => t.id === tag.id)?.state
+				?? (selected ? (selected.isHindering ? "negative" : "positive") : ""),
+			states: ",negative,positive",
+		})});
+	}
+
+	get storyStatuses() {
+		const { selectedTags } = game.litm.storyTags;
+		const statuses = selectedTags.filter((tag) => tag.values.some((v) => !!v));
+
+		const personalIds = new Set(this.actor.system.statuses.map(t => t.id));
+
+		return [...statuses]
+		.filter(tag => !personalIds.has(tag.id))
+		.map((tag) => ({
+			...tag,
+			state: this.#tagState.find((t) => t.id === tag.id)?.state
+				?? (tag.isHindering ? "negative" : "positive"),
 			states: ",negative,positive",
 		}));
 	}
 
 	get tags() {
-		const { tags } = game.litm.storyTags;
+		const { selectedTags } = game.litm.storyTags;
+		const selectedMap = new Map(selectedTags.map(t => [t.id, t]));
+
 		return [
-			...tags.filter((tag) => tag.values.every((v) => !v)),
 			...this.actor.system.storyTags,
 		].map((tag) => {
+			const selected = selectedMap.get(tag.id);
 			const type = tag.type;
 			let states;
 
@@ -259,52 +295,48 @@ export class LitmRollDialog extends FormApplication {
 
 			return {
 				...tag,
-				state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
+				state: this.#tagState.find((t) => t.id === tag.id)?.state
+					?? (selected ? (selected.isHindering ? "negative" : "positive") : ""),
 				states,
 			};
 		});
 	}
 
-	get gmTags() {
-		if (!game.user.isGM) return [];
+	get storyTags() {
+		const { selectedTags } = game.litm.storyTags;
+		const tags = selectedTags.filter((tag) => tag.values.every((v) => !v));
 
-		const { actors } = game.litm.storyTags;
-		const tags = actors
-			.filter((actor) => actor.id !== this.actorId)
-			.flatMap((actor) => actor.tags);
-		return tags
-			.map((tag) => {
-				const type = tag.type;
-				let states;
+		const personalIds = new Set(this.actor.system.storyTags.map(t => t.id));
 
-				switch (type) {
-					case "hero":
-					case "crispy":
-						states = ",negative,positive";
-						break;
-					case "powerTag":
-						states = ",positive,burned";
-						break;
-					case "weaknessTag":
-						states = ",negative";
-						break;
-					default:
-						states = ",negative,positive,burned";
-						break;
-				}
-
-				return {
-					...tag,
-					state: this.#tagState.find((t) => t.id === tag.id)?.state || "",
-					states,
-				};
-			})
-			.filter((tag) => tag.state !== "");
+		return [...tags]
+		.filter(tag => !personalIds.has(tag.id))
+		.map((tag) => ({
+			...tag,
+			state: this.#tagState.find((t) => t.id === tag.id)?.state
+				?? (tag.isHindering ? "negative" : "positive"),
+			states: ",negative,positive,burned",
+		}));
 	}
 
+	// TODO: добавить Might и Осторожные/Рискованные броски
 	get totalPower() {
-		const state = [...this.#tagState, ...this.characterTags];
-		const tags = LitmRollDialog.#filterTags(state);
+		const personalWithState = [...this.tags, ...this.statuses]
+			.filter(t => !!t.state);
+		const personalIds = new Set(personalWithState.map(t => t.id));
+		const storyWithState = [...this.storyTags, ...this.storyStatuses]
+			.filter(t => !!t.state && !personalIds.has(t.id));
+
+		const state = [
+			...this.characterTags,
+			...personalWithState,
+			...storyWithState,
+		];
+
+		const uniqueTagsMap = new Map();
+		state.forEach(t => uniqueTagsMap.set(t.id, t));
+		const uniqueTags = Array.from(uniqueTagsMap.values());
+
+		const tags = LitmRollDialog.#filterTags(uniqueTags);
 		const { totalPower } = LitmRollDialog.calculatePower({
 			...tags,
 			modifier: this.#modifier,
@@ -326,8 +358,9 @@ export class LitmRollDialog extends FormApplication {
 			},
 			skipModeration,
 			statuses: sortTags(this.statuses),
+			storyStatuses: sortTags(this.storyStatuses),
 			tags: sortTags(this.tags),
-			gmTags: sortTags(this.gmTags),
+			storyTags: sortTags(this.storyTags),
 			isGM: game.user.isGM,
 			title: this.rollName,
 			type: this.type,
@@ -336,8 +369,67 @@ export class LitmRollDialog extends FormApplication {
 		};
 	}
 
+	refreshTags() {
+		const freshMap = new Map();
+
+		if (this.actor?.system?.allTags) {
+			for (const t of this.actor.system.allTags) {
+				const obj = typeof t.toObject === "function" ? t.toObject() : { ...t };
+				freshMap.set(obj.id, obj);
+			}
+		}
+
+		if (this.actor?.effects) {
+			for (const e of this.actor.effects) {
+				const flags = e.flags?.["litm-rn"];
+				console.log("flags", flags);
+				if (!flags?.type) continue;
+				freshMap.set(e._id, {
+					id: e._id,
+					name: e.name,
+					values: flags.values,
+					isScratched: flags.isScratched,
+					isHindering: flags.isHindering || false,
+					value: flags.values?.findLast((v) => !!v),
+					type: flags.values?.some((v) => !!v) ? "status" : "tag",
+				});
+			}
+		}
+
+		try {
+			const config = game.settings.get("litm-rn", "storytags");
+			for (const t of config?.selectedTags ?? []) {
+				freshMap.set(t.id, { ...t });
+			}
+		} catch (_) { /* no-op */ }
+
+		this.#tagState = this.#tagState
+			.filter((t) => freshMap.has(t.id))
+			.map((t) => ({
+				...freshMap.get(t.id),
+				state: t.state,
+				states: t.states,
+			}));
+
+		this.characterTags = this.characterTags
+			.filter((t) => freshMap.has(t.id))
+			.map((t) => {
+				const fresh = freshMap.get(t.id);
+				return fresh
+					? { ...fresh, state: t.state, states: t.states }
+					: t;
+			});
+	}
+
 	activateListeners(html) {
 		super.activateListeners(html);
+
+		if (this._storyTagsHookId === undefined) {
+			this._storyTagsHookId = Hooks.on("litmStoryTagsUpdated", () => {
+				this.refreshTags();
+				if (this.rendered) this.render();
+			});
+		}
 
 		html
 			.find("[data-click]")
@@ -372,23 +464,12 @@ export class LitmRollDialog extends FormApplication {
 				tag.states = ",negative,positive";
 				break;
 			default:
-				tag.state = toBurn ? "burned" : "positive";
+				tag.state = tag.isHindering
+					? "negative"
+					: (toBurn ? "burned" : "positive");
 				tag.states = ",negative,positive,burned";
 				break;
 		}
-		// if (tag.type === "weaknessTag") {
-		// 	tag.state = "negative";
-		// 	tag.states = ",negative";
-		// } else if (tag.type === "crispy" || tag.type === "hero") {
-		// 	tag.state = "positive"; // crispy нельзя "burn", даже если toBurn === true
-		// 	tag.states = ",negative,positive";
-		// } else {
-		// 	tag.state = toBurn ? "burned" : "positive";
-		// 	tag.states = ",positive,burned";
-		// }
-		// tag.state =
-		// 	tag.type === "weaknessTag" ? "negative" : toBurn ? "burned" : "positive";
-		// tag.states = tag.type === "weaknessTag" ? ",negative" : ",positive,burned";
 
 		this.characterTags.push(tag);
 		this.element.find("[data-update='totalPower']").text(this.totalPower);
@@ -402,14 +483,37 @@ export class LitmRollDialog extends FormApplication {
 	}
 
 	getFilteredArrayFromFormData(formData) {
-		const allTags = [...this.#tagState, ...this.characterTags];
+		const personalWithState = [...this.tags, ...this.statuses];
+		const storyWithState = [...this.storyTags, ...this.storyStatuses];
+
+		const allTags = [
+			...this.characterTags,
+			...personalWithState,
+			...storyWithState
+		];
+
+		const tagsMap = new Map(allTags.map(t => [t.id, t]));
+
 		return Object.entries(formData)
 			.filter(([_, v]) => !!v)
-			.map(([key]) => allTags.find((t) => t.id === key));
+			.map(([key]) => tagsMap.get(key))
+			.filter(t => !!t);
 	}
 
-	reset() {
+	async reset() {
 		this.characterTags = [];
+
+		const config = game.settings.get("litm-rn", "storytags");
+		if (game.user.isGM) {
+			await game.settings.set("litm-rn", "storytags", {
+				...config, selectedTags: []
+				});
+		} else {
+			dispatch({ app: "story-tags", type: "update", selectedTags: [] });
+		}
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+
 		this.#tagState = [];
 		this.#modifier = 0;
 		this.#shouldRoll = () => game.settings.get("litm-rn", "skip_roll_moderation");
@@ -494,14 +598,14 @@ export class LitmRollDialog extends FormApplication {
 				const existingTag = this.#tagState.find((t) => t.id === id);
 				if (existingTag) existingTag.state = value;
 				else {
-					const tag = [...this.tags, ...this.statuses, ...this.gmTags].find(
+					const tag = [...this.tags, ...this.statuses, ...this.storyTags, ...this.storyStatuses].find(
 						(t) => t.id === id,
 					);
 
 					if (tag) {
 					const statefulTag = {
 						...tag,
-						state: value,
+						state: value || (tag.isHindering ? "negative" : "positive"),
 					};
 
 					// Определяем возможные состояния для UI

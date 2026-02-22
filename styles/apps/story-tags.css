@@ -27,8 +27,7 @@
 
 	& form {
 		position: relative;
-		overflow: hidden;
-		overflow: clip;
+		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
 		height: 100%;
@@ -44,7 +43,6 @@
 		display: flex;
 		flex-direction: column;
 		margin-block-start: var(--litm-space-2);
-		overflow-y: auto;
 		flex: 1;
 
 		&:last-of-type {
@@ -117,12 +115,38 @@
 			padding: 0 var(--litm-space-2);
 			gap: var(--litm-space-1);
 
-			& li {
+			& li.litm--tag-item {
+				position: relative;
 				display: flex;
 				align-items: center;
+				justify-content: space-between;
 				border: none;
 				padding-block: var(--litm-space-1);
 				gap: var(--litm-space-2);
+
+				& .litm--tag-item-container {
+					position: relative;
+					display: flex;
+					align-items: center;
+					gap: var(--litm-space-1);
+					flex: 0 1 auto; 
+					min-width: 20px;
+				}
+
+				& input.litm--tag-item-name {
+					&.status[data-selected],
+					&.tag[data-selected] {
+						border: 4px solid;
+						border-image: url(../../assets/media/brush.svg) 10 stretch;
+					}
+				}
+
+				& input.litm--tag-item-name {
+					field-sizing: content;
+				}
+				& span.litm--tag-item-name {
+					overflow-x: clip;
+				}
 
 				& .litm--tag-item-name {
 					background: transparent;
@@ -131,7 +155,32 @@
 					font-size: var(--font-size-15);
 					color: var(--litm-color-primary);
 					min-width: 10px;
+					max-width: 100%;
+					width: 100%;
 					padding: 0px;
+
+					&:read-only {
+						cursor: pointer;
+
+						-webkit-user-select: none;
+						-moz-user-select: none;
+						-ms-user-select: none;
+						user-select: none;
+					}
+
+					&.status[data-selected]::before,
+					&.tag[data-selected]::before {
+						content: "";
+						position: absolute;
+						width: 100%;
+						height: calc(5px + 100%);
+						background: url(../../assets/media/brush.svg) no-repeat center;
+						background-blend-mode: color;
+						background-size: contain;
+						opacity: 0.8;
+						top: -2px;
+						left: 0;
+					}
 				}
 
 				& .litm--burn-label {
@@ -152,6 +201,17 @@
 					font-size: var(--font-size-11);
 					line-height: 1;
 					color: var(--litm-color-weakness);
+				}
+
+				& .litm--tag-item-control {
+					display: flex;
+					align-items: center;
+
+					& input.litm--hindering-checkbox {
+						width: 18px;
+						height: 18px;
+						margin-right: var(--litm-space-2)
+					}
 				}
 
 				& .litm--tag-item-status {
