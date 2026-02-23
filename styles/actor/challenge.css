@@ -390,6 +390,8 @@
 			display: flex;
 			flex-direction: column;
 			list-style: none;
+			min-height: 12px;
+			margin: 0.5rem 0;
 			padding: 0 var(--litm-space-2);
 			gap: var(--litm-space-1);
 		}
