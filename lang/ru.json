@@ -109,7 +109,7 @@
 		"levels": {
 			"adventure": "Приключение",
 			"greatness": "Величие",
-			"origin": "Происхождение"
+			"origin": "Истоки"
 		},
     "progress": {
       "abandon": "Отказ",
@@ -308,10 +308,38 @@
 			"warn-not-owner": "You are not the owner of this actor. You cannot edit it.",
 			"warn-not-supported": "Not supported by current actor.",
 			"warn-theme-limit": "You have reached the maximum number of themes. Please remove a theme before adding another."
+		},
+			"might-scale": {
+			"action-scale": "МОГУЩЕСТВО ДЕЙСТВИЯ",
+			"scale": "Масштаб",
+			"area": "Область",
+			"area-0": "Один человек",
+			"area-1": "Комната",
+			"area-2": "Дом",
+			"area-3": "Деревня",
+			"area-4": "Город",
+			"area-5": "Регион",
+			"area-6": "Королевство",
+			"size": "Размер",
+			"size-0": "Человек",
+			"size-1": "Лошадь",
+			"size-2": "Огр",
+			"size-3": "Великан",
+			"size-4": "Титан",
+			"size-5": "Дракон",
+			"size-6": "Колосс",
+			"group": "Группа",
+			"group-0": "Одиночка",
+			"group-1": "Горстка",
+			"group-2": "Дюжина-другая",
+			"group-3": "Толпа",
+			"group-4": "Клан",
+			"group-5": "Армия",
+			"group-6": "Нация"
 		}
 	},
 	"Notes": "Заметки",
-	"origin": "Происхождение",
+	"origin": "Истоки",
 	"success": "Полный Успех",
 	"TYPES": {
 		"Actor": {

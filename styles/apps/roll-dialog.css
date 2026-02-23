@@ -1,5 +1,69 @@
+
+& .litm--might-tooltip {
+	display: none;
+	position: fixed;
+	z-index: 10000;
+	width: max-content;
+	max-width: none;
+
+	color: var(--litm-color-primary-bg);
+	-webkit-font-smoothing: antialiased;
+
+	padding: 0.5rem 1rem;
+	background: var(--color-cool-5-90);
+	font-family: var(--litm-font-text);
+	font-size: var(--font-size-16);
+	line-height: var(--font-size-18);
+	color: var(--color-light-1);
+	border-radius: 4px;
+	box-shadow: 0 0 4px #000;
+	z-index: var(--z-index-tooltip);
+	pointer-events: none;
+	overflow-wrap: break-word;
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	text-align: center;
+	line-height: 1.5em;
+
+	& .litm--might-table {
+		table-layout: auto;
+		width: max-content;
+		border-collapse: collapse;
+		font-size: 12px;
+
+		& th, & td {
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			padding: 4px 8px;
+			text-align: center;
+		}
+
+		& th {
+			background: rgba(255, 255, 255, 0.08);
+			font-weight: 400;
+		}
+
+		& .litm--might-table-img {
+			vertical-align: middle;
+			text-align: center;
+
+			& img {
+				display: inline-block;
+				width: 16px;
+				height: 16px;
+				object-fit: contain;
+				vertical-align: middle;
+				margin-right: 2px;
+			}
+
+			& span {
+				vertical-align: middle;
+			}
+		}
+	}
+}
+
 .litm.litm--roll {
-	min-width: 330px;
+	min-width: 450px;
 	background: url(../../assets/media/bg-alt.webp);
 	background-size: cover;
 	background-blend-mode: luminosity;
@@ -12,7 +76,6 @@
 	& .window-content form {
 		display: flex;
 		flex-direction: column;
-		overflow: hidden;
 		overflow: clip;
 		font-family: var(--litm-font-text);
 	}
@@ -142,7 +205,6 @@
 		display: flex;
 		flex-direction: column;
 		flex: 1;
-		overflow: auto;
 
 		& ul {
 			list-style: none;
@@ -171,6 +233,152 @@
 				}
 			}
 		}
+
+		& .litm--roll-dialog-might-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+
+			& .litm--might-name-wrapper {
+				display: flex;
+				justify-content: center;
+			}
+
+			& .litm--roll-dialog-might-name {
+				cursor: pointer;
+				text-align: center;
+				padding: 2px var(--litm-space-4);
+				width: 370px;
+				border-radius: 4px 4px 0 0;
+				font-size: 16px;
+				color: var(--litm-color-primary-bg);
+				transition: background-color 0.25s ease, color 0.25s ease;
+			}
+
+			&:has(input[value="5"]:checked),
+			&:has(input[value="6"]:checked),
+			&:has(input[value="-5"]:checked),
+			&:has(input[value="-6"]:checked) {
+				& .litm--roll-dialog-might-name {
+					background: var(--litm-color-greatness-bg);
+
+					&::after {
+						content: "";
+						position: absolute;
+						background: url(../../assets/media/icons/greatness_litm_icn.svg) no-repeat center /
+						contain;
+						height: 18px;
+						width: 18px;
+						margin-left: 4px;
+						margin-top: 1px;
+					}
+				}
+			}
+			&:has(input[value="2"]:checked),
+			&:has(input[value="3"]:checked),
+			&:has(input[value="4"]:checked),
+			&:has(input[value="-2"]:checked),
+			&:has(input[value="-3"]:checked),
+			&:has(input[value="-4"]:checked) {
+				& .litm--roll-dialog-might-name {
+					background: var(--litm-color-adventure-bg);
+
+					&::after {
+						content: "";
+						position: absolute;
+						background: url(../../assets/media/icons/adventure_litm_icn.svg) no-repeat center /
+						contain;
+						height: 18px;
+						width: 18px;
+						margin-left: 4px;
+						margin-top: 2px;
+					}
+				}
+			}
+			&:has(input[value="-1"]:checked),
+			&:has(input[value="0"]:checked),
+			&:has(input[value="1"]:checked) {
+				& .litm--roll-dialog-might-name {
+					background: var(--litm-color-origin-bg);
+
+					&::after {
+						content: "";
+						position: absolute;
+						background: url(../../assets/media/icons/origin_litm_icn.svg) no-repeat center /
+						contain;
+						height: 18px;
+						width: 18px;
+						margin-left: 4px;
+					}
+				}
+			}
+
+			& .litm--roll-dialog-might {
+				display: grid;
+				max-width: 370px;
+				grid-auto-columns: minmax(0, 1fr);
+				grid-auto-flow: column;
+				grid-gap: 10px;
+				place-self: center;
+				padding: var(--litm-space-1) var(--litm-space-2);
+				border-radius: 0 0 4px 4px;
+				background: linear-gradient(
+					to right,
+					var(--litm-color-greatness-bg) 0%,
+					var(--litm-color-greatness-bg) 15%,
+					var(--litm-color-adventure-bg) 16%,
+					var(--litm-color-adventure-bg) 38%,
+					var(--litm-color-origin-bg) 39%,
+					var(--litm-color-origin-bg) 61%,
+					var(--litm-color-adventure-bg) 62%,
+					var(--litm-color-adventure-bg) 84%,
+					var(--litm-color-greatness-bg) 85%,
+					var(--litm-color-greatness-bg) 100%
+				);
+
+				& .litm--might-option {
+					cursor: pointer;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+	
+					& input[type="radio"] {
+						position: absolute;
+						opacity: 0;
+						pointer-events: none;
+						width: 0;
+						height: 0;
+					}
+	
+					& span {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						width: 100%;
+						min-height: 22px;
+						min-width: 22px;
+						border-radius: 4px;
+						font-weight: 600;
+						font-size: 14px;
+						transition: all 0.15s ease;
+						background: rgba(0, 0, 0, 0.1);
+						color: var(--litm-color-primary-bg);
+						user-select: none;
+					}
+	
+					&:hover span {
+						background: rgba(255, 255, 255, 0.1);
+					}
+	
+					& input[type="radio"]:checked + span {
+						background: rgba(255, 255, 255, 0.2);
+						box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+						transform: scale(1.1);
+					}
+				}
+			}
+		}
+
 
 		& hr {
 			border-bottom: none;

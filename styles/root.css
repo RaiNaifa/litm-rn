@@ -10,6 +10,9 @@
 body {
 	--litm-color-bg: hsl(40, 85%, 87%);
 	--litm-color: hsl(40, 27%, 24%);
+	--litm-color-origin-bg: rgb(75, 110, 87);
+	--litm-color-adventure-bg: rgb(132, 74, 55);
+	--litm-color-greatness-bg: rgb(81, 81, 125);
 	--litm-color-alt-bg: hsl(34, 34%, 82%);
 	--litm-color-dark-bg: hsl(0, 0%, 45%);
 	--litm-color-accent-bg: hsl(225.94 10.66% 41.72%);

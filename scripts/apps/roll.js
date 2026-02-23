@@ -75,6 +75,10 @@ export class LitmRoll extends Roll {
 		return this.options.modifier || 0;
 	}
 
+	get might() {
+		return this.options.might || 0;
+	}
+
 	async render({
 		template = this.constructor.CHAT_TEMPLATE,
 		isPrivate = false,
@@ -94,6 +98,7 @@ export class LitmRoll extends Roll {
 			type: this.litm.type,
 			effect: this.effect,
 			modifier: isPrivate ? "???" : this.modifier,
+			might: isPrivate ? "???" : this.might,
 			user: game.user.id,
 			isOwner: game.user.isGM || this.actor.isOwner,
 		};
@@ -136,6 +141,7 @@ export class LitmRoll extends Roll {
 			positiveStatuses: this.litm.positiveStatuses,
 			negativeStatuses: this.litm.negativeStatuses,
 			modifier: this.modifier,
+			might: this.might,
 		};
 	}
 }

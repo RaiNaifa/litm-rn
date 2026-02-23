@@ -33,7 +33,7 @@ export class LitmRollDialog extends FormApplication {
 		});
 	}
 
-	static roll({ actorId, tags, title, type, speaker, modifier = 0 }) {
+	static roll({ actorId, tags, title, type, speaker, modifier = 0, might = 0 }) {
 		// Separate tags
 		const {
 			burntTags,
@@ -62,6 +62,7 @@ export class LitmRollDialog extends FormApplication {
 			crispyTags,
 			heroWeaknessTags,
 			modifier: Number(modifier) || 0,
+			might: Number(might) || 0,
 		});
 
 		const formula =
@@ -84,9 +85,10 @@ export class LitmRollDialog extends FormApplication {
 						type,
 						title,
 						modifier,
+						might,
 					})
 				: CONFIG.litm.roll.formula ||
-					"2d6 + (@burntValue + @powerValue + @positiveStatusValue - @weaknessValue - @negativeStatusValue + @modifier)";
+					"2d6 + (@burntValue + @powerValue + @positiveStatusValue - @weaknessValue - @negativeStatusValue + @modifier + @might)";
 
 		// Roll
 		const roll = new game.litm.LitmRoll(
@@ -98,6 +100,7 @@ export class LitmRollDialog extends FormApplication {
 				weaknessValue,
 				negativeStatusValue,
 				modifier: Number(modifier) || 0,
+				might: Number(might) || 0,
 			},
 			{
 				actorId,
@@ -113,6 +116,7 @@ export class LitmRollDialog extends FormApplication {
 				speaker,
 				totalPower,
 				modifier,
+				might,
 			},
 		);
 
@@ -147,6 +151,7 @@ export class LitmRollDialog extends FormApplication {
 		);
 
 		const modifier = Number(tags.modifier) || 0;
+		const might = Number(tags.might) || 0;
 
 		const totalPower =
 			burntValue +
@@ -154,7 +159,8 @@ export class LitmRollDialog extends FormApplication {
 			positiveStatusValue -
 			weaknessValue -
 			negativeStatusValue +
-			modifier;
+			modifier +
+			might;
 
 		return {
 			burntValue,
@@ -164,6 +170,7 @@ export class LitmRollDialog extends FormApplication {
 			negativeStatusValue,
 			totalPower,
 			modifier,
+			might,
 		};
 	}
 
@@ -202,6 +209,8 @@ export class LitmRollDialog extends FormApplication {
 	#tagState = [];
 	#shouldRoll = () => false;
 	#modifier = 0;
+	#might = 0;
+	#tooltipEl = null;
 
 	constructor(actorId, characterTags = [], options = {}) {
 		super({}, options);
@@ -209,6 +218,7 @@ export class LitmRollDialog extends FormApplication {
 		this.#tagState = options.tagState || [];
 		this.#shouldRoll = options.shouldRoll || (() => false);
 		this.#modifier = options.modifier || 0;
+		this.#might = options.might || 0;
 
 		this.actorId = actorId;
 		this.characterTags = characterTags;
@@ -224,6 +234,7 @@ export class LitmRollDialog extends FormApplication {
 	}
 
 	async close(options) {
+		this.#cleanupTooltip();
 		if (this._storyTagsHookId !== undefined) {
 			Hooks.off("litmStoryTagsUpdated", this._storyTagsHookId);
 			this._storyTagsHookId = undefined;
@@ -340,6 +351,7 @@ export class LitmRollDialog extends FormApplication {
 		const { totalPower } = LitmRollDialog.calculatePower({
 			...tags,
 			modifier: this.#modifier,
+			might: this.#might,
 		});
 		return totalPower;
 	}
@@ -366,6 +378,7 @@ export class LitmRollDialog extends FormApplication {
 			type: this.type,
 			totalPower: this.totalPower,
 			modifier: this.#modifier,
+			might: this.#might,
 		};
 	}
 
@@ -445,6 +458,51 @@ export class LitmRollDialog extends FormApplication {
 		html
 			.find("[data-update='modifier']")
 			.on("change", this.#handleModifierChange.bind(this));
+
+		html
+			.find('input[name="might"]')
+			.on("change", this.#handleMightChange.bind(this));
+
+		this.#cleanupTooltip();
+		const wrapper = html.find(".litm--might-name-wrapper");
+    const tooltip = html.find(".litm--might-tooltip");
+
+		if (wrapper.length && tooltip.length) {
+			this.#tooltipEl = tooltip[0];
+			document.body.appendChild(this.#tooltipEl);
+
+			wrapper.on("mouseenter", () => {
+				const tooltipEl = this.#tooltipEl;
+				if (!tooltipEl) return;
+
+				const rect = wrapper[0].getBoundingClientRect();
+				tooltipEl.style.display = "block";
+
+				const tooltipRect = tooltipEl.getBoundingClientRect();
+				let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+				let top = rect.top - tooltipRect.height - 8;
+
+				if (left < 4) left = 4;
+				if (left + tooltipRect.width > window.innerWidth - 4) {
+					left = window.innerWidth - tooltipRect.width - 4;
+				}
+				if (top < 4) {
+					top = rect.bottom + 8;
+					tooltipEl.classList.add("litm--might-tooltip-below");
+				} else {
+					tooltipEl.classList.remove("litm--might-tooltip-below");
+				}
+
+				tooltipEl.style.left = `${left}px`;
+				tooltipEl.style.top = `${top}px`;
+			});
+
+			wrapper.on("mouseleave", () => {
+				if (this.#tooltipEl) {
+					this.#tooltipEl.style.display = "none";
+				}
+			});
+		}
 	}
 
 	addTag(tag, toBurn) {
@@ -515,6 +573,7 @@ export class LitmRollDialog extends FormApplication {
 
 		this.#tagState = [];
 		this.#modifier = 0;
+		this.#might = 0;
 		this.#shouldRoll = () => game.settings.get("litm-rn", "skip_roll_moderation");
 		if (this.actor.sheet.rendered) this.actor.sheet.render(true);
 	}
@@ -525,7 +584,7 @@ export class LitmRollDialog extends FormApplication {
 	 * @param {Object} formData - The form data
 	 */
 	async _updateObject(_event, formData) {
-		const { actorId, title, type, shouldRoll, modifier, ...rest } = formData;
+		const { actorId, title, type, shouldRoll, modifier, might, ...rest } = formData;
 		const tags = this.getFilteredArrayFromFormData(rest);
 
 		const data = {
@@ -535,6 +594,7 @@ export class LitmRollDialog extends FormApplication {
 			title,
 			speaker: this.speaker,
 			modifier,
+			might,
 		};
 
 		this.#shouldRoll = () => shouldRoll;
@@ -641,6 +701,13 @@ export class LitmRollDialog extends FormApplication {
 		this.#dispatchUpdate();
 	}
 
+	#handleMightChange(event) {
+		const value = parseInt(event.currentTarget.value);
+		this.#might = value || 0;
+		this.element.find("[data-update='totalPower']").text(this.totalPower);
+		this.#dispatchUpdate();
+	}
+
 	async #createModerationRequest(data) {
 		const id = foundry.utils.randomID();
 		const userId = game.user.id;
@@ -680,7 +747,15 @@ export class LitmRollDialog extends FormApplication {
 			characterTags: this.characterTags,
 			tagState: this.#tagState,
 			modifier: this.#modifier,
+			might: this.#might,
 		});
+	}
+
+	#cleanupTooltip() {
+		if (this.#tooltipEl && this.#tooltipEl.parentNode === document.body) {
+			document.body.removeChild(this.#tooltipEl);
+		}
+		this.#tooltipEl = null;
 	}
 
 	async receiveUpdate({ characterTags, tagState, actorId, modifier }) {
@@ -689,6 +764,7 @@ export class LitmRollDialog extends FormApplication {
 		if (characterTags) this.characterTags = characterTags;
 		if (tagState) this.#tagState = tagState;
 		if (modifier !== undefined) this.#modifier = modifier;
+		if (might !== undefined) this.#might = might;
 
 		if (this.actor.sheet.rendered) this.actor.sheet.render();
 		if (this.rendered) this.render();

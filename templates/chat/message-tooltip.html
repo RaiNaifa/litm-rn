@@ -7,6 +7,15 @@
 	</header>
 </section>
 {{/inline}}
+{{#*inline "might" value flavor flavorClass}}
+<section class="tooltip-part">
+	<header class="part-header flexrow">
+		<span class="part-formula">{{localize "Litm.other.might"}}</span>
+		{{#if flavor}}<span class="part-flavor {{flavorClass}}">{{flavor}}</span>{{/if}}
+		<span class="part-total">{{value}}</span>
+	</header>
+</section>
+{{/inline}}
 
 <div class="dice-tooltip">
 	<div class="wrapper">
@@ -51,6 +60,9 @@
 		{{/each}}
 		{{#if data.modifier}}
 		{{> section name=(localize 'Litm.ui.modifier') value=data.modifier flavor="" flavorClass=""}}
+		{{/if}}
+		{{#if data.might}}
+		{{> might value=data.might flavor="" flavorClass=""}}
 		{{/if}}
 	</div>
 </div>
