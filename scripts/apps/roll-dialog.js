@@ -758,7 +758,7 @@ export class LitmRollDialog extends FormApplication {
 		this.#tooltipEl = null;
 	}
 
-	async receiveUpdate({ characterTags, tagState, actorId, modifier }) {
+	async receiveUpdate({ characterTags, tagState, actorId, modifier, might }) {
 		if (actorId !== this.actorId) return;
 
 		if (characterTags) this.characterTags = characterTags;
