@@ -61,7 +61,7 @@
 		{{#if data.modifier}}
 		{{> section name=(localize 'Litm.ui.modifier') value=data.modifier flavor="" flavorClass=""}}
 		{{/if}}
-		{{#if data.might}}
+		{{#if (not (eq data.might '0'))}}
 		{{> might value=data.might flavor="" flavorClass=""}}
 		{{/if}}
 	</div>
