@@ -170,6 +170,7 @@
 			"decay": "Угасание",
 			"isActive": "Активен",
 			"isBurnt": "Сожжён",
+			"isHindering": "Помеха",
 			"isInactive": "Неактивен",
 			"isScratched": "Зачёркнут",
 			"item-tags": "Теги предметов",
@@ -178,6 +179,7 @@
 			"power": "Сила",
 			"scratch": "Зачеркнуть",
 			"story": "Сюжет",
+			"toHindering": "Сделать Помехой",
 			"weakness": "Слабость"
 		},
 		"themes": {
