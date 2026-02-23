@@ -356,7 +356,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		buttons.unshift({
 			class: "litm--lock-btn",
 			icon: `fas ${this.#isLocked ? "fa-lock" : "fa-lock-open"}`,
-			tooltip: "Удаление тем: ВКЛ/ВЫКЛ", // TODO: перевод
+			tooltip: t("Litm.ui.lock-actor"),
 			onclick: (event) => {
 				event.preventDefault();
 

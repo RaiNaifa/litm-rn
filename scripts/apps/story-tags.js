@@ -604,7 +604,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		buttons.unshift({
 			class: "litm--lock-btn",
 			icon: `fas ${this.#isLocked ? "fa-lock" : "fa-lock-open"}`,
-			tooltip: "ПЕРЕВОД: Выбрать в бросок / Изменить имя тега", // TODO: перевод
+			tooltip: t("Litm.ui.lock-story"),
 			onclick: (event) => {
 				event.preventDefault();
 
