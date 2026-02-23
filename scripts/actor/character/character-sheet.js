@@ -23,6 +23,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	#backsideStates = new Map();
 	#heroHovered = null;
 	#contextmenu = null;
+	#isLocked = true;
 	#roll = game.litm.LitmRollDialog.create({
 		actorId: this.actor._id,
 		characterTags: [],
@@ -154,6 +155,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		};
 		return {
 			...this.object.system,
+			isLocked: this.#isLocked,
 			backpack,
 			hero,
 			note,
@@ -245,6 +247,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				{
 					name: game.i18n.localize("Litm.ui.remove"),
 					icon: "<i class='fas fa-trash'></i>",
+					condition: () => !this.#isLocked,
 					callback: (targetElement) => {
 						const id = targetElement.parentElement.dataset.id;
 						this.#removeItem(id);
@@ -346,6 +349,30 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		if (this.#dragAvatarTimeout) return clearTimeout(this.#dragAvatarTimeout);
 		return super._onEditImage(event);
 	}
+
+	_getHeaderButtons() {
+		const buttons = super._getHeaderButtons();
+
+		buttons.unshift({
+			class: "litm--lock-btn",
+			icon: `fas ${this.#isLocked ? "fa-lock" : "fa-lock-open"}`,
+			tooltip: "Удаление тем: ВКЛ/ВЫКЛ", // TODO: перевод
+			onclick: (event) => {
+				event.preventDefault();
+
+				this.#isLocked = !this.#isLocked;
+
+				const icon = event.currentTarget.querySelector("i");
+				icon.classList.toggle("fa-lock");
+				icon.classList.toggle("fa-lock-open");
+
+				this.render(false); // with no save in DB
+			}
+		});
+
+		return buttons;
+	}
+
 
 	#handleMouseDown(event) {
 		const t = event.currentTarget;
