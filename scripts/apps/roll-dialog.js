@@ -715,6 +715,7 @@ export class LitmRollDialog extends FormApplication {
 		const { totalPower } = game.litm.methods.calculatePower({
 			...tags,
 			modifier: data.modifier,
+			might: data.might,
 		});
 		const recipients = Object.entries(this.actor.ownership)
 			.filter((u) => u[1] === 3 && u[0] !== "default")
@@ -732,6 +733,7 @@ export class LitmRollDialog extends FormApplication {
 					tooltipData: {
 						...tags,
 						modifier: data.modifier,
+						might: data.might,
 					},
 					totalPower,
 				},
