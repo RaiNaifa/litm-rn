@@ -32,7 +32,9 @@ body {
 	--litm-color-weakness-bg: hsl(6.5 42.05% 41.08% / 20%);
 	--litm-color-muted-bg: hsl(0 0% 45.42% / 20%);
 	--litm-color-tag-bg: hsl(45 98% 46% / 70%);
+	--litm-color-tag-bg-overlap: hsl(45 98% 46%);
 	--litm-color-status-bg: hsl(75.88 48.31% 42.3% / 70%);
+	--litm-color-status-bg-overlap: hsl(75.88 48.31% 42.3%);
 	--litm-color-limit-bg: hsl(0 67.35% 63.41% / 70%);
 
 	/* Fonts */

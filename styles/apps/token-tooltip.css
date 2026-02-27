@@ -1,0 +1,37 @@
+#litm-token-tooltip {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px;
+
+  &:empty {
+    display: none !important;
+  }
+
+  & mark {
+    pointer-events: none;
+    padding: 0px 0.4em;
+    border-radius: 0.2em;
+    white-space: nowrap;
+    box-decoration-break: clone;
+    color: var(--color-dark-1);
+    font-size: 15px;
+    font-family: var(--litm-font-text);
+    font-style: italic;
+    font-weight: 400;
+    box-shadow: 1px 1px 1px var(--litm-color-weakness-bg);
+  }
+
+  & mark.litm--hover-tag {
+		background: var(--litm-color-tag-bg-overlap);
+	}
+
+	& mark.litm--hover-status {
+		background: var(--litm-color-status-bg-overlap);
+	}
+}

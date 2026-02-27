@@ -1,6 +1,8 @@
 import { error, info } from "../logger.js";
 import { sleep, localize as t } from "../utils.js";
 import { Sockets } from "./sockets.js";
+import { TokenTooltip } from "../apps/token-tooltip.js";
+
 
 export class LitmHooks {
 	static register() {
@@ -22,6 +24,7 @@ export class LitmHooks {
 		LitmHooks.#addStoryTagsToControls();
 		LitmHooks.#popOutCompatiblity();
 		LitmHooks.#rendeWelcomeScreen();
+		LitmHooks.#renderTooltipOnTokenHover();
 	}
 
 	static #addLinkPreloadsToHead() {
@@ -506,6 +509,14 @@ export class LitmHooks {
 			if (game.settings.get("litm-rn", "show_tag_window_on_load")) {
 				app.render(true);
 			}
+		});
+	}
+
+	static #renderTooltipOnTokenHover() {
+		let tokenTagsTooltip;
+	
+		Hooks.once("ready", () => {
+			tokenTagsTooltip = new TokenTooltip();
 		});
 	}
 
