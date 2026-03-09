@@ -17,7 +17,7 @@ export class TagData extends foundry.abstract.DataModel {
 			}),
 			type: new fields.StringField({
 				required: true,
-				choices: ["weaknessTag", "powerTag", "backpack", "hero", "themeTag", "fulfillment"],
+				choices: ["weaknessTag", "powerCrispy", "powerTag", "backpack", "hero", "themeCrispy", "themeTag", "fulfillment"],
 			}),
 		};
 	}
@@ -51,7 +51,7 @@ export class RelationshipData extends foundry.abstract.DataModel {
 			}),
 			type: new fields.StringField({
 				required: true,
-				choices: ["weaknessTag", "powerTag", "backpack", "hero", "themeTag"],
+				choices: ["hero"],
 			}),
 		};
 	}

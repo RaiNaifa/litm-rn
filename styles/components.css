@@ -98,6 +98,7 @@
 
 :where(.litm--scratch),
 .app.litm.litm :where(.litm--scratch) {
+	display: inline-block;
 	-webkit-appearance: none;
 	flex: none;
 	appearance: none;
@@ -212,9 +213,11 @@
 :where(.litm--status),
 :where(.litm--limit),
 :where(.litm--might),
+:where(.litm--powerCrispy),
 :where(.litm--powerTag),
 :where(.litm--weaknessTag),
 :where(.litm--themeTag),
+:where(.litm--themeCrispy),
 :where(.litm--hero),
 :where(.litm--backpack) {
 	padding: 0px 0.4em;
@@ -253,7 +256,9 @@
 		}
 	}
 
+	&.litm--powerCrispy,
 	&.litm--powerTag,
+	&.litm--themeCrispy,
 	&.litm--themeTag,
 	&.litm--hero,
 	&.litm--backpack {

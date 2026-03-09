@@ -183,7 +183,7 @@ export class LitmRollDialog extends FormApplication {
 			(t) => t.type !== "status" && t.state === "negative",
 		);
 		const crispyTags = tags.filter(
-			(t) => t.type === "crispy" || t.type === "hero",
+			(t) => t.type === "crispy" || t.type === "hero" || t.type === "powerCrispy" || t.type === "themeCrispy",
 		);
 		const heroWeaknessTags = tags.filter(
 			(t) => t.type === "hero" && t.state === "negative",
@@ -292,6 +292,10 @@ export class LitmRollDialog extends FormApplication {
 				case "hero":
 				case "crispy":
 					states = ",negative,positive";
+					break;
+				case "themeCrispy":
+				case "powerCrispy":
+					states = ",positive";
 					break;
 				case "powerTag":
 					states = ",positive,burned";
@@ -507,6 +511,11 @@ export class LitmRollDialog extends FormApplication {
 
 	addTag(tag, toBurn) {
 		switch (tag.type) {
+			case "themeCrispy":
+			case "powerCrispy":
+				tag.state = "positive";
+				tag.states = ",positive";
+				break;
 			case "powerTag":
 				tag.state = toBurn ? "burned" : "positive";
 				tag.states = ",positive,burned";
@@ -625,7 +634,9 @@ export class LitmRollDialog extends FormApplication {
 		const { type } = checkbox.dataset;
 
 		switch (type) {
+			case "powerCrispy":
 			case "powerTag":
+			case "themeCrispy":
 			case "themeTag":
 			case "backpack":
 			case "hero":
@@ -641,7 +652,12 @@ export class LitmRollDialog extends FormApplication {
 				case "hero":
 					tag.states = ",negative,positive";
 					break;
+				case "powerCrispy":
+				case "themeCrispy":
+					tag.states = ",positive";
+					break;
 				case "powerTag":
+				case "themeTag":
 					tag.states = ",positive,burned";
 					break;
 				case "weaknessTag":
@@ -673,7 +689,12 @@ export class LitmRollDialog extends FormApplication {
 						case "hero":
 							statefulTag.states = ",negative,positive";
 							break;
+						case "powerCrispy":
+						case "themeCrispy":
+							tag.states = ",positive";
+							break;
 						case "powerTag":
+						case "themeTag":
 							statefulTag.states = ",positive,burned";
 							break;
 						case "weaknessTag":

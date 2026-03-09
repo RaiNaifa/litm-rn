@@ -5,6 +5,11 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		const fields = foundry.data.fields;
 		return {
 			note: new fields.HTMLField(),
+			fellowshipId: new fields.StringField({
+				required: false,
+				nullable: true,
+				initial: null,
+			}),
 		};
 	}
 
@@ -21,13 +26,18 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		return backpack.system;
 	}
 
+	get fellowship() {
+		if (!this.fellowshipId) return [];
+		return game.items.get(this.fellowshipId) ?? null;
+	}
+
 	get hero() {
 		const hero = this.parent.items.find((item) => item.type === "hero");
 		if (!hero) return [];
 		return hero.system;
 	}
 
-	get allTags() {
+	get embeddedTags() {
 		const hero = this.hero.contents || [];
 		const backpack = this.backpack.contents || [];
 		const themeTags = this.parent.items
@@ -36,19 +46,29 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		return [...hero, ...backpack, ...themeTags];
 	}
 
+	get allTags() {
+		const embeddedTags = this.embeddedTags;
+		const fellowshipTags = this.fellowship?.system?.allTags ?? [];
+		return [...embeddedTags, ...fellowshipTags];
+	}
+
 	get powerTags() {
 		return this.allTags.filter(
 			(tag) =>
+				tag.type === "powerCrispy" ||
 				tag.type === "powerTag" ||
+				tag.type === "themeCrispy" ||
 				tag.type === "themeTag" ||
 				tag.type === "backpack"
 		);
 	}
 
 	get weaknessTags() {
-		return this.parent.items
+		const themeWeakness =  this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.weakness);
+		const fellowshipWeakness = this.fellowship?.system?.weakness ?? [];
+		return [...themeWeakness, ...fellowshipWeakness];
 	}
 
 	get availablePowerTags() {
@@ -58,7 +78,8 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.availablePowerTags);
-		return [...backpack, ...themeTags];
+		const fellowshipTags = this.fellowship?.system?.availablePowerTags ?? [];
+		return [...backpack, ...themeTags, ...fellowshipTags];
 	}
 
 	get statuses() {
@@ -150,7 +171,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 
 		// Validate unique data ids
 		// Get duplicates
-		const duplicates = this.allTags
+		const duplicates = this.embeddedTags
 			.map((tag) => tag.id)
 			.filter((id, index, arr) => arr.indexOf(id) !== index);
 		if (!duplicates.length) return;
@@ -158,7 +179,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		error(`Duplicate tag IDs found for: ${this.parent._id}`, duplicates);
 
 		// try to fix duplicates
-		const tags = this.allTags;
+		const tags = this.embeddedTags;
 		for (const tag of tags) {
 			if (duplicates.includes(tag.id)) {
 				tag.id = foundry.utils.randomID();

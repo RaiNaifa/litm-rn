@@ -78,9 +78,35 @@ export async function confirmDelete(string = "Item") {
 	});
 }
 
+export async function confirmUnlink(string = "Item") {
+	const thing = game.i18n.localize(string);
+	return Dialog.confirm({
+		title: game.i18n.format("Litm.ui.confirm-unlink-title", { thing }),
+		content: game.i18n.format("Litm.ui.confirm-unlink-content", { thing }),
+		defaultYes: false,
+		options: {
+			classes: ["litm", "litm--confirm-delete"],
+		},
+	});
+}
+
 export async function gmModeratedRoll(app, cb) {
 	const id = foundry.utils.randomID();
 	game.litm.rolls[id] = cb;
 
 	dispatch({ app, id, type: "roll" });
+}
+
+export function getAssignedUser(actor) {
+	return game.users.find(u => u.character?.id === actor.id) ?? null;
+}
+
+export function getAvailableFellowships(actor) {
+	const assignedUser = getAssignedUser(actor);
+	if (!assignedUser) return [];
+
+	return game.items.filter(i => 
+		i.type === "fellowship" && 
+		i.testUserPermission(assignedUser, "OWNER")
+	);
 }

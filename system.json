@@ -1,7 +1,7 @@
 {
 	"$schema": "https://json.schemastore.org/foundryvtt-system-manifest.json",
 	"id": "litm-rn",
-	"version": 10.3,
+	"version": 10.4,
 	"license": "LICENSE",
 	"title": "Legend in the Mist",
 	"description": "A <strong>Rustic Fantasy</strong> Game for Foundry Virtual Tabletop.",
@@ -39,6 +39,11 @@
 		},
 		"Item": {
 			"backpack": {},
+			"fellowship": {
+				"htmlFields": [
+					"note"
+				]
+			},
 			"hero": {},
 			"theme": {
 				"htmlFields": [

@@ -2,51 +2,62 @@
 	<img width="250px" class="litm--hero-bg-frame" src="systems/litm-rn/assets/media/background-frame.webp"
 		aria-hidden="true">
 	<div class="litm--hero-bg litm--hero-bg" data-context="menu">
-		<div class="meta">
-			<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
-				data-type="hero" data-id="{{hero.id}}" data-tooltip="{{localize 'Litm.other.specials'}}">
-			<img src="systems/litm-rn/assets/media/icons/{{ifThen hero.backside 'special_icn.svg' 'special-front_icn.svg'}}"
-				alt="{{localize 'Litm.other.specials'}}" class="litm--specials-backside"/>
-			</button>
-			{{hero.name}}
-		</div>
 		{{#if hero.backside}}
-			<ul class="taglist litm--hero-backside">
-				{{#each hero.fulfillment as |tag|}}
-					{{> systems/litm-rn/templates/partials/fulfillment.html tag=tag key=@key path=(concat "items." ../hero.id ".system.fulfillment") embedded=true remove=false}}
-				{{/each}}
-			</ul>
-			<div class="litm--hero-progression">
-				<!-- Promise buttons -->
-				<button data-click="increase" data-context="decrease" data-id="system.promise"
-					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
-					<div>
-						{{#progress-buttons hero.promise 5}}
-							<span class="litm--checkbox litm--checkbox-with-bg {{#if @checked}}checked{{/if}}"></span>
-						{{/progress-buttons}}
-						<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
-					</div>
-					<label for="promise">{{localize "Litm.progress.promise"}}</label>
+			<div class="meta">
+				<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
+					data-type="hero" data-id="{{hero.id}}" data-tooltip="{{localize 'Litm.other.specials'}}">
+				<img src="systems/litm-rn/assets/media/icons/special_icn.svg"
+					alt="{{localize 'Litm.other.specials'}}" class="litm--specials-backside"/>
 				</button>
+				{{ifThen fellowship.name fellowship.system.themebook (localize "Litm.other.fellowship")}}
 			</div>
+			{{#if fellowship}}
+				{{> systems/litm-rn/templates/item/fellowship-ro.html data=fellowship}}
+			{{else}}
+			<div class="litm--fellowship-wrapper-empty">
+				<span class="litm--fellowship-empty">{{localize "Litm.ui.no-fellowship-chosen"}}</span>
+				<div class="litm--fellowship-image"></div>
+				<div class="litm--fellowship-hint">{{localize "Litm.ui.choose-fellowship-hint"}}</div>
+			</div>
+			{{/if}}
 		{{else}}
+			<div class="meta">
+				<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
+					data-type="hero" data-id="{{hero.id}}" data-tooltip="{{localize 'Litm.other.specials'}}">
+				<img src="systems/litm-rn/assets/media/icons/special-front_icn.svg"
+					alt="{{localize 'Litm.other.specials'}}" class="litm--specials-backside"/>
+				</button>
+				{{hero.name}}
+			</div>
 			<ul class="taglist">
 				{{#each hero.contents as |tag|}}
 					{{> systems/litm-rn/templates/partials/relationship.html tag=tag key=@key path=(concat "items." ../hero.id ".system.contents") embedded=true remove=false}}
 				{{/each}}
 			</ul>
-			<div class="litm--hero-progression">
-				<!-- Promise buttons -->
-				<button data-click="increase" data-context="decrease" data-id="system.promise"
-					data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
-					<div>
-						{{#progress-buttons hero.promise 5}}
-							<span class="litm--checkbox litm--checkbox-with-bg hero {{#if @checked}}checked{{/if}}"></span>
-						{{/progress-buttons}}
-						<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
-					</div>
-					<label for="promise">{{localize "Litm.progress.promise"}}</label>
-				</button>
+			<hr>
+			<div class="litm--fulfillment-moments">
+				<span>{{localize 'Litm.ui.moments-of-fulfillment'}}</span>
+				<ul class="taglist litm--hero-backside">
+					{{#each hero.fulfillment as |option|}}
+						<li class="litm--theme-tag litm--fulfillment">
+							<!-- Tag appearance in Items -->
+							<span class="tag--name">{{localize (concat 'Litm.fulfillment.' option)}}</span>
+						</li>
+					{{/each}}
+				</ul>
+				<div class="litm--hero-progression">
+					<!-- Promise buttons -->
+					<button data-click="increase" data-context="decrease" data-id="system.promise"
+						data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+						<div>
+							{{#progress-buttons hero.promise 5}}
+								<span class="litm--checkbox litm--checkbox-with-bg hero {{#if @checked}}checked{{/if}}"></span>
+							{{/progress-buttons}}
+							<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
+						</div>
+						<label for="promise">{{localize "Litm.progress.promise"}}</label>
+					</button>
+				</div>
 			</div>
 		{{/if}}
 	</div>

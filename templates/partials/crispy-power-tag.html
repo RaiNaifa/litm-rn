@@ -1,0 +1,34 @@
+<li {{#if remove}}data-context="remove-tag" {{/if}} data-id="{{tag.id}}"
+	class="litm--theme-tag {{#if embedded}}embedded{{/if}}">
+	<!-- Tags embedded in the character sheet have different functionality -->
+	{{#if embedded}}
+		<!-- Select Tag button -->
+		<button type="button" class="litm--theme-tag-button" data-id="{{tag.id}}"
+			{{#if (includes @root.rollTags tag.id 'id' )}}data-selected{{/if}} data-click="select"
+			data-tooltip="{{localize (ifThen tag.isScratched 'Litm.ui.toggle-scratch' 'Litm.ui.toggle-non-burnable-tag')}}">
+			<!-- Name -->
+			<span class="tag--name {{#if tag.isScratched}}scratched{{/if}}">{{tag.name}}</span>
+			<!-- isScratched indicator -->
+			<span class="litm--sro">{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+			<span class="litm--scratch {{checked (or tag.isScratched (includes @root.scratchedTags tag.id 'id'))}}"
+				aria-hidden="true"></span>
+		</button>
+		<input type="hidden" name="{{path}}.{{key}}.type" value="{{tag.type}}">
+		<input type="hidden" name="{{path}}.{{key}}.id" value="{{tag.id}}">
+		<input type="hidden" name="{{path}}.{{key}}.name" value="{{tag.name}}">
+		<input type="hidden" name="{{path}}.{{key}}.isScratched" data-dtype="Boolean" value="{{tag.isScratched}}">
+	{{else}}
+		<!-- Tag functionality in Items -->
+		<!-- Name input -->
+		<input class="tag--name" type="text" name="{{path}}.{{key}}.name" value="{{tag.name}}">
+		<!-- isScratched checkbox -->
+		<label>
+			<span class="litm--sro">{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+			<input class="litm--scratch {{disabled tag.isScratched}} {{#if (includes @root.burntTags tag.id 'id')}} burnt{{/if}}" type="checkbox" name="{{path}}.{{key}}.isScratched" {{#unless tag.isScratched}}
+				data-dtype="Boolean" data-tooltip="{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}" {{/unless}}
+				{{checked tag.isScratched}} />
+		</label>
+		<input type="hidden" name="{{path}}.{{key}}.type" value="{{tag.type}}">
+		<input type="hidden" name="{{path}}.{{key}}.id" value="{{tag.id}}">
+	{{/if}}
+</li>

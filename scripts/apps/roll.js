@@ -112,8 +112,8 @@ export class LitmRoll extends Roll {
 				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
 					0) || (this.litm.isActive && this.litm.state === "negative" && this.litm.heroWeaknessTags.length > 0);
 		} else {
-			chatData.hasBurntTags = !this.litm.isScratched && this.litm.burntTags.length > 0; // ???
-			chatData.hasCrispyTags = this.litm.crispyTags.length > 0;
+			chatData.hasBurntTags = !this.litm.isScratched && this.litm.burntTags.length > 0;
+			chatData.hasCrispyTags = !this.litm.isScratched && this.litm.crispyTags.length > 0;
 			chatData.hasWeaknessTags = (!this.litm.gainedImp &&
 				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
 					0) || (this.litm.state === "negative" && this.litm.heroWeaknessTags.length > 0);

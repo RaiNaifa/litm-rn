@@ -23,11 +23,41 @@
 	}
 
 	& .litm--threat-box span:first-child {
+		cursor: text;
 		background-color: #cebeb3;
 		padding: 0.15em 0.6em;
 		border-radius: 0;
 		text-transform: uppercase;
 		letter-spacing: 0.075em;
+
+		&:not(:focus) {
+			--r: 5px;
+			clip-path: polygon(
+				0 var(--r),
+				calc(var(--r) * 0.383) calc(var(--r) * 0.924),
+				calc(var(--r) * 0.707) calc(var(--r) * 0.707),
+				calc(var(--r) * 0.924) calc(var(--r) * 0.383),
+				var(--r) 0,
+	
+				calc(100% - var(--r)) 0,
+				calc(100% - var(--r) * 0.924) calc(var(--r) * 0.383),
+				calc(100% - var(--r) * 0.707) calc(var(--r) * 0.707),
+				calc(100% - var(--r) * 0.383) calc(var(--r) * 0.924),
+				100% var(--r),
+	
+				100% calc(100% - var(--r)),
+				calc(100% - var(--r) * 0.383) calc(100% - var(--r) * 0.924),
+				calc(100% - var(--r) * 0.707) calc(100% - var(--r) * 0.707),
+				calc(100% - var(--r) * 0.924) calc(100% - var(--r) * 0.383),
+				calc(100% - var(--r)) 100%,
+	
+				var(--r) 100%,
+				calc(var(--r) * 0.924) calc(100% - var(--r) * 0.383),
+				calc(var(--r) * 0.707) calc(100% - var(--r) * 0.707),
+				calc(var(--r) * 0.383) calc(100% - var(--r) * 0.924),
+				0 calc(100% - var(--r))
+			);
+		}
 	}
 
 	& .litm--threat-wrapper {

@@ -61,13 +61,14 @@ export class HandlebarsPartials {
 		"systems/litm-rn/templates/chat/message-tooltip.html",
 		"systems/litm-rn/templates/chat/moderation.html",
 		"systems/litm-rn/templates/item/backpack-ro.html",
+		"systems/litm-rn/templates/item/fellowship-ro.html",
 		"systems/litm-rn/templates/item/hero-ro.html",
 		"systems/litm-rn/templates/item/theme-ro.html",
+		"systems/litm-rn/templates/partials/crispy-power-tag.html",
 		"systems/litm-rn/templates/partials/new-tag.html",
 		"systems/litm-rn/templates/partials/tag.html",
 		"systems/litm-rn/templates/partials/special.html",
 		"systems/litm-rn/templates/partials/relationship.html",
-		"systems/litm-rn/templates/partials/fulfillment.html",
 	];
 
 	static register() {

@@ -21,18 +21,6 @@ export class HeroData extends foundry.abstract.DataModel {
 							})),
 				}
 			),
-			fulfillment: new fields.ArrayField(
-				new fields.EmbeddedDataField(abstract.TagData),
-				{
-					initial: CONFIG.litm.fulfillment.map((item) => ({
-							id: foundry.utils.randomID(),
-							name: item,
-							type: "fulfillment",
-							isActive: false,
-							isScratched: false,
-					}))
-				}
-			),
 			promise: new fields.NumberField({
 				integer: true,
 				min: 0,
@@ -40,5 +28,9 @@ export class HeroData extends foundry.abstract.DataModel {
 				max: 5,
 			}),
 		};
+	}
+
+	get fulfillment() {
+		return CONFIG.litm.fulfillment;
 	}
 }

@@ -1,5 +1,5 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
-import { confirmDelete, dispatch } from "../../utils.js";
+import { confirmDelete, dispatch, getAssignedUser, getAvailableFellowships } from "../../utils.js";
 import { localize as t } from "../../utils.js";
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
@@ -29,6 +29,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		characterTags: [],
 		shouldRoll: () => game.settings.get("litm-rn", "skip_roll_moderation"),
 	});
+	#fellowshipUpdateHook = null;
 
 	get template() {
 		return "systems/litm-rn/templates/actor/character.html";
@@ -63,15 +64,36 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 	async toggleScratchTag(tag) {
 		switch (tag.type) {
+			case "hero": {
+				const hero = this.items.find((i) => i.type === "hero");
+				const { contents } = hero.system.toObject();
+				contents.find((i) => i.id === tag.id).isActive = !tag.isActive;
+				await this.actor.updateEmbeddedDocuments("Item", [
+					{
+						_id: hero.id,
+						"system.contents": contents,
+					},
+				]);
+				break;
+			}
+			case "powerCrispy": {
+				const parentTheme = this.system.fellowship;
+				if (!parentTheme) return;
+				const { powerTags } = parentTheme.system.toObject();
+				powerTags.find((t) => t.id === tag.id).isScratched = !tag.isScratched;
+
+				await parentTheme.update({ "system.powerTags": powerTags });
+				break;
+			}
 			case "powerTag": {
 				const parentTheme = this.items.find(
 					(i) =>
-						i.type === "theme" &&
+						(i.type === "theme") &&
 						i.system.powerTags.some((t) => t.id === tag.id),
 				);
 				const { powerTags } = parentTheme.system.toObject();
 				powerTags.find((t) => t.id === tag.id).isScratched = !tag.isScratched;
-				this.actor.updateEmbeddedDocuments("Item", [
+				await this.actor.updateEmbeddedDocuments("Item", [
 					{
 						_id: parentTheme.id,
 						"system.powerTags": powerTags,
@@ -79,13 +101,19 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				]);
 				break;
 			}
+			case "themeCrispy":
+				const parentTheme = this.system.fellowship;
+				if (!parentTheme) return;
+
+				await parentTheme.update({ "system.themeTag.isScratched": !tag.isScratched });
+				break;
 			case "themeTag": {
 				const parentTheme = this.items.find(
 					(i) =>
-						i.type === "theme" &&
+						(i.type === "theme") &&
 						i.system.themeTag.id === tag.id,
 				);
-				this.actor.updateEmbeddedDocuments("Item", [
+				await this.actor.updateEmbeddedDocuments("Item", [
 					{
 						_id: parentTheme.id,
 						"system.themeTag.isScratched": !tag.isScratched,
@@ -98,7 +126,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				const backpack = this.items.find((i) => i.type === "backpack");
 				const { contents } = backpack.system.toObject();
 				contents.find((i) => i.id === tag.id).isScratched = !tag.isScratched;
-				this.actor.updateEmbeddedDocuments("Item", [
+				await this.actor.updateEmbeddedDocuments("Item", [
 					{
 						_id: backpack.id,
 						"system.contents": contents,
@@ -110,20 +138,31 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	}
 
 	async gainImprove(tag) {
-		const parentTheme = this.items.find(
+		let parentTheme = this.items.find(
 			(i) =>
 				i.type === "theme" &&
 				i.system.weaknessTags.some((t) => t.id === tag.id),
 		);
-		this.actor.updateEmbeddedDocuments("Item", [
-			{
-				_id: parentTheme.id,
-				"system.improve": parentTheme.system.improve + 1,
-			},
-		]);
+		if (parentTheme) {
+			this.actor.updateEmbeddedDocuments("Item", [
+				{
+					_id: parentTheme.id,
+					"system.improve": parentTheme.system.improve + 1,
+				},
+			]);
+		} else {
+			const parentTheme = this.system.fellowship;
+			if (!parentTheme) return;
+
+			await parentTheme.update({ "system.improve": parentTheme.system.improve + 1 });
+		}
 	}
 
 	async getData() {
+		const assignedUser = getAssignedUser(this.actor);
+		const availableFellowships = getAvailableFellowships(this.actor);
+		const fellowship = this.system.fellowship;
+
 		const themes = await Promise.all(
 			this.items
 				.filter((i) => i.type === "theme")
@@ -161,6 +200,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			note,
 			themes,
 			_id: this.actor.id,
+			fellowship,          // world-level Item or null
+			availableFellowships,
+			hasAssignedUser: !!assignedUser,
 			scratchedTags: this.#roll.characterTags.filter(
 				(t) => t.isScratched || t.state === "scratched",
 			),
@@ -194,6 +236,10 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		html
 			.find("[data-drag]")
 			.on("mousedown", this.#onDragHandleMouseDown.bind(this));
+		html.find("[data-action='select-fellowship']")
+			.on("change", this.#onSelectFellowship.bind(this));
+		html.find("[data-click='unlink-fellowship']")
+			.on("click", this.#onUnlinkFellowship.bind(this));
 		html.find("li.litm--story-tag input[type='text']")
 			.on("change", this.#onEffectNameChange.bind(this));
 		html.find("li.litm--story-tag input[type='checkbox']")
@@ -260,6 +306,15 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				jQuery: false,
 			},
 		);
+
+		if (!this.#fellowshipUpdateHook) {
+			this.#fellowshipUpdateHook = Hooks.on("updateItem", (item, changes, options, userId) => {
+				if (item.type !== "fellowship" || item.isEmbedded) return;
+				if (item.id !== this.system.fellowshipId) return;
+
+				this.render();
+			});
+		}
 	}
 
 	// Hack to allow updating the embedded items
@@ -303,7 +358,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	// Prevent dropping more than 4 themes on the character sheet
 	async _onDropItem(event, data) {
 		const item = await Item.implementation.fromDropData(data);
-		if (!["backpack", "theme", "hero"].includes(item.type)) return;
+		if (!["backpack", "theme", "hero", "fellowship"].includes(item.type)) return;
 
 		if (this.items.get(item.id)) return this._onSortItem(event, item);
 
@@ -322,6 +377,12 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			return ui.notifications.warn(
 				game.i18n.localize("Litm.ui.warn-theme-limit"),
 			);
+
+		if (item.type === "fellowship") {
+			return ui.notifications.warn(
+				game.i18n.localize("Litm.ui.warn-fellowship-drop")
+			);
+		}
 
 		return super._onDropItem(event, data);
 	}
@@ -483,6 +544,16 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		$(document).on("mouseup", handleMouseUp);
 	}
 
+	async #onSelectFellowship(event) {
+		const selectedId = event.currentTarget.value || null;
+		await this.actor.update({ "system.fellowshipId": selectedId });
+	}
+
+	async #onUnlinkFellowship(event) {
+		event.preventDefault();
+		await this.actor.update({ "system.fellowshipId": null });
+	}
+
 	async #onEffectNameChange(event) {
 		const li = $(event.currentTarget).closest("li[data-id]");
 		const id = li.data("id");
@@ -570,8 +641,15 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	async #increase(event) {
 		const t = event.currentTarget;
 		const attrib = t.dataset.id;
-		const id = $(t).parents(".item").data("id");
-		const item = this.actor.items.get(id);
+		const id = t.dataset.itemId || $(t).parents(".item").data("id");
+
+		let item = this.actor.items.get(id);
+		if (!item) {
+			const fellowship = this.system.fellowship;
+			if (fellowship?.id === id) item = fellowship;
+		}
+		if (!item) return;
+
 		const value = foundry.utils.getProperty(item, attrib);
 		const maxValue = item.type === "hero" ? 5 : 3;
 
@@ -581,8 +659,15 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	async #decrease(event) {
 		const t = event.currentTarget;
 		const attrib = t.dataset.id;
-		const id = $(t).parents(".item").data("id");
-		const item = this.items.get(id);
+		const id = t.dataset.itemId || $(t).parents(".item").data("id");
+
+		let item = this.actor.items.get(id);
+		if (!item) {
+			const fellowship = this.system.fellowship;
+			if (fellowship?.id === id) item = fellowship;
+		}
+		if (!item) return;
+
 		const value = foundry.utils.getProperty(item, attrib);
 
 		return item.update({ [attrib]: Math.max(value - 1, 0) });
@@ -713,5 +798,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		if (!id) return;
 		this.#backsideStates.set(id, !this.#getBackside(id));
 		this.render(false);
+	}
+
+	async close(options) {
+		if (this.#fellowshipUpdateHook) {
+			Hooks.off("updateItem", this.#fellowshipUpdateHook);
+			this.#fellowshipUpdateHook = null;
+		}
+		return super.close(options);
 	}
 }

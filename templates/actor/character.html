@@ -69,7 +69,9 @@
 	<div class="item-list litm--character-hero {{#if heroHovered}}hovered{{/if}}"
 		data-tooltip="{{localize 'Litm.ui.context-edit'}}"
 		data-tooltip-direction="LEFT" data-id="{{hero.id}}">
-		{{> systems/litm-rn/templates/item/hero-ro.html hero=hero}}
+		{{> systems/litm-rn/templates/item/hero-ro.html hero=hero
+			hasAssignedUser=hasAssignedUser availableFellowships=availableFellowships
+			fellowship=fellowship}}
 	</div>
 	{{/if}}
 	{{#if backpack.id}}

@@ -29,6 +29,7 @@ export class LitmHooks {
 
 	static #addLinkPreloadsToHead() {
 		const assets = [
+			"systems/litm-rn/assets/media/adventure-fellowship-bg.webp",
 			"systems/litm-rn/assets/media/adventure-theme-alt-bg-top.webp",
 			"systems/litm-rn/assets/media/adventure-theme-bg-bottom.webp",
 			"systems/litm-rn/assets/media/adventure-theme-border-bottom.webp",
@@ -52,6 +53,7 @@ export class LitmHooks {
 			"systems/litm-rn/assets/media/effects.webp",
 			"systems/litm-rn/assets/media/feather.webp",
 			"systems/litm-rn/assets/media/flowers-top.webp",
+			"systems/litm-rn/assets/media/greatness-fellowship-bg.webp",
 			"systems/litm-rn/assets/media/greatness-theme-alt-bg-top.webp",
 			"systems/litm-rn/assets/media/greatness-theme-bg-bottom.webp",
 			"systems/litm-rn/assets/media/greatness-theme-border-bottom.webp",
@@ -70,6 +72,7 @@ export class LitmHooks {
 			"systems/litm-rn/assets/media/middle-branches.webp",
 			"systems/litm-rn/assets/media/necklace.webp",
 			"systems/litm-rn/assets/media/note.webp",
+			"systems/litm-rn/assets/media/origin-fellowship-bg.webp",
 			"systems/litm-rn/assets/media/origin-theme-alt-bg-top.webp",
 			"systems/litm-rn/assets/media/origin-theme-bg-bottom.webp",
 			"systems/litm-rn/assets/media/origin-theme-border-bottom.webp",
@@ -242,21 +245,17 @@ export class LitmHooks {
 					event.preventDefault();
 
 					const { click } = target.dataset;
-		
+
 					switch (click) {
 						case "scratch-tags": {
 							// TO DO
 							const roll = app.rolls[0];
 							const actor = game.actors.get(roll?.litm?.actorId);
 							if (!roll || !actor) return;
-		
-							// for (const tag of roll.litm.crispyPositives.filter(
-							// 	(t) => t.type === "crispy" || t.type === "hero",
-							// ))
-							// 	await actor.sheet.gainImprove(tag);
-		
-							// for (const tag of roll.litm.scratchedTags)
+
 							for (const tag of roll.litm.burntTags)
+								await actor.sheet.toggleScratchTag(tag);
+							for (const tag of roll.litm.crispyTags)
 								await actor.sheet.toggleScratchTag(tag);
 							roll.options.isScratched = true;
 							app.update({ rolls: [roll] });
@@ -284,10 +283,10 @@ export class LitmHooks {
 						case "approve-moderation": {
 							const data = await app.getFlag("litm-rn", "data");
 							const userId = await app.getFlag("litm-rn", "userId");
-		
+
 							// Delete Message
 							app.delete();
-		
+
 							// Roll
 							if (userId === game.userId) game.litm.LitmRollDialog.roll(data);
 							else
@@ -295,7 +294,7 @@ export class LitmHooks {
 									userId,
 									data,
 								});
-		
+
 							// Dispatch order to reset Roll Dialog
 							Sockets.dispatch("resetRollDialog", {
 								actorId: data.actorId,
@@ -485,6 +484,9 @@ export class LitmHooks {
 			const base = "systems/litm-rn/assets/media/icons/";
 			let img = base;
 			switch (data.type) {
+				case "fellowship":
+					img += "fellowship_icn.svg";
+					break;
 				case "theme":
 					img += "unfurled-scroll.svg";
 					break;

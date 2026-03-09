@@ -4,6 +4,8 @@ import { CharacterData } from "./scripts/actor/character/character-data.js";
 import { CharacterSheet } from "./scripts/actor/character/character-sheet.js";
 import { DENOMINATION, DoubleSix } from "./scripts/apps/dice.js";
 import { importCharacter } from "./scripts/apps/import-character.js";
+import { FellowshipThemeData } from "./scripts/item/fellowship/fellowship-data.js";
+import { FellowshipThemeSheet } from "./scripts/item/fellowship/fellowship-sheet.js";
 import { LitmRollDialog } from "./scripts/apps/roll-dialog.js";
 import { LitmRoll } from "./scripts/apps/roll.js";
 import { StoryTagApp } from "./scripts/apps/story-tags.js";
@@ -66,6 +68,7 @@ Hooks.once("init", () => {
 	CONFIG.Dice.terms[DENOMINATION] = DoubleSix;
 	CONFIG.Dice.rolls.push(LitmRoll);
 	CONFIG.Item.dataModels.backpack = BackpackData;
+	CONFIG.Item.dataModels.fellowship = FellowshipThemeData;
 	CONFIG.Item.dataModels.hero = HeroData;
 	CONFIG.Item.dataModels.theme = ThemeData;
 	CONFIG.Item.dataModels.threat = ThreatData;
@@ -86,6 +89,10 @@ Hooks.once("init", () => {
 	});
 	foundry.documents.collections.Items.registerSheet("litm-rn", BackpackSheet, {
 		types: ["backpack"],
+		makeDefault: true,
+	});
+	foundry.documents.collections.Items.registerSheet("litm-rn", FellowshipThemeSheet, {
+		types: ["fellowship"],
 		makeDefault: true,
 	});
 	foundry.documents.collections.Items.registerSheet("litm-rn", HeroSheet, {

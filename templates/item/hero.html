@@ -12,11 +12,48 @@
 		</div>
 		<input class="title" name="name" value="{{name}}" />
 		{{#if backside}}
-			<ul class="taglist litm--hero-backside">
-				{{#each hero.fulfillment as |tag|}}
-					{{> systems/litm-rn/templates/partials/fulfillment.html tag=tag key=@key path="system.fulfillment" embedded=false remove=false}}
-				{{/each}}
-			</ul>
+			<li class="litm--fellowship-link">
+				{{#if fellowship}}
+					<span class="litm--fellowship-name"
+							data-context="unlink-fellowship"
+							data-id="{{fellowship.id}}"
+							data-tooltip="{{localize 'Litm.ui.fellowship-linked'}}">
+						<i class="litm--fellowship-icon"></i>
+						{{fellowship.name}}
+					</span>
+				{{else if hasAssignedUser}}
+					{{#if availableFellowships.length}}
+						<div class="litm--fellowship-dropdown">
+							<select data-action="select-fellowship">
+								<option value="">{{localize "Litm.ui.select-fellowship"}}</option>
+								{{#each availableFellowships as |group|}}
+									<option value="{{group.id}}">{{group.name}}</option>
+								{{/each}}
+							</select>
+						</div>
+					{{else}}
+						<span class="litm--fellowship-empty">
+							{{localize "Litm.ui.no-fellowships"}}
+						</span>
+					{{/if}}
+				{{else}}
+					<span class="litm--fellowship-empty">
+						{{localize "Litm.ui.no-assigned-user"}}
+					</span>
+				{{/if}}
+			</li>
+			{{#if fellowship}}
+				<div class="litm--fellowship-wrapper" data-dblclick="open-item" data-id="{{fellowship.id}}"
+					data-tooltip="{{localize 'Litm.ui.open-item'}}"
+					style="background-image: url('systems/litm-rn/assets/media/{{fellowship.system.level}}-fellowship-bg.webp');">
+					<div class="litm--fellowship-scroll">
+						<span class="litm--fellowship-motivation">{{fellowship.system.motivation}}</span>
+						<div class="litm--fellowship-note">{{{fellowship.system.note}}}</div>
+					</div>
+				</div>
+			{{else}}
+			<div class="litm--fellowship-wrapper-empty"></div>
+			{{/if}}
 			<div class="litm--hero-progression">
 				<!-- Promise buttons -->
 				<button data-click="increase" data-context="decrease" data-id="system.promise"

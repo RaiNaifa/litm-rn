@@ -95,8 +95,12 @@
 
 		& .taglist.litm--hero-backside {
 			& .tag--name {
-				padding-block: var(--litm-space-1);
+
 			}
+		}
+
+		& > ul.taglist {
+			margin: -1px;
 		}
 
 		& .taglist {
@@ -181,6 +185,299 @@
 				box-shadow: none;
 				text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
 			}
+		}
+
+		& .litm--theme-title,
+		& .litm--weakness {
+			width: -webkit-fill-available;
+			padding: 0px;
+			position: relative;
+		}
+
+		& div.litm--theme-front {
+			padding-top: 6px;
+
+			& .litm--taglist-wrapper {
+				& .taglist {
+					height: 12.625rem;
+				}
+			}
+		}
+
+		& div.litm--theme-back,
+		div.litm--theme-front {
+			& .litm--taglist-wrapper {
+				overflow-x: hidden;
+				margin-right: -5px;
+
+				& .taglist {
+					scrollbar-gutter: stable;
+					padding: var(--litm-space-1) var(--litm-space-1) var(--litm-space-1) var(--litm-space-2);
+					scrollbar-width: thin;
+
+					&::-webkit-scrollbar-thumb {
+						border-radius: 0;
+					}
+
+					&::-webkit-scrollbar-track {
+						border-radius: 0;
+					}
+
+					& .litm--theme-tags {
+						padding: 0;
+					}
+				}
+			}
+		}
+		& .litm--theme-back {
+			position: absolute;
+			bottom: 0;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			width: 15rem;
+			height: 240px;
+
+			& .litm--taglist-wrapper {
+				height: 100%;
+			}
+			& ul.taglist {
+				height: 100%;
+			}
+			& .litm--theme-progression {
+				padding: var(--litm-space-2) 10px 10px;
+			}
+		}
+
+		& .litm--theme-tag-button {
+			position: relative;
+			display: flex;
+			align-items: center;
+			width: 100%;
+			gap: var(--litm-space-1);
+			color: var(--litm-color);
+			line-height: 135%;
+			padding: 0px;
+			cursor: auto;
+			opacity: 0.5;
+
+			&[data-click="select"] {
+				cursor: pointer;
+				opacity: 1;
+				text-decoration: none;
+			}
+		}
+
+		& .litm--theme-progression {
+			padding: var(--litm-space-4) 10px 8px;
+			display: flex;
+			justify-content: space-evenly;
+			background: url(../../assets/media/progress-bg.webp);
+			background-size: cover;
+			background-repeat: no-repeat;
+
+			& > div {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: var(--litm-space-1);
+				cursor: pointer;
+				font-size: var(--font-size-16);
+
+				& > div {
+					display: flex;
+				}
+
+				&:nth-child(2) {
+					flex-direction: column-reverse;
+
+					& > div {
+						margin-top: 5px;
+					}
+
+					& > label {
+						margin-top: 0px;
+					}
+				}
+			}
+
+			& label {
+				margin-top: 5px;
+				text-transform: uppercase;
+				font-family: var(--litm-font-primary);
+				font-size: var(--font-size-13);
+				cursor: pointer;
+			}
+		}
+
+		& .litm--fellowship-link {
+			& .litm--fellowship-name {
+				display: inline-block;
+				text-align: center;
+				vertical-align: middle;
+				cursor: pointer;
+				margin: 4px 10px;
+				padding: 0 3px;
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+				height: calc(var(--form-field-height) + 1px);
+				width: calc(100% - 20px);
+				color: var(--litm-color);
+				background: rgba(0, 0, 0, 0.05);
+				border: 1px solid var(--color-border-light-tertiary);
+				border-radius: 3px;
+				font-family: var(--litm-font-primary);
+				font-size: var(--font-size-16);
+				line-height: 25px;
+				overflow-x: clip;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+
+				&:hover {
+					box-shadow: 0 0 5px var(--color-shadow-primary);
+					outline: none;
+				}
+			}
+
+			& .litm--fellowship-empty {
+				display: inline-flex;
+				justify-content: center;
+				margin: 4px 10px;
+				padding: 0 3px;
+				color: var(--litm-color);
+				height: calc(var(--form-field-height) + 1px);
+				font-family: var(--litm-font-primary);
+				font-size: var(--font-size-16);
+				line-height: 25px;
+				text-wrap: auto;
+			} 
+
+			& .litm--fellowship-icon {
+				display: inline-block;
+				vertical-align: middle;
+				margin: 0 4px 4px 0;
+				width: 20px;
+				height: 25px;
+				background: url(../../assets/media/icons/fellowship_icn.svg) no-repeat center;
+				filter: invert(24%) sepia(17%) saturate(760%) hue-rotate(3deg) brightness(30%) contrast(92%);
+			}
+
+			& .litm--fellowship-dropdown {
+				position: relative;
+				display: inline-block;
+				cursor: pointer;
+				margin: 5px 0;
+				padding: 0 10px;
+				width: 100%;
+
+				/* TODO: Сделать кастомный дропдаун как в theme */
+				& select {
+					width: 100%;
+					color: var(--litm-color);
+					font-family: var(--litm-font-primary);
+					font-size: var(--font-size-16);
+				}
+
+				& option {
+					cursor: pointer;
+					color: var(--litm-color);
+					background: var(--color-select-option-bg);
+					border: 1px solid #aaa;
+					padding: 5px;
+					box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+					font-family: var(--litm-font-primary);
+					font-size: var(--font-size-16);
+
+					&:hover {
+						transform: scale(1.1);
+						border: 2px solid #888;
+					}
+				}
+			}
+		}
+
+		& .litm--fellowship-wrapper-empty {
+			background: url(../../assets/media/icons/fellowship_icn.svg) no-repeat center / 66%;
+			filter: invert(24%) sepia(17%) saturate(760%) hue-rotate(3deg) brightness(30%) contrast(92%);
+			height: 100%;
+		}
+
+		& .litm--fellowship-wrapper {
+			cursor: grab;
+			margin-bottom: 5px;
+			padding: 5px 2px 5px 10px;
+			display: flex;
+			flex-direction: column;
+			text-align: center;
+			height: 100%;
+			word-wrap: break-word;
+			overflow-wrap: break-word;
+			min-width: 0;
+			overflow: hidden;
+			background-size: 100% 100%;
+			background-position: center bottom;
+			background-repeat: no-repeat;
+
+			& * {
+				max-width: 100%;
+				overflow-wrap: break-word;
+				white-space: normal;
+			}
+
+			& .litm--fellowship-scroll {
+				height: 100%;
+				width: 100%;
+				overflow-y: auto;
+				overflow-x: hidden;
+				display: flex;
+				flex-direction: column;
+				scrollbar-gutter: stable;
+			}
+
+			& .litm--fellowship-name {
+
+			}
+
+			& .litm--fellowship-motivation {
+				margin: var(--litm-space-2) var(--litm-space-3);
+				display: block;
+				color: var(--litm-color-accent);
+				font-family: var(--litm-font-accent);
+				font-size: var(--font-size-16);
+				text-align: center;
+
+				&::before {
+					content: "❝";
+					margin-inline-end: 8px;
+				}
+
+				&::after {
+					content: '❞';
+					margin-inline-start: 4px;
+				}
+			}
+
+			& .litm--fellowship-note {
+				background-image: radial-gradient(#999 -150%, transparent 70%);
+				color: var(--litm-color-primary-bg);
+				-webkit-font-smoothing: antialiased;
+				font-family: var(--litm-font-text);
+				font-size: var(--font-size-12);
+				letter-spacing: 1px;
+				text-align: center;
+				line-height: 1.5em;
+			}
+		}
+
+		
+		& hr:has(+ .litm--theme-back),
+		& hr:has(+ .litm--fulfillment-moments) {
+			margin-top: -7px;
+			border: none;
+			min-height: 16px;
+			background: url(../../assets/media/separator.webp) no-repeat center /
+				contain;
+			width: 95%;
 		}
 	}
 

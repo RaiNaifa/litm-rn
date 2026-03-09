@@ -146,8 +146,6 @@ export class LitmConfig {
 		"journeys-end",
 		"reforged",
 		"quintessence",
-		"quintessence",
-		"quintessence",
 		"magic",
 		"words-eternal",
 		"lost-truths"
