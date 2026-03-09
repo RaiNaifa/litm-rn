@@ -167,18 +167,29 @@ export class FellowshipThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSh
       id: foundry.utils.randomID(),
     };
 
-    const tags = this.system[`${type}s`];
-    tags.push(item);
-
-    await this.item.update({ [`system.${type}s`]: tags });
+    let tags = null;
+    if (type === "powerCrispy") {
+      tags = this.system.powerTags;
+      tags.push(item);
+      await this.item.update({ "system.powerTags": tags });
+    } else {
+      tags = this.system[`${type}s`];
+      tags.push(item);
+      await this.item.update({ [`system.${type}s`]: tags });
+    }
   }
 
   async #removeTag(button, type) {
     if (!(await confirmDelete("Litm.other.tag"))) return;
     const id = button.dataset.id;
-    const tags = this.system[`${type}s`].filter((t) => t.id !== id);
-
-    await this.item.update({ [`system.${type}s`]: tags });
+    let tags = null;
+    if (type === "powerCrispy") {
+      tags = this.system.powerTags.filter((t) => t.id !== id);
+      await this.item.update({ "system.powerTags": tags });
+    } else {
+      tags = this.system[`${type}s`].filter((t) => t.id !== id);
+      await this.item.update({ [`system.${type}s`]: tags });
+    }
   }
 
   async #addSpecial() {
