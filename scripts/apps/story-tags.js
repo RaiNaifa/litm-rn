@@ -46,7 +46,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	get config() {
 		const config = game.settings.get("litm-rn", "storytags");
 		if (!config || foundry.utils.isEmpty(config))
-			return { actors: [], tags: [], selectedTags: [] };
+			return { actors: [], tags: [], selectedTags: [], helpingTags: [] };
 		return { selectedTags: [], ...config };
 	}
 
@@ -637,7 +637,6 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		if (!game.user.isGM) return;
 		if (component === "tags") return this.setTags(data);
 		if (component === "selectedTags") return this.setSelectedTags(data);
-		if (component === "selectedGmTags") return this.setSelectedGmTags(data);
 	}
 
 	/**  End Socket Methods  */

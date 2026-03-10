@@ -25,6 +25,7 @@ export class LitmHooks {
 		LitmHooks.#popOutCompatiblity();
 		LitmHooks.#rendeWelcomeScreen();
 		LitmHooks.#renderTooltipOnTokenHover();
+		LitmHooks.#listenToSettingsUpdate();
 	}
 
 	static #addLinkPreloadsToHead() {
@@ -496,6 +497,9 @@ export class LitmHooks {
 				case "backpack":
 					img += "backpack.svg";
 					break;
+				case "hero":
+					img += "aura.svg";
+					break;
 				default:
 					img = "icons/svg/item-bag.svg";
 			}
@@ -519,6 +523,14 @@ export class LitmHooks {
 	
 		Hooks.once("ready", () => {
 			tokenTagsTooltip = new TokenTooltip();
+		});
+	}
+
+	static #listenToSettingsUpdate() {
+		Hooks.on("updateSetting", (setting) => {
+			if (setting.key === "litm-rn.storytags") {
+				Hooks.callAll("litmStoryTagsUpdated"); 
+			}
 		});
 	}
 

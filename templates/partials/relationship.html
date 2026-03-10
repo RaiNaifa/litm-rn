@@ -3,10 +3,9 @@
 	<!-- Tags embedded in the character sheet have different functionality -->
 	{{#if embedded}}
 		<!-- Select Tag button -->
-		<button type="button" class="litm--theme-tag-button litm--rltnship" data-id="{{tag.id}}" data-tooltip="{{localize 'Litm.ui.toggle-non-burnable-tag'}}"
+		<button type="button" class="litm--theme-tag-button litm--rltnship {{#if (includes @root.helpingTags tag.id 'id')}}litm--theme-helping-tag{{/if}}"
+			data-id="{{tag.id}}" data-tooltip="{{localize 'Litm.ui.toggle-roll-select-scratch-help'}}"
 			{{#if (includes @root.rollTags tag.id 'id')}}data-selected{{/if}} {{#if tag.isActive}}data-click="select"
-			{{/if}}
-			{{#if tag.isActive}}data-tooltip="{{localize ('Litm.ui.toggle-roll')}}"
 			{{/if}}>
 			<!-- Fellow Name -->
 			<span class="tag--name">{{tag.fellowName}}</span>

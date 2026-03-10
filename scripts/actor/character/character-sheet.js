@@ -30,6 +30,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		shouldRoll: () => game.settings.get("litm-rn", "skip_roll_moderation"),
 	});
 	#fellowshipUpdateHook = null;
+	#storyTagsHookId = null;
 
 	get template() {
 		return "systems/litm-rn/templates/actor/character.html";
@@ -45,6 +46,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 	get storyTags() {
 		return [...this.system.storyTags, ...this.system.statuses];
+	}
+
+	get config() {
+		const config = game.settings.get("litm-rn", "storytags");
+		if (!config || foundry.utils.isEmpty(config))
+			return { actors: [], tags: [], selectedTags: [], helpingTags: [] };
+		return { helpingTags: [], ...config };
 	}
 
 	updateRollDialog(data) {
@@ -67,6 +75,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "hero": {
 				const hero = this.items.find((i) => i.type === "hero");
 				const { contents } = hero.system.toObject();
+				// TODO: если в броске тег-помощник, то contents.find вернёт undefined т.к. этот тег не из этого чарника
 				contents.find((i) => i.id === tag.id).isActive = !tag.isActive;
 				await this.actor.updateEmbeddedDocuments("Item", [
 					{
@@ -207,8 +216,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				(t) => t.isScratched || t.state === "scratched",
 			),
 			burntTags: this.#roll.characterTags.filter(
-				(t) => t.state === "burned", // For an old roll messages?
+				(t) => t.state === "burned",
 			),
+			helpingTags: game.settings.get("litm-rn", "storytags")?.helpingTags || [],
 			img: this.actor.img,
 			name: this.actor.name,
 			notesEditorStyle: this.#notesEditorStyle,
@@ -315,6 +325,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				this.render();
 			});
 		}
+
+		if (!this.#storyTagsHookId) {
+			this.#storyTagsHookId = Hooks.on("litmStoryTagsUpdated", () => {
+				if (this.rendered) this.render();
+			});
+		}
+
 	}
 
 	// Hack to allow updating the embedded items
@@ -695,39 +712,88 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		}
 	}
 
-	#select(event) {
+	async #select(event) {
 		// Prevent double clicks from selecting the tag
 		if (event.detail > 1) return;
 
 		const t = event.currentTarget;
 		const toBurn = event.shiftKey;
 		const toScratch = event.altKey;
+		const toHelp = event.ctrlKey;
 		const id = t.dataset.id;
-		const tag = this.system.allTags.find((t) => t.id === id).toObject();
+		const tag = this.system.allTags.find((t) => t.id === id)?.toObject();
 		const selected = t.hasAttribute("data-selected");
 
-		if (toScratch) {
-			if (selected) {
-				this.#roll.removeTag(tag);
-				if (this.#roll.rendered) this.#roll.render();
+		if (!tag) {
+			if (!toScratch)
+				return;
+			// select special
+			let parentItem = this.items.find(
+				(i) =>
+					(i.type === "theme") &&
+					i.system.specials.some((t) => t.id === id),
+				);
+			if (!parentItem) {
+				parentItem = this.items.find(
+					(i) =>
+						(i.type === "backpack") &&
+						i.system.specials.some((t) => t.id === id),
+				)
 			}
-			return this.toggleScratchTag(tag);
-		}
-
-		if (!selected && tag.isScratched) return;
-
-		if (selected) {
-			this.#roll.removeTag(tag);
-			if (toBurn) {
-				this.#roll.addTag(tag, toBurn);
+			if (!parentItem) {
+				parentItem = this.system.fellowship;
+			}
+			if (parentItem) {
+				const { specials } = parentItem.system.toObject();
+				const special = specials.find((s) => s.id === id);
+				special.isActive = !special.isActive;
+				return parentItem.update({ 'system.specials': specials });
 			}
 		} else {
-			this.#roll.addTag(tag, toBurn);
-		}
+			// select tag
+			const freshConfig = game.settings.get("litm-rn", "storytags")
+				|| { tags: [], actors: [], selectedTags: [], helpingTags: [] };
+			const freshHelping = freshConfig.helpingTags || [];
+			const alreadyHelping = freshHelping.some(ht => ht.id === tag.id);
 
-		// Render the roll dialog if it's open
-		if (this.#roll.rendered) this.#roll.render();
-		this.render();
+			if (toScratch && !alreadyHelping) {
+				if (selected) {
+					this.#roll.removeTag(tag);
+					if (this.#roll.rendered) this.#roll.render();
+				}
+				return this.toggleScratchTag(tag);
+			}
+
+			if (!selected && tag.isScratched && !alreadyHelping)
+				return;
+
+			if (selected) {
+				this.#roll.removeTag(tag);
+				if (toBurn) {
+					this.#roll.addTag(tag, toBurn);
+				}
+			} else {
+				if (toHelp && this.system.embeddedTags.find((t) => t.id === id)) {
+					let currentHelping;
+
+					if (alreadyHelping) {
+						currentHelping = freshHelping.filter((t) => t.id !== id);
+					} else {
+						currentHelping = [...freshHelping, tag];
+					}
+
+					if (game.user.isGM)
+						return this.setHelpingTags(currentHelping);
+					return dispatch({ app: "helping-tags", type: "update", "helpingTags": currentHelping });
+				}
+
+				this.#roll.addTag(tag, toBurn);
+			}
+
+			// Render the roll dialog if it's open
+			if (this.#roll.rendered) this.#roll.render();
+			this.render();
+		}
 	}
 
 	#keepOpen(event) {
@@ -800,10 +866,17 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		this.render(false);
 	}
 
+	async setHelpingTags(helpingTags) {
+		await game.settings.set("litm-rn", "storytags", { ...this.config, helpingTags });
+	}
+
 	async close(options) {
 		if (this.#fellowshipUpdateHook) {
 			Hooks.off("updateItem", this.#fellowshipUpdateHook);
 			this.#fellowshipUpdateHook = null;
+		}
+		if (this.#storyTagsHookId) {
+			Hooks.off("litmStoryTagsUpdated", this.#storyTagsHookId);
 		}
 		return super.close(options);
 	}

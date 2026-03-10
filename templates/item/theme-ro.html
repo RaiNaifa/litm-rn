@@ -33,9 +33,10 @@
 				</div>
 			{{else}}
 				<div class="litm--theme-front">
-					<button type="button" class="litm--theme-title" data-id="{{data.system.themeTag.id}}" {{#if (includes @root.rollTags
-						data.system.themeTag.id 'id' )}}data-selected{{/if}} data-click="select"
-						data-tooltip="{{localize (ifThen data.system.themeTag.isScratched 'Litm.ui.toggle-scratch' 'Litm.ui.toggle-roll')}}">
+					<button type="button" class="litm--theme-title {{#if (includes @root.helpingTags data.system.themeTag.id 'id')}}litm--theme-helping-tag{{/if}}"
+						data-id="{{data.system.themeTag.id}}"  data-click="select"
+						{{#if (includes @root.rollTags data.system.themeTag.id 'id' )}}data-selected{{/if}}
+						data-tooltip="{{localize (ifThen data.system.themeTag.isScratched 'Litm.ui.toggle-scratch' 'Litm.ui.toggle-roll-full')}}">
 						<!-- isActive checkbox -->
 						<!-- <span class="litm--sro">{{localize (tagActiveString data.system true)}}</span>
 						<span class="litm--checkbox litm--checkbox-with-bg {{checked data.system.isActive}}"></span> -->
@@ -57,8 +58,8 @@
 					</ul>
 					<!-- Weakness -->
 					{{#each data.system.weakness as |tag|}}
-					<button type="button" class="litm--weakness" data-click="select"
-						data-tooltip="{{localize 'Litm.ui.toggle-non-burnable-tag'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
+					<button type="button" class="litm--weakness {{#if (includes @root.helpingTags tag.id 'id')}}litm--theme-helping-tag{{/if}}" data-click="select"
+						data-tooltip="{{localize 'Litm.ui.toggle-roll-select-help'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
 						tag.id 'id' )}}data-selected{{/if}}>
 						<!-- Weakness Name -->
 						<span class="litm--weakness-part">{{tag.name}}</span>

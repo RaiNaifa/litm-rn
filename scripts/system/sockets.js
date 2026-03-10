@@ -72,5 +72,13 @@ export class Sockets {
 				game.i18n.format("Litm.ui.player-skipped-moderation", { name }),
 			);
 		});
+
+		// Sockets.on ?
+		game.socket.on("system.litm-rn", async (data) => {
+			if (data.app === "helping-tags" && data.type === "update" && game.user.isGM) {
+				const config = game.settings.get("litm-rn", "storytags") || {};
+				await game.settings.set("litm-rn", "storytags", { ...config, helpingTags: data.helpingTags });
+			}
+		});
 	}
 }

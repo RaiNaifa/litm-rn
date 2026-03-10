@@ -6,7 +6,7 @@
 		<div class="taglist">
 			<button type="button" class="litm--theme-title" data-id="{{data.system.themeTag.id}}" {{#if (includes @root.rollTags
 					data.system.themeTag.id 'id' )}}data-selected{{/if}} data-click="select"
-					data-tooltip="{{localize (ifThen data.system.themeTag.isScratched 'Litm.ui.toggle-scratch' 'Litm.ui.toggle-non-burnable-tag')}}">
+					data-tooltip="{{localize (ifThen data.system.themeTag.isScratched 'Litm.ui.toggle-scratch' 'Litm.ui.toggle-roll-select-scratch')}}">
 					<!-- Name input -->
 					<span class="litm--theme-name {{#if data.system.themeTag.isScratched}}scratched{{/if}}">{{data.name}}</span>
 					<!-- isBurnt checkbox -->
@@ -20,13 +20,13 @@
 				<input type="hidden" name="items.{{data._id}}.system.themeTag.isScratched" data-dtype="Boolean" value="{{data.system.themeTag.isScratched}}">
 			<ul class="litm--theme-tags">
 				{{#each data.system.powerTags as |tag|}} {{> systems/litm-rn/templates/partials/crispy-power-tag.html
-				tag=tag key=@key path=(concat 'items.' ../data._id '.system.powerTags') embedded=true}}
+				tag=tag key=@key path=(concat 'items.' ../data._id '.system.powerTags') embedded=true isFellowship=true}}
 				{{/each}}
 			</ul>
 			<!-- Weakness -->
 			{{#each data.system.weakness as |tag|}}
 			<button type="button" class="litm--weakness" data-click="select"
-				data-tooltip="{{localize 'Litm.ui.toggle-non-burnable-tag'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
+				data-tooltip="{{localize 'Litm.ui.toggle-roll-select-only'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
 				tag.id 'id' )}}data-selected{{/if}}>
 				<!-- Weakness Name -->
 				<span class="litm--weakness-part">{{tag.name}}</span>

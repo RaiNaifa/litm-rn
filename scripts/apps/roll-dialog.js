@@ -333,12 +333,44 @@ export class LitmRollDialog extends FormApplication {
 		}));
 	}
 
+	get helpingTags() {
+		const { helpingTags } = game.settings.get("litm-rn", "storytags");
+		const personalIds = new Set(this.actor.system.embeddedTags.map(t => t.id));
+
+		return [...helpingTags]
+			.filter(tag => !personalIds.has(tag.id))
+			.map((tag) => {
+				let states;
+				switch (tag.type) {
+					case "hero":
+					case "crispy":
+						states = ",negative,positive";
+						break;
+					case "powerTag":
+						states = ",positive,burned";
+						break;
+					case "weaknessTag":
+						states = ",negative";
+						break;
+					default:
+						states = ",negative,positive,burned";
+						break;
+				}
+
+				return ({
+				...tag,
+				state: this.#tagState.find((t) => t.id === tag.id)?.state
+					?? tag.type === "weaknessTag" ? "negative" : "positive",
+				states,
+			})});
+	}
+
 	// TODO: добавить Might и Осторожные/Рискованные броски
 	get totalPower() {
 		const personalWithState = [...this.tags, ...this.statuses]
 			.filter(t => !!t.state);
 		const personalIds = new Set(personalWithState.map(t => t.id));
-		const storyWithState = [...this.storyTags, ...this.storyStatuses]
+		const storyWithState = [...this.storyTags, ...this.storyStatuses, ...this.helpingTags]
 			.filter(t => !!t.state && !personalIds.has(t.id));
 
 		const state = [
@@ -377,6 +409,7 @@ export class LitmRollDialog extends FormApplication {
 			storyStatuses: sortTags(this.storyStatuses),
 			tags: sortTags(this.tags),
 			storyTags: sortTags(this.storyTags),
+			helpingTags: sortTags(this.helpingTags),
 			isGM: game.user.isGM,
 			title: this.rollName,
 			type: this.type,
@@ -415,6 +448,9 @@ export class LitmRollDialog extends FormApplication {
 		try {
 			const config = game.settings.get("litm-rn", "storytags");
 			for (const t of config?.selectedTags ?? []) {
+				freshMap.set(t.id, { ...t });
+			}
+			for (const t of config?.helpingTags ?? []) {
 				freshMap.set(t.id, { ...t });
 			}
 		} catch (_) { /* no-op */ }
@@ -550,7 +586,7 @@ export class LitmRollDialog extends FormApplication {
 
 	getFilteredArrayFromFormData(formData) {
 		const personalWithState = [...this.tags, ...this.statuses];
-		const storyWithState = [...this.storyTags, ...this.storyStatuses];
+		const storyWithState = [...this.storyTags, ...this.storyStatuses, ...this.helpingTags];
 
 		const allTags = [
 			...this.characterTags,
@@ -572,10 +608,10 @@ export class LitmRollDialog extends FormApplication {
 		const config = game.settings.get("litm-rn", "storytags");
 		if (game.user.isGM) {
 			await game.settings.set("litm-rn", "storytags", {
-				...config, selectedTags: []
+				...config, selectedTags: [], helpingTags: [],
 				});
 		} else {
-			dispatch({ app: "story-tags", type: "update", selectedTags: [] });
+			dispatch({ app: "story-tags", type: "update", selectedTags: [], helpingTags: [] });
 		}
 		game.litm.storyTags.render();
 		dispatch({ app: "story-tags", type: "render" });
@@ -673,7 +709,7 @@ export class LitmRollDialog extends FormApplication {
 				const existingTag = this.#tagState.find((t) => t.id === id);
 				if (existingTag) existingTag.state = value;
 				else {
-					const tag = [...this.tags, ...this.statuses, ...this.storyTags, ...this.storyStatuses].find(
+					const tag = [...this.tags, ...this.statuses, ...this.storyTags, ...this.storyStatuses, ...this.helpingTags].find(
 						(t) => t.id === id,
 					);
 

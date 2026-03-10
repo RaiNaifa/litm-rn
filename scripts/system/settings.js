@@ -18,7 +18,8 @@ export class LitmSettings {
 			default: {
 				tags: [],
 				actors: [],
-				selectedTags: []
+				selectedTags: [],
+				helpingTags: [],
 			},
 		});
 		game.settings.register("litm-rn", "show_tag_window_on_load", {
