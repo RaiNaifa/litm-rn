@@ -374,6 +374,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 	// Prevent dropping more than 4 themes on the character sheet
 	async _onDropItem(event, data) {
+		// TODO: сделать проходку по всем внутренним id чтобы не дублировать
 		const item = await Item.implementation.fromDropData(data);
 		if (!["backpack", "theme", "hero", "fellowship"].includes(item.type)) return;
 
@@ -877,6 +878,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		}
 		if (this.#storyTagsHookId) {
 			Hooks.off("litmStoryTagsUpdated", this.#storyTagsHookId);
+			this.#storyTagsHookId = null;
 		}
 		return super.close(options);
 	}
