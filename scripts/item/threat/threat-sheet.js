@@ -71,7 +71,7 @@ export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		);
 
 		const matches = this.system.consequences.flatMap((string) =>
-			Array.from(string.matchAll(CONFIG.litm.tagStringRe)),
+			Array.from(string.matchAll(CONFIG.litm.regexp.tagStringRe)),
 		);
 
 		// Create new tags and statuses

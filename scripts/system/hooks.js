@@ -581,9 +581,9 @@ export class LitmHooks {
 
 	static #listenToTagDragTransfer() {
 		Hooks.on("ready", () => {
-			$(document).on("dragstart", [".litm--tag", ".litm--status"], (event) => {
+			$(document).on("dragstart", ".litm--tag, .litm--status", (event) => {
 				const text = event.target.textContent;
-				const matches = `{${text}}`.matchAll(CONFIG.litm.tagStringRe);
+				const matches = `{${text}}`.matchAll(CONFIG.litm.regexp.tagStringRe);
 				const match = [...matches][0];
 				if (!match) return;
 				const [, tag, status] = match;
@@ -597,6 +597,48 @@ export class LitmHooks {
 					isScratched: false,
 					value: status,
 				};
+				event.originalEvent.dataTransfer.setData(
+					"text/plain",
+					JSON.stringify(data),
+				);
+			});
+
+			$(document).on("dragstart", ".litm--might", (event) => {
+				const target = event.target;
+				const text = target.textContent;
+				const matches = `{${text}}`.matchAll(CONFIG.litm.regexp.mightStringReverseRe);
+				const match = [...matches][0];
+				let level = null;
+				if (target.classList.contains("litm--origin")) level = "origin";
+				else if (target.classList.contains("litm--adventure")) level = "adventure";
+				else if (target.classList.contains("litm--greatness")) level = "greatness";
+				const data = {
+					id: foundry.utils.randomID(),
+					type: "might",
+					level,
+				};
+
+				if (match) {
+					const [, name, scale] = match;
+
+					data.name = name;
+					data.values = Array(6).fill(null)
+						.map((_, i) => (Number.parseInt(scale) === i + 1 ? scale : null));
+					data.value = scale;
+				} else {
+					const scales = {
+						origin: 0,
+						adventure: 3,
+						greatness: 6,
+					}
+					const scale = scales[level];
+
+					data.name = text;
+					data.values = Array(6).fill(null)
+						.map((_, i) => (Number.parseInt(scale) === i + 1 ? scale : null));
+					data.value = scale;
+				}
+
 				event.originalEvent.dataTransfer.setData(
 					"text/plain",
 					JSON.stringify(data),

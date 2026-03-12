@@ -1,6 +1,7 @@
 export class Enrichers {
 	static register() {
 		Enrichers.#enrichSceneLinks();
+		Enrichers.#enrichMightsStrict();
 		Enrichers.#enrichMights();
 		// Note that this one has to go last for now
 		Enrichers.#enrichTags();
@@ -25,14 +26,14 @@ export class Enrichers {
 			return link[0];
 		};
 		CONFIG.TextEditor.enrichers.push({
-			pattern: CONFIG.litm.sceneLinkRe,
+			pattern: CONFIG.litm.regexp.sceneLinkRe,
 			enricher: enrichSceneLinks,
 		});
 	}
 
 	static #enrichTags() {
 		const tooltip = game.i18n.localize("Litm.ui.drag-apply");
-		const enrichTags = ([_text, tag, status]) => {			
+		const enrichTags = ([_text, tag, status]) => {		
 			if (tag.startsWith("-"))
 				return $(
 					`<mark class="litm--limit">${tag.replace(/^-/, "")}${
@@ -50,34 +51,57 @@ export class Enrichers {
 			)[0];
 		};
 		CONFIG.TextEditor.enrichers.push({
-			pattern: CONFIG.litm.tagStringRe,
+			pattern: CONFIG.litm.regexp.tagStringRe,
 			enricher: enrichTags,
 		});
 	}
 
 	static #enrichMights() {
-		const enrichMight = ([text, type, label]) => {
-			const types = {
+		const tooltip = game.i18n.localize("Litm.ui.drag-apply");
+		const enrichMight = ([text, level, label]) => {
+			const levels = {
 				o: "origin",
 				a: "adventure",
 				g: "greatness",
 			};
 
-			const might = types[type?.toLowerCase()];
+			const might = levels[level?.toLowerCase()];
 			if (!might) return text;
 
 			const icon_src = `${CONFIG.litm.themeicon_src[might]}-color_litm_icn.svg`;
 
-			return $(`
-				<mark class="litm--might litm--${might}" draggable="true">
-					<img src="${icon_src}" aria-hidden="true" />
-					${label}
-				</mark>
-			`)[0];
+			return $(`<mark class="litm--might litm--${might}" draggable="true" data-tooltip="${tooltip}"><img src="${icon_src}" aria-hidden="true" />${label}</mark>`)[0];
 		};
 
 		CONFIG.TextEditor.enrichers.push({
-			pattern: CONFIG.litm.mightStringRe,
+			pattern: CONFIG.litm.regexp.mightStringRe,
+			enricher: enrichMight,
+		});
+	}
+
+	static #enrichMightsStrict() {
+		const tooltip = game.i18n.localize("Litm.ui.drag-apply");
+		const enrichMight = ([text, label, scale]) => {
+			const levels = {
+				["0"]: "origin",
+				["1"]: "origin",
+				["2"]: "adventure",
+				["3"]: "adventure",
+				["4"]: "adventure",
+				["5"]: "greatness",
+				["6"]: "greatness",
+			};
+
+			const might = levels[scale?.toLowerCase()];
+			if (!might) return text;
+
+			const icon_src = `${CONFIG.litm.themeicon_src[might]}-color_litm_icn.svg`;
+
+			return $(`<mark class="litm--might litm--${might}" draggable="true" data-tooltip="${tooltip}"><img src="${icon_src}" aria-hidden="true" />${label}-${scale}</mark>`)[0];
+		};
+
+		CONFIG.TextEditor.enrichers.push({
+			pattern: CONFIG.litm.regexp.mightSctictStringRe,
 			enricher: enrichMight,
 		});
 	}

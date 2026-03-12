@@ -41,6 +41,7 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		data.system.special = await TextEditor.enrichHTML(data.system.special);
 		data.system.note = await TextEditor.enrichHTML(data.system.note);
 		data.system.renderedTags = await TextEditor.enrichHTML(data.system.tags);
+
 		data.items = await Promise.all(this.items.map((i) => i.sheet.getData()));
 
 		return { data, ...rest, isEditing: this.isEditing };
@@ -232,9 +233,15 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 	#sanitizeTags(formData) {
 		if (!formData["system.tags"]) return formData;
-		const re = CONFIG.litm.tagStringRe;
-		const tags = formData["system.tags"].match(re);
-		formData["system.tags"] = tags ? tags.join(" ") : "";
+		const reMS = CONFIG.litm.regexp.mightSctictStringRe;
+		const reM = CONFIG.litm.regexp.mightStringRe;
+		const re = CONFIG.litm.regexp.tagStringRe;
+		const mightsScaled = formData["system.tags"].match(reMS) || [];
+		const mights = formData["system.tags"].match(reM) || [];
+		const tags = formData["system.tags"].match(re) || [];
+		const marks = [...tags, ...mights, ...mightsScaled];
+
+		formData["system.tags"] = marks.length > 0 ? marks.join(" ") : "";
 
 		return formData;
 	}

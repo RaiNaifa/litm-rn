@@ -163,7 +163,11 @@ export class LitmConfig {
 		greatness: "systems/litm-rn/assets/media/icons/greatness",
 	};
 
-	mightStringRe = /\[@([oag]) ([^\]]+?)\]/giu;
-	tagStringRe = /(?!\b|\s)(?:\[|\{)([^\d\[\]{}]+)(?:[\s\-\:](\d+))?(?:\}|\])/gi;
-	sceneLinkRe = /@ActivateScene\[([^\]]+)\](?:\{([^\}]+)\})?/gi;
+	regexp = {
+		mightStringRe: /\[@([oag]) ([^\]]+)\]/giu,
+		mightStringReverseRe: /\{(.+)-([0-6])\}/gu,
+		mightSctictStringRe: /\[@m ([^\]]+?)[\s\-:]([0-6])\]/giu,
+		tagStringRe: /(?!\b|\s)(?:\[|\{)(?!@)([^\[\]{}]+?)(?:[\s\-\:](\d+))?(?:\}|\])/gi,
+		sceneLinkRe: /@ActivateScene\[([^\]]+)\](?:\{([^\}]+)\})?/gi,
+	}
 }
