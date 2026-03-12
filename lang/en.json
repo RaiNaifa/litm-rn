@@ -156,6 +156,8 @@
 			"unnamed": "Unnamed"
 		},
 		"settings": {
+			"fellowship-relationship-as-weakness": "Fellowship Relationships as Weakness",
+			"fellowship-relationship-as-weakness-hintt": "If checked, allow Fellowship relationship tags invoked negatively to grant Improve to the Fellowship theme, treating them as weakness tags.",
 			"skip-roll-moderation": "Skip Roll Moderation",
 			"skip-roll-moderation-hint": "If checked, players will be able to roll without GM moderation."
 		},

@@ -75,7 +75,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "hero": {
 				const hero = this.items.find((i) => i.type === "hero");
 				const { contents } = hero.system.toObject();
-				// TODO: если в броске тег-помощник, то contents.find вернёт undefined т.к. этот тег не из этого чарника
+
 				contents.find((i) => i.id === tag.id).isActive = !tag.isActive;
 				await this.actor.updateEmbeddedDocuments("Item", [
 					{
@@ -153,7 +153,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				i.system.weaknessTags.some((t) => t.id === tag.id),
 		);
 		if (parentTheme) {
-			this.actor.updateEmbeddedDocuments("Item", [
+			await this.actor.updateEmbeddedDocuments("Item", [
 				{
 					_id: parentTheme.id,
 					"system.improve": parentTheme.system.improve + 1,
@@ -756,6 +756,8 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const id = t.dataset.id;
 		const tag = this.system.allTags.find((t) => t.id === id)?.toObject();
 		const selected = t.hasAttribute("data-selected");
+
+		if (tag) tag.actorId = this.actor.id; // for "toHelp" tags
 
 		if (!tag) {
 			if (!toScratch)

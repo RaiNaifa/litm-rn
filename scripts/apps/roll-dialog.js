@@ -360,7 +360,7 @@ export class LitmRollDialog extends FormApplication {
 				return ({
 				...tag,
 				state: this.#tagState.find((t) => t.id === tag.id)?.state
-					?? tag.type === "weaknessTag" ? "negative" : "positive",
+					?? (tag.type === "weaknessTag" ? "negative" : "positive"),
 				states,
 			})});
 	}
@@ -667,82 +667,27 @@ export class LitmRollDialog extends FormApplication {
 	#handleCheckboxChange(event) {
 		const checkbox = event.currentTarget;
 		const { name: id, value } = checkbox;
-		const { type } = checkbox.dataset;
 
-		switch (type) {
-			case "powerCrispy":
-			case "powerTag":
-			case "themeCrispy":
-			case "themeTag":
-			case "backpack":
-			case "hero":
-			case "crispy":
-			case "weaknessTag": {
-				const tag = this.characterTags.find((t) => t.id === id);
-				if (!tag) break;
-
-				tag.state = value;
-
-				switch (tag.type) {
-				case "crispy":
-				case "hero":
-					tag.states = ",negative,positive";
-					break;
-				case "powerCrispy":
-				case "themeCrispy":
-					tag.states = ",positive";
-					break;
-				case "powerTag":
-				case "themeTag":
-					tag.states = ",positive,burned";
-					break;
-				case "weaknessTag":
-					tag.states = ",negative";
-					break;
-				default:
-					tag.states = ",negative,positive,burned";
-					break;
-				}
-				break;
-			}
-			default: {
-				const existingTag = this.#tagState.find((t) => t.id === id);
-				if (existingTag) existingTag.state = value;
-				else {
-					const tag = [...this.tags, ...this.statuses, ...this.storyTags, ...this.storyStatuses, ...this.helpingTags].find(
-						(t) => t.id === id,
-					);
-
-					if (tag) {
-					const statefulTag = {
+		const tagInChar = this.characterTags.find((t) => t.id === id);
+		if (tagInChar) {
+			tagInChar.state = value;
+		} else {
+			const existingTag = this.#tagState.find((t) => t.id === id);
+			if (existingTag) {
+				existingTag.state = value;
+			} else {
+				const tag = [
+					...this.tags,
+					...this.statuses,
+					...this.storyTags,
+					...this.storyStatuses,
+					...this.helpingTags
+					].find((t) => t.id === id);
+				if (tag) {
+					this.#tagState.push({
 						...tag,
-						state: value || (tag.isHindering ? "negative" : "positive"),
-					};
-
-					// Определяем возможные состояния для UI
-					switch (tag.type) {
-						case "crispy":
-						case "hero":
-							statefulTag.states = ",negative,positive";
-							break;
-						case "powerCrispy":
-						case "themeCrispy":
-							tag.states = ",positive";
-							break;
-						case "powerTag":
-						case "themeTag":
-							statefulTag.states = ",positive,burned";
-							break;
-						case "weaknessTag":
-							statefulTag.states = ",negative";
-							break;
-						default:
-							statefulTag.states = ",negative,positive,burned";
-							break;
-					}
-
-						this.#tagState.push(statefulTag);
-					}
+						state: value
+					});
 				}
 			}
 		}

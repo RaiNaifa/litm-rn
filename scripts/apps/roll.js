@@ -115,8 +115,10 @@ export class LitmRoll extends Roll {
 			chatData.hasBurntTags = !this.litm.isScratched && this.litm.burntTags.length > 0;
 			chatData.hasCrispyTags = !this.litm.isScratched && this.litm.crispyTags.length > 0;
 			chatData.hasWeaknessTags = (!this.litm.gainedImp &&
-				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length >
-					0) || (this.litm.state === "negative" && this.litm.heroWeaknessTags.length > 0);
+				this.litm.weaknessTags.filter((t) => t.type === "weaknessTag").length > 0)
+					|| (game.settings.get("litm-rn", "fellowship_relationship_as_weakness")
+					&& !this.litm.gainedImp
+					&& this.litm.heroWeaknessTags.length > 0);
 		}
 
 		return foundry.applications.handlebars.renderTemplate(template, chatData);

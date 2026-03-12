@@ -22,6 +22,14 @@ export class LitmSettings {
 				helpingTags: [],
 			},
 		});
+		game.settings.register("litm-rn", "fellowship_relationship_as_weakness", {
+			name: "Litm.settings.fellowship-relationship-as-weakness",
+			hint: "Litm.settings.fellowship-relationship-as-weakness-hint",
+			scope: "world",
+			config: true,
+			type: Boolean,
+			default: true,
+		});
 		game.settings.register("litm-rn", "show_tag_window_on_load", {
 			name: "Litm.ui.show-tag-window-on-load",
 			hint: "Litm.ui.show-tag-window-on-load-hint",

@@ -27,7 +27,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get fellowship() {
-		if (!this.fellowshipId) return [];
+		if (!this.fellowshipId) return null;
 		return game.items.get(this.fellowshipId) ?? null;
 	}
 

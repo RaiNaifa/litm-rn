@@ -249,29 +249,58 @@ export class LitmHooks {
 
 					switch (click) {
 						case "scratch-tags": {
-							// TO DO
 							const roll = app.rolls[0];
-							const actor = game.actors.get(roll?.litm?.actorId);
-							if (!roll || !actor) return;
+							const rollingActorId = roll?.litm?.actorId;
+							if (!roll || !rollingActorId) return;
+
+							const processTag = async (tag) => {
+								const tagOwnerId = tag.actorId || rollingActorId;
+								const actor = game.actors.get(tagOwnerId);
+								if (actor) {
+									await actor.sheet.toggleScratchTag(tag);
+								} else {
+									console.warn(`Litm | Could not find actor ${tagOwnerId} for tag ${tag.name}`);
+								}
+							};
 
 							for (const tag of roll.litm.burntTags)
-								await actor.sheet.toggleScratchTag(tag);
+								await processTag(tag);
 							for (const tag of roll.litm.crispyTags)
-								await actor.sheet.toggleScratchTag(tag);
+								await processTag(tag);
 							roll.options.isScratched = true;
 							app.update({ rolls: [roll] });
 							break;
 						}
 						case "gain-improve": {
 							const roll = app.rolls[0];
-							const actor = game.actors.get(roll?.litm?.actorId);
-							if (!roll || !actor) return;
-		
-							// TO DO: for (crispy negative)
+							const rollingActorId = roll?.litm?.actorId;
+							if (!roll || !rollingActorId) return;
+
 							for (const tag of roll.litm.weaknessTags.filter(
 								(t) => t.type === "weaknessTag",
-							))
-								await actor.sheet.gainImprove(tag);
+							)) {
+								const tagOwnerId = tag.actorId || rollingActorId;
+								const actor = game.actors.get(tagOwnerId);
+								if (actor) {
+									await actor.sheet.gainImprove(tag);
+								}
+							}
+
+							if (game.settings.get("litm-rn", "fellowship_relationship_as_weakness")) {
+								for (const tag of (roll.litm.heroWeaknessTags || [])) {
+									const tagOwnerId = tag.actorId || rollingActorId;
+									const actor = game.actors.get(tagOwnerId);
+									if (!actor) continue;
+
+									const fellowship = actor.system.fellowship;
+									if (fellowship) {
+										await fellowship.update({
+											"system.improve": fellowship.system.improve + 1,
+										});
+									}
+								}
+							}
+
 							roll.options.gainedImp = true;
 							app.update({ rolls: [roll] });
 							break;
