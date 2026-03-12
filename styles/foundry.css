@@ -40,6 +40,11 @@ a.content-link {
 	}
 }
 
+a.content-link.playing i:before,
+a.inline-roll.playing i:before {
+	content: "\f0c8";
+}
+
 #logo {
 	object-fit: contain;
 	object-position: top;
