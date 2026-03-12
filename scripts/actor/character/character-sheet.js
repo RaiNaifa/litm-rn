@@ -402,7 +402,12 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			);
 		}
 
-		return super._onDropItem(event, data);
+		const itemData = item.toObject();
+		delete itemData._id;
+		this.#regenerateInternalIds(itemData);
+
+		return this.actor.createEmbeddedDocuments("Item", [itemData]);
+		// return super._onDropItem(event, data);
 	}
 
 	/** @override - This method needs to be overriden to accommodate readonly input fields */
@@ -560,6 +565,33 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		$(document).on("mousemove", handleDrag);
 		$(document).on("mouseup", handleMouseUp);
+	}
+
+	#regenerateInternalIds(data) {
+		const regen = (arr) => {
+			if (!Array.isArray(arr)) return;
+			for (const item of arr) {
+				if (item.id) item.id = foundry.utils.randomID();
+			}
+		};
+
+		switch (data.type) {
+			case "theme":
+				if (data.system.themeTag?.id) {
+					data.system.themeTag.id = foundry.utils.randomID();
+				}
+				regen(data.system.powerTags);
+				regen(data.system.weaknessTags);
+				regen(data.system.specials);
+				break;
+			case "backpack":
+				regen(data.system.contents);
+				regen(data.system.specials);
+				break;
+			case "hero":
+				regen(data.system.contents);
+				break;
+		}
 	}
 
 	async #onSelectFellowship(event) {
