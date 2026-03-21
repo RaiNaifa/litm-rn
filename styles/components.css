@@ -290,6 +290,10 @@
 	}
 }
 
+:where(div[contenteditable="true"]) {
+	cursor: text;
+}
+
 /* Custom Elements */
 litm-toggled-input {
 	display: block;

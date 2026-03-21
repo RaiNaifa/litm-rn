@@ -10,7 +10,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		height: 350,
 		left: window.innerWidth / 2 - 250,
 		top: window.innerHeight / 2 - 350,
-		scrollY: [".taglist", ".editor"],
+		scrollY: [".taglist", ".editor", ".litm--theme-front", ".litm--theme-back"],
 		resizable: false,
 	});
 
@@ -246,45 +246,18 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		html
 			.find("[data-drag]")
 			.on("mousedown", this.#onDragHandleMouseDown.bind(this));
+		html.on("mouseover", this.#handleMouseOver.bind(this));
 		html.find("[data-action='select-fellowship']")
 			.on("change", this.#onSelectFellowship.bind(this));
 		html.find("[data-click='unlink-fellowship']")
 			.on("click", this.#onUnlinkFellowship.bind(this));
-		html.find("li.litm--story-tag input[type='text']")
-			.on("change", this.#onEffectNameChange.bind(this));
 		html.find("li.litm--story-tag input[type='checkbox']")
 			.on("change", this.#onEffectValueChange.bind(this));
-		html.on("mouseover", (event) => {
-			html.find(".litm--character-theme").removeClass("hovered");
-			html.find(".litm--character-backpack").removeClass("hovered");
-			html.find(".litm--character-hero").removeClass("hovered");
-			html.find(".litm--character-story-tags").removeClass("hovered");
-	
-			const t = event.target.classList.contains("litm--character-theme")
-				? event.target
-				: event.target.closest(".litm--character-theme");
 
-			const b = event.target.classList.contains("litm--character-backpack")
-				? event.target
-				: event.target.closest(".litm--character-backpack");
-
-			const h = event.target.classList.contains("litm--character-hero")
-				? event.target
-				: event.target.closest(".litm--character-hero");
-
-			if (t) this.#themeHovered = t.dataset.id;
-			else this.#themeHovered = null;
-
-			if (b) this.#backpackHovered = b.dataset.id;
-			else this.#backpackHovered = null;
-
-			if (h) this.#heroHovered = h.dataset.id;
-			else this.#heroHovered = null;
-
-			if (event.target.closest(".litm--character-story-tags"))
-				this.#tagsHovered = true;
-			else this.#tagsHovered = false;
-		});
+		const contenteditable = html.find(".litm--story-label-name[contenteditable='true']");
+		contenteditable.on("keydown", this.#onContenteditableKeyDown.bind(this));
+		contenteditable.on("blur", this.#onContenteditableBlur.bind(this));
+		contenteditable.on("paste", this.#onContenteditablePaste.bind(this));
 
 		this.#contextmenu = foundry.applications.ux.ContextMenu.implementation.create(
 			this,
@@ -469,6 +442,40 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		}
 	}
 
+	#handleMouseOver(event) {
+		const html = $(event.currentTarget);
+
+		html.find(".litm--character-theme").removeClass("hovered");
+		html.find(".litm--character-backpack").removeClass("hovered");
+		html.find(".litm--character-hero").removeClass("hovered");
+		html.find(".litm--character-story-tags").removeClass("hovered");
+
+		const t = event.target.classList.contains("litm--character-theme")
+			? event.target
+			: event.target.closest(".litm--character-theme");
+
+		const b = event.target.classList.contains("litm--character-backpack")
+			? event.target
+			: event.target.closest(".litm--character-backpack");
+
+		const h = event.target.classList.contains("litm--character-hero")
+			? event.target
+			: event.target.closest(".litm--character-hero");
+
+		if (t) this.#themeHovered = t.dataset.id;
+		else this.#themeHovered = null;
+
+		if (b) this.#backpackHovered = b.dataset.id;
+		else this.#backpackHovered = null;
+
+		if (h) this.#heroHovered = h.dataset.id;
+		else this.#heroHovered = null;
+
+		if (event.target.closest(".litm--character-story-tags"))
+			this.#tagsHovered = true;
+		else this.#tagsHovered = false;
+	}
+
 	#handleClicks(event) {
 		const t = event.currentTarget;
 		const action = t.dataset.click;
@@ -604,22 +611,6 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		await this.actor.update({ "system.fellowshipId": null });
 	}
 
-	async #onEffectNameChange(event) {
-		const li = $(event.currentTarget).closest("li[data-id]");
-		const id = li.data("id");
-		if (!id) return;
-
-		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
-			{ _id: id, name: event.currentTarget.value },
-		]);
-
-		this.#roll.refreshTags();
-		if (this.#roll.rendered) this.#roll.render();
-
-		game.litm.storyTags.render();
-		dispatch({ app: "story-tags", type: "render" });
-	}
-
 	async #onEffectValueChange(event) {
 		const li = $(event.currentTarget).closest("li[data-id]");
 		const id = li.data("id");
@@ -639,6 +630,53 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		game.litm.storyTags.render();
 		dispatch({ app: "story-tags", type: "render" });
+	}
+
+	#onContenteditableKeyDown(event) {
+		if (event.key === "Enter") {
+			event.preventDefault();
+			event.currentTarget.blur();
+		}
+	}
+
+	async #onContenteditableBlur(event) {
+		const el = event.currentTarget;
+		const originalName = el.dataset.originalName;
+		if (!originalName) return;
+
+		const newValue = el.textContent.trim();
+		const hiddenInput = this.element.find(`input[name="${originalName}"]`)[0];
+
+		if (hiddenInput && hiddenInput.value !== newValue) {
+			hiddenInput.value = newValue;
+
+			const li = $(el).closest("li.litm--story-tag[data-id]");
+			if (li.length > 0) {
+				const id = li.data("id");
+				if (!id) return;
+
+				await this.actor.updateEmbeddedDocuments("ActiveEffect", [
+					{ _id: id, name: newValue },
+				]);
+
+				this.#roll.refreshTags();
+				if (this.#roll.rendered) this.#roll.render();
+
+				game.litm.storyTags.render();
+				dispatch({ app: "story-tags", type: "render" });
+					
+			} else {
+				this.submit();
+			}
+		}
+	}
+	
+	#onContenteditablePaste(event) {
+		event.preventDefault();
+		const text = (event.originalEvent.clipboardData || window.clipboardData)
+			.getData("text/plain")
+			.replace(/\n/g, " ");
+		document.execCommand("insertText", false, text);
 	}
 
 	async #addTag() {

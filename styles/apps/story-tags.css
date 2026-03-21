@@ -124,7 +124,7 @@
 				align-items: center;
 				justify-content: space-between;
 				border: none;
-				padding-block: var(--litm-space-1);
+				padding: 2px var(--litm-space-1);
 				gap: var(--litm-space-2);
 
 				& .litm--tag-item-container {
@@ -136,19 +136,30 @@
 					min-width: 20px;
 				}
 
-				& input.litm--tag-item-name {
+				& div[contenteditable="true"].litm--tag-item-name {
+					box-shadow: inset  0 0 3px var(--color-shadow-primary);
+					border-radius: 3px;
+
 					&.status[data-selected],
 					&.tag[data-selected] {
-						border: 4px solid;
-						border-image: url(../../assets/media/brush.svg) 10 stretch;
+					}
+
+					&:focus {
+						box-shadow: 0 0 5px var(--color-shadow-primary);
+						outline: 1px solid transparent;
+						outline-offset: 2px;
 					}
 				}
 
-				& input.litm--tag-item-name {
+				& div[contenteditable="true"].litm--tag-item-name {
 					field-sizing: content;
+					white-space: nowrap;
+					overflow-x: auto;
+					scrollbar-width: none;
 				}
-				& span.litm--tag-item-name {
+				& div.litm--tag-item-name {
 					overflow-x: clip;
+					padding: 0 2px;
 				}
 
 				& .litm--tag-item-name {
@@ -175,14 +186,14 @@
 					&.tag[data-selected]::before {
 						content: "";
 						position: absolute;
-						width: 100%;
+						width: calc(100% + 10px);
 						height: calc(5px + 100%);
 						background: url(../../assets/media/brush.svg) no-repeat center;
 						background-blend-mode: color;
 						background-size: contain;
 						opacity: 0.8;
 						top: -2px;
-						/* left: 0; */
+						pointer-events: none;
 					}
 				}
 

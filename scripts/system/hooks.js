@@ -48,7 +48,6 @@ export class LitmHooks {
 			"systems/litm-rn/assets/media/challenge-bg.webp",
 			"systems/litm-rn/assets/media/challenge-border.webp",
 			"systems/litm-rn/assets/media/character-bg.webp",
-			"systems/litm-rn/assets/media/character-default-portrait.webp",
 			"systems/litm-rn/assets/media/connector.webp",
 			"systems/litm-rn/assets/media/dice.webp",
 			"systems/litm-rn/assets/media/effects.webp",

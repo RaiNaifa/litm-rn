@@ -251,6 +251,36 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		html.find("[data-focus")
 			.on("focus", (event) => event.currentTarget.select());
 
+		// contenteditable=true
+		const contenteditable = html.find(".litm--tag-item-name[contenteditable='true']");
+		contenteditable.on("keydown", (event) => {
+				if (event.key === "Enter") {
+					event.preventDefault();
+					event.currentTarget.blur();
+				}
+			});
+		contenteditable.on("blur", (event) => {
+			const el = event.currentTarget;
+			const originalName = el.dataset.originalName;
+			if (!originalName) return;
+
+			const newValue = el.textContent.trim();
+			const hiddenInput = this.element.find(`input[name="${originalName}"]`)[0];
+
+			if (hiddenInput && hiddenInput.value !== newValue) {
+				hiddenInput.value = newValue;
+				this.submit();
+			}
+		});
+		contenteditable.on("paste", (event) => {
+			event.preventDefault();
+			const text = (event.originalEvent.clipboardData || window.clipboardData)
+				.getData("text/plain")
+				.replace(/\n/g, " ");
+			document.execCommand("insertText", false, text);
+		});
+
+
 		this.#registerSocketListener();
 		this.#registerResizeListener();
 
