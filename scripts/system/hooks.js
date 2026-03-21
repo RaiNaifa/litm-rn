@@ -442,7 +442,7 @@ export class LitmHooks {
 					img = actor.img;
 					break;
 				case !hasImage && isCharacter:
-					img = "systems/litm-rn/assets/media/character-default-portrait.webp";
+					img = "icons/svg/mystery-man.svg";
 					break;
 				case !hasImage && data.type === "challenge":
 					img += "skull.svg";
@@ -527,7 +527,7 @@ export class LitmHooks {
 					img += "backpack.svg";
 					break;
 				case "hero":
-					img += "aura.svg";
+					img = "icons/svg/aura.svg";
 					break;
 				default:
 					img = "icons/svg/item-bag.svg";

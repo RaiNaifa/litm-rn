@@ -282,6 +282,7 @@
 			"new-limit": "Новый лимит",
 			"new-threat": "Новая угроза",
 			"no-assigned-user": "Этот персонаж не закреплён за Игроком",
+			"no-fellowships": "Сначала создайте Содружество",
 			"no-fellowship-chosen": "Вы пока не состоите в Содружестве",
 			"open-item": "<span class='reference'>Двойной клик ЛКМ</span> — открыть",
 			"player-skipped-moderation": "{name} пропускает модерацию броска.",

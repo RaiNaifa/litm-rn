@@ -22,28 +22,30 @@
 	</div>
 {{/inline}}
 {{#*inline 'tagItem' tag source editable}}
-	<li
-		class="litm--tag-item litm--{{ifThen (eq tag.flags.litm-rn.type 'status') 'status' 'tag'}}"
-		data-context="remove-effect" data-id="{{tag._id}}"
-		data-tooltip="{{localize (concat 'Litm.other.' tag.flags.litm-rn.type)}}: {{tag.name}}{{#if tag.value}}{{concat '-' tag.value}}{{/if}}">
-		<div class="litm--tag-item-container">
-			<input class="litm--tag-item-name {{tag.flags.litm-rn.type}}" data-focus="select"
-				name="{{source}}.{{tag._id}}.name" value="{{tag.name}}" type="text"
-				{{#if (includes @root.selectedTags tag.id 'id' )}}data-selected{{/if}}
-				{{ifThen editable "" "readonly"}} />
-		</div>
-		<div class="litm--tag-item-control">
-			{{> toggle-hindering source=source tag=tag editable=editable}}
-			<div class="litm--tag-item-status">
-				{{#each tag.flags.litm-rn.values as |status|}} <input
-					class="litm--tag-item-tier"
-					name="{{../source}}.{{../tag._id}}.values" type="checkbox"
-					value="{{add @index 1}}" {{disabled (not ../editable)}}
-					{{checked status}} />
-				{{/each}}
+	{{#if tag.flags.litm-rn.type}}
+		<li
+			class="litm--tag-item litm--{{ifThen (eq tag.flags.litm-rn.type 'status') 'status' 'tag'}}"
+			data-context="remove-effect" data-id="{{tag._id}}"
+			data-tooltip="{{localize (concat 'Litm.other.' tag.flags.litm-rn.type)}}: {{tag.name}}{{#if tag.value}}{{concat '-' tag.value}}{{/if}}">
+			<div class="litm--tag-item-container">
+				<input class="litm--tag-item-name {{tag.flags.litm-rn.type}}" data-focus="select"
+					name="{{source}}.{{tag._id}}.name" value="{{tag.name}}" type="text"
+					{{#if (includes @root.selectedTags tag.id 'id' )}}data-selected{{/if}}
+					{{ifThen editable "" "readonly"}} />
 			</div>
-		</div>
-	</li>
+			<div class="litm--tag-item-control">
+				{{> toggle-hindering source=source tag=tag editable=editable}}
+				<div class="litm--tag-item-status">
+					{{#each tag.flags.litm-rn.values as |status|}} <input
+						class="litm--tag-item-tier"
+						name="{{../source}}.{{../tag._id}}.values" type="checkbox"
+						value="{{add @index 1}}" {{disabled (not ../editable)}}
+						{{checked status}} />
+					{{/each}}
+				</div>
+			</div>
+		</li>
+	{{/if}}
 {{/inline}} {{#*inline 'add-button' id}}
 	<button type="button" data-click="add-tag" data-id="{{id}}"
 		data-tooltip="{{localize 'Litm.ui.add-tag'}}">

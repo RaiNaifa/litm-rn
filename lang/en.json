@@ -277,6 +277,7 @@
 			"new-limit": "New Limit",
 			"new-threat": "New Threat",
 			"no-assigned-user": "This character is not assigned to a Player",
+			"no-fellowships": "Please create Fellowship first",
 			"no-fellowship-chosen": "You have not yet joined the Fellowship",
 			"open-item": "<span class='reference'>Double-Click</span> to open",
 			"player-skipped-moderation": "{name} skipped roll moderation.",

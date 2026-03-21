@@ -182,7 +182,7 @@
 						background-size: contain;
 						opacity: 0.8;
 						top: -2px;
-						left: 0;
+						/* left: 0; */
 					}
 				}
 

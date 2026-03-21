@@ -199,7 +199,7 @@
 
 			& .litm--taglist-wrapper {
 				& .taglist {
-					height: 12.625rem;
+					height: 14.625rem;
 				}
 			}
 		}
@@ -236,7 +236,7 @@
 			flex-direction: column;
 			justify-content: center;
 			width: 15rem;
-			height: 240px;
+			height: 214px;
 
 			& .litm--taglist-wrapper {
 				height: 100%;

@@ -78,7 +78,7 @@
 			z-index: 1;
 			pointer-events: none;
 			top: -2.65rem;
-			left: 33rem;
+			left: 35rem;
 			rotate: -15deg;
 		}
 	}
@@ -86,7 +86,8 @@
 	& .avatar {
 		position: absolute;
 		left: -14.0625rem;
-		top: -4rem;
+		top: -1.8rem;
+		max-width: 240px;
 		border: none;
 		z-index: 0;
 	}
@@ -261,7 +262,7 @@
 	& .litm--character-hero {
 		isolation: isolate;
 		position: absolute;
-		right: -14.75rem;
+		right: -15.25rem;
 		width: 18.75rem;
 		height: 18.75rem;
 		top: -2.8rem;
@@ -281,17 +282,31 @@
 		}
 
 		& .litm--hero-bg-frame {
-			width: 15.625rem;
+			width: 16.625rem;
 			height: 510px;
 		}
 
 		& .litm--hero-bg {
-			width: 15rem;
+			width: 16rem;
 			height: 500px;
 			pointer-events: all;
 
+			& .litm--theme-back {
+				& .taglist {
+					& li {
+						&:first-child {
+							border-top: none;
+
+							& button {
+								border-top: none;
+							}
+						}
+					}
+				}
+			}
+
 			& .taglist {
-				height: 13.125rem;
+				height: 15.125rem;
 				scrollbar-gutter: stable;
 
 				& .litm--theme-tag.litm--fulfillment .tag--name {
@@ -453,11 +468,11 @@
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
-			width: 15rem;
-			height: 240px;
+			width: 16rem;
+			height: 214px;
 
 			& > span {
-				margin: 15px 0 10px;
+				margin: 8px 0 4px;
 				padding: 0 10px;
 				align-self: center;
 				color: color-mix(in hsl, var(--litm-color-weakness) 90%, transparent);
@@ -477,12 +492,13 @@
 	}
 
 	& .litm--character-backpack {
+		z-index: -1;
 		isolation: isolate;
 		position: absolute;
-		right: -22.75rem;
+		right: -24.25rem;
 		width: 13.75rem;
 		height: 18.75rem;
-		top: -2rem;
+		top: -1.8rem;
 		transform: scale(1);
 		transition: transform 0.13s;
 
@@ -496,11 +512,11 @@
 
 		& .litm--backpack-bg-frame,
 		& .litm--backpack-bg {
-			transform: translate(-5px, -15px) scale(0.8) rotate(5deg);
+			transform: translate(-5px, -15px) scale(0.8) rotate(4deg);
 		}
 
 		& .litm--backpack-bg-frame {
-			width: 15.625rem;
+			width: 16.625rem;
 		}
 
 		& .litm--backpack-img {
@@ -509,7 +525,7 @@
 
 		& .litm--backpack-bg {
 			height: 97%;
-			width: 15rem;
+			width: 16rem;
 			pointer-events: all;
 
 			& .taglist {
@@ -539,11 +555,11 @@
 	& .litm--character-theme {
 		isolation: isolate;
 		position: absolute;
-		top: 0px;
-		left: -14.0625rem;
+		top: 3.05rem;
+		left: -13.0625rem;
 		width: 18.75rem;
-		translate: -20% -18%;
-		rotate: 1deg;
+		translate: -21% -14%;
+		rotate: -1deg;
 		scale: 0.75;
 		transition: scale 0.13s;
 
@@ -568,9 +584,9 @@
 		}
 
 		&:nth-child(2) {
-			top: 1.8rem;
-			left: -0.775rem;
-			rotate: -1deg;
+			top: 4.8rem;
+			left: 0.225rem;
+			rotate: 0deg;
 
 			&::before {
 				content: "";
@@ -590,27 +606,13 @@
 
 		&:nth-child(3) {
 			top: 3.75rem;
-			left: 11.7rem;
-			rotate: 2deg;
-
-			&::before {
-				content: "";
-				position: absolute;
-				background: url(../../assets/media/flowers-top.webp) no-repeat center /
-					contain;
-				height: 55%;
-				width: 55%;
-				z-index: 3;
-				pointer-events: none;
-				top: 17.5rem;
-				left: -5.625rem;
-				rotate: 10deg;
-			}
+			left: 13.5rem;
+			rotate: 1deg;
 		}
 
 		&:nth-child(4) {
 			top: 5.5rem;
-			left: 25rem;
+			left: 27.1rem;
 			rotate: 0deg;
 
 			&::before {
@@ -625,6 +627,20 @@
 				top: -7.8125rem;
 				left: -1.875rem;
 				rotate: 0deg;
+			}
+
+			&::after {
+				content: "";
+				position: absolute;
+				background: url(../../assets/media/flowers-top.webp) no-repeat center /
+					contain;
+				height: 55%;
+				width: 55%;
+				z-index: 3;
+				pointer-events: none;
+				top: 17.5rem;
+				left: -5.625rem;
+				rotate: 10deg;
 			}
 		}
 
@@ -706,6 +722,7 @@
 			& ul.taglist {
 				margin: 0 0 1rem 0;
 				padding: 0 1rem 0 1.1rem;
+				}
 			}
 		}
 	}
@@ -716,13 +733,13 @@
 		padding: 0px;
 		list-style: none;
 		top: 0.625rem;
-		right: -33.875rem;
+		right: -36.875rem;
 		rotate: 30deg;
 		pointer-events: none;
 		display: grid;
 		grid-template-areas: "centered";
 		place-items: center;
-		z-index: -1;
+		z-index: -2;
 		isolation: isolate;
 		box-shadow: none;
 		width: 13.75rem;
