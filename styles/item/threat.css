@@ -1,6 +1,8 @@
 .litm.litm--threat {
-	background-color: var(--litm-color-primary);
-	background-blend-mode: luminosity;
+	background: url(../../assets/media/challenge-bg-neutral.webp) no-repeat top / cover;
+	/* background-color: var(--litm-color-primary);
+	background-blend-mode: luminosity; */
+	max-width: 650px;
 	font-family: var(--litm-font-text);
 	font-size: var(--font-size-16);
 	outline: 2px solid var(--litm-color);
@@ -13,17 +15,21 @@
 
 	& form {
 		color: var(--litm-color-primary);
-		padding: 0px var(--litm-space-2);
+		padding: 0px var(--litm-space-3);
 	}
 
 	& h2 {
 		text-align: center;
 		border: none;
 		font-family: var(--litm-font-accent);
+		color: var(--litm-color-weakness);
+	}
+
+	& .litm--threat-box > span {
+		cursor: text;
 	}
 
 	& .litm--threat-box span:first-child {
-		cursor: text;
 		background-color: #cebeb3;
 		padding: 0.15em 0.6em;
 		border-radius: 0;
@@ -70,6 +76,11 @@
 		& li {
 			display: flex;
 			gap: var(--litm-space-1);
+
+			& .litm--consequences-icon {
+				align-self: baseline;
+				width: 24px;
+			}
 		}
 	}
 
@@ -91,6 +102,7 @@
 	}
 
 	& [id^=consequence-] {
+		cursor: text;
 		font-weight: 500;
 		min-width: 50px;
 

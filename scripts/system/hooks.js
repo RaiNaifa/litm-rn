@@ -26,6 +26,7 @@ export class LitmHooks {
 		LitmHooks.#rendeWelcomeScreen();
 		LitmHooks.#renderTooltipOnTokenHover();
 		LitmHooks.#listenToSettingsUpdate();
+		LitmHooks.#maskPrivateTagsInChat();
 	}
 
 	static #addLinkPreloadsToHead() {
@@ -234,6 +235,40 @@ export class LitmHooks {
 			img.src = "systems/litm-rn/assets/media/marshal-crest.webp";
 			img.classList.remove("fa-spin");
 		});
+	}
+
+	static #maskPrivateTagsInChat() {
+		Hooks.on("renderChatMessageHTML", (_message, html) => {
+			if (game.user.isGM) return;
+
+			html.querySelectorAll('.part-formula[data-private="true"]').forEach(el => {
+				const ref = el.dataset.actorRef || el.dataset.actorId;
+				const maskName = "???";
+				if (!ref) {
+					el.textContent = maskName;
+					return;
+				}
+				if (LitmHooks.#canSeePrivateTag(ref)) return;
+				el.textContent = maskName;
+			});
+		});
+	}
+
+	static #canSeePrivateTag(ref) {
+		if (!ref) return false;
+
+		const id = typeof ref === "string" ? ref.replaceAll('___', '.') : ref;
+		let actor = game.actors.get(id);
+
+		if (!actor) {
+			try {
+				const doc = fromUuidSync(id);
+				if (doc instanceof TokenDocument) actor = doc.actor;
+				else if (doc instanceof Actor) actor = doc;
+			} catch (_) { /* no-op */ }
+		}
+
+		return actor?.isOwner ?? false;
 	}
 
 	static #attachChatMessageListeners() {
@@ -580,7 +615,25 @@ export class LitmHooks {
 
 	static #listenToTagDragTransfer() {
 		Hooks.on("ready", () => {
-			$(document).on("dragstart", ".litm--tag, .litm--status", (event) => {
+			$(document).on("dragstart", ".litm--tag", (event) => {
+				const text = event.target.textContent;
+				const matches = `{${text}}`.matchAll(CONFIG.litm.regexp.tagStringRe);
+				const match = [...matches][0];
+				if (!match) return;
+				const [, tag] = match;
+				const data = {
+					id: foundry.utils.randomID(),
+					name: tag,
+					type: "tag",
+					isScratched: false,
+				};
+				event.originalEvent.dataTransfer.setData(
+					"text/plain",
+					JSON.stringify(data),
+				);
+			});
+
+			$(document).on("dragstart", ".litm--status", (event) => {
 				const text = event.target.textContent;
 				const matches = `{${text}}`.matchAll(CONFIG.litm.regexp.tagStringRe);
 				const match = [...matches][0];
@@ -589,12 +642,12 @@ export class LitmHooks {
 				const data = {
 					id: foundry.utils.randomID(),
 					name: tag,
-					type: status ? "status" : "tag",
+					type: "status",
 					values: Array(6)
 						.fill(null)
 						.map((_, i) => (Number.parseInt(status) === i + 1 ? status : null)),
 					isScratched: false,
-					value: status,
+					value: status || 0,
 				};
 				event.originalEvent.dataTransfer.setData(
 					"text/plain",
@@ -619,11 +672,11 @@ export class LitmHooks {
 
 				if (match) {
 					const [, name, scale] = match;
+					const valuesMap = [0, 0, 3, 3, 3, 6, 6];
 
 					data.name = name;
-					data.values = Array(6).fill(null)
-						.map((_, i) => (Number.parseInt(scale) === i + 1 ? scale : null));
-					data.value = scale;
+					data.values = [0, 3, 6];
+					data.value = valuesMap[scale];
 				} else {
 					const scales = {
 						origin: 0,
@@ -633,8 +686,7 @@ export class LitmHooks {
 					const scale = scales[level];
 
 					data.name = text;
-					data.values = Array(6).fill(null)
-						.map((_, i) => (Number.parseInt(scale) === i + 1 ? scale : null));
+					data.values = [0, 3, 6];
 					data.value = scale;
 				}
 

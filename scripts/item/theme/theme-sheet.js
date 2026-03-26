@@ -160,8 +160,9 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	}
 
 	async #addTag(type) {
+		const l = type === "weaknessTag" ? "weakness" : "power";
 		const item = {
-			name: t("Litm.ui.name-tag"),
+			name: t(`Litm.ui.name-${l}`),
 			isScratched: false,
 			type: type,
 			id: foundry.utils.randomID(),

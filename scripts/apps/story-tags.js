@@ -1,5 +1,5 @@
 import { SheetMixin } from "../mixins/sheet-mixin.js";
-import { confirmDelete, dispatch, localize as t } from "../utils.js";
+import { compareTagTypes, confirmDelete, dispatch, localize as t } from "../utils.js";
 
 export class StoryTagApp extends SheetMixin(FormApplication) {
 	#contextmenu = null;
@@ -56,6 +56,35 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 				?.map((ref) => {
 					const actor = this.#resolveActor(ref);
 					if (!actor) return null;
+
+					const allTags = actor.effects
+						.filter((e) => !!e.flags["litm-rn"]?.type)
+						.map((e) => {
+							const flags = e.flags["litm-rn"];
+							return {
+								id: e._id,
+								name: e.name,
+								values: flags.values,
+								isScratched: flags.isScratched,
+								isHindering: flags.isHindering || false,
+								isCrispy: flags.isCrispy || false,
+								isPrivate: flags.isPrivate || false,
+								value: flags.type === "might"
+									? (flags.value ?? 3)
+									: (flags.values?.findLast((v) => !!v)),
+								type: flags.type === "status" ? "status"
+									: flags.type === "might" ? "might"
+									: flags.type === "tag" ? (flags.values?.some((v) => !!v) ? "status" : "tag")
+									: (flags.values?.length === 3 ? "might"
+										: flags.values?.some((v) => !!v) ? "status"
+										: "tag"),
+							}
+						})
+						.sort((a, b) => a.name.localeCompare(b.name))
+						.sort((a, b) => compareTagTypes(a, b));
+
+					const visibleTags = allTags.filter(tag => this.#isVisible(tag, actor.isOwner));
+
 					return {
 						ref,
 						name: actor.name,
@@ -64,22 +93,8 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 						id: ref,
 						formKey: ref.replaceAll('.', '___'),
 						isOwner: actor.isOwner,
-						tags: actor.effects
-							.filter((e) => !!e.flags["litm-rn"]?.type)
-							.map((e) => ({
-								id: e._id,
-								name: e.name,
-								values: e.flags["litm-rn"].values,
-								isScratched: e.flags["litm-rn"].isScratched,
-								isHindering: e.flags["litm-rn"].isHindering || false,
-								value: e.flags["litm-rn"].values.findLast((v) => !!v),
-								type: e.flags["litm-rn"].values.some((v) => !!v) ? "status" : "tag",
-							}))
-							.sort((a, b) => a.name.localeCompare(b.name))
-							.sort((a, b) =>
-								a.type === b.type ? 0 : a.type === "status" ? -1 : 1,
-							),
-					}
+						tags: visibleTags,
+					};
 				})
 				.filter(Boolean) || []
 			);
@@ -87,12 +102,13 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 	get tags() {
 		return this.config.tags
-			.sort((a, b) => (a.type === b.type ? 0 : a.type === "status" ? -1 : 1));
+			.filter(tag => this.#isVisible(tag))
+			.sort((a, b) => compareTagTypes(a, b));
 	}
 
 	get selectedTags() {
 		return this.config.selectedTags
-			.sort((a, b) => (a.type === b.type ? 0 : a.type === "status" ? -1 : 1));
+			.sort((a, b) => compareTagTypes(a, b));
 	}
 
 	async syncSelectedTagsFromActor(actorRef) {
@@ -116,8 +132,11 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			if (!fresh) return st;
 			if (fresh.name !== st.name
 				|| fresh.type !== st.type
+				|| fresh.value !== st.value
 				|| fresh.isScratched !== st.isScratched
 				|| fresh.isHindering !== st.isHindering
+				|| fresh.isCrispy !== st.isCrispy
+				|| fresh.isPrivate !== st.isPrivate
 				|| JSON.stringify(fresh.values) !== JSON.stringify(st.values)
 			) {
 				changed = true;
@@ -186,13 +205,20 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	}
 
 	async getData() {
+		const allActors = this.actors
+			.sort((a, b) => a.name.localeCompare(b.name))
+			.sort((_a, b) => (b.type === "challenge" ? 1 : -1));
+
+		const visibleActors = game.user.isGM
+			? allActors
+			: allActors.filter(actor => actor.isOwner || actor.tags.length > 0);
+
 		return {
-			actors: this.actors
-				.sort((a, b) => a.name.localeCompare(b.name))
-				.sort((_a, b) => (b.type === "challenge" ? 1 : -1)),
+			actors: visibleActors,
 			tags: this.tags || [],
 			selectedTags: this.selectedTags || [],
-			isLocked: this.#isLocked
+			isLocked: this.#isLocked,
+			isGM: game.user.isGM,
 		};
 	}
 
@@ -331,38 +357,68 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			Object.entries(actors).map(([formKey, tags]) => {
 				const id = formKey.replaceAll('___', '.');
 
+				const actor = this.#resolveActor(id);
+				if (!actor?.isOwner) return Promise.resolve();
+
 				return this.#updateTagsOnActor({
 					id,
 					tags: Object.entries(tags)
-						.filter(([_, data]) => data.values !== undefined)
-						.map(([tagId, data]) => ({
-							_id: tagId,
-							name: data.name,
-							flags: {
-								["litm-rn"]: {
-									type: data.values.some((v) => v !== null) ? "status" : "tag",
-									values: data.values,
-									isScratched: data.isScratched,
-									isHindering: data.isHindering || false,
+						.filter(([_, data]) => data.name !== undefined)
+						.map(([tagId, data]) => {
+							const type = data.type || (
+								data.values?.length === 3 ? "might"
+								: data.values?.some((v) => v !== null) ? "status"
+								: "tag"
+							);
+							return {
+								_id: tagId,
+								name: data.name,
+								flags: {
+									["litm-rn"]: {
+										type,
+										values: type === "might" ? [0, 3, 6] : data.values,
+										value: type === "might"
+											? (data.value != null ? Number(data.value) : 3)
+											: undefined,
+										isScratched: data.isScratched,
+										isHindering: data.isHindering || false,
+										isCrispy: data.isCrispy || false,
+										isPrivate: data.isPrivate || false,
+									},
 								},
-							},
-						})),
+							}
+						}),
 				})
 			}),
 		);
 
-		const storyTags = Object.entries(story || {}).map(([tagId, data]) => ({
+		const storyTags = Object.entries(story || {}).map(([tagId, data]) => {
+			const type = data.type || (
+				data.values?.length === 3 ? "might"
+				: data.values?.some((v) => v !== null) ? "status"
+				: "tag"
+			);
+			return {
 			id: tagId,
 			name: data.name,
-			values: data.values,
+			values: type === "might" ? [0, 3, 6] : data.values,
+			value: type === "might"
+				? (data.value != null ? Number(data.value) : 3)
+				: (data.values?.filter((v) => v !== null).at(-1) || 0),
 			isScratched: data.isScratched,
 			isHindering: data.isHindering || false,
-			type: data.values.some((v) => v !== null) ? "status" : "tag",
-			value: data.values.filter((v) => v !== null).at(-1),
-		}));
+			isCrispy: data.isCrispy || false,
+			isPrivate: data.isPrivate || false,
+			type,
+		}});
 
-		if (game.user.isGM) await this.setTags(storyTags);
-		else this.#broadcastUpdate("tags", storyTags);
+		// Restore isPrivate tags when changed by non-GM player
+		const submittedIds = new Set(storyTags.map(t => t.id));
+		const hiddenTags = this.config.tags.filter(t => !submittedIds.has(t.id));
+		const mergedTags = [...storyTags, ...hiddenTags];
+
+		if (game.user.isGM) await this.setTags(mergedTags);
+		else this.#broadcastUpdate("tags", mergedTags);
 	}
 
 	async _onDrop(dragEvent) {
@@ -370,17 +426,32 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		const data = JSON.parse(dragData);
 
 		// Handle only Actors to begin with
-		if (!["Actor", "tag", "status"].includes(data.type)) return;
+		if (!["Actor", "tag", "status", "might"].includes(data.type)) return;
 		const id = data.uuid?.split(".").pop() || data.id;
 
 		// Add tags and statuses to the story / Actor
-		if (data.type === "tag" || data.type === "status") {
-			const target = dragEvent.target.closest("[data-id]")?.dataset.id;
+		if (data.type === "tag" || data.type === "status" || data.type === "might") {
+			const target = dragEvent.target
+				.closest(".litm--story-tags-actor[data-id]")?.dataset?.id;
 			if (target) {
-				return this.#addTagToActor({
-					id: target,
-					tag: data,
-				});
+				if (data.type === "tag") {
+					return this.#addTagToActor({
+						id: target,
+						tag: data,
+					});
+				}
+				if (data.type === "status") {
+					return this.#addStatusToActor({
+						id: target,
+						status: data,
+					});
+				}
+				if (data.type === "might") {
+					return this.#addMightToActor({
+						id: target,
+						might: data,
+					});
+				}
 			}
 
 			if (game.user.isGM) return this.setTags([...this.tags, data]);
@@ -416,6 +487,15 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		switch (action) {
 			case "add-tag":
 				this.#addTag(target);
+				break;
+			case "add-status":
+				this.#addStatus(target);
+				break;
+			case "add-might":
+				this.#addMight(target);
+				break;
+			case "add-story-theme":
+				this.#addStoryTheme(target);
 				break;
 			case "open-sheet": {
 				const actor = this.#resolveActor(target);
@@ -454,15 +534,15 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	async #addTag(target) {
 		const tag = {
 			name: t("Litm.ui.name-tag"),
-			values: Array(6)
-				.fill()
-				.map(() => null),
+			// values: Array(6)
+			// 	.fill()
+			// 	.map(() => null), // TODO - deprecated
 			type: "tag",
 			isScratched: false,
 			id: foundry.utils.randomID(),
 		};
 
-		if (target === "story") {
+		if (target === "story-tag") {
 			if (game.user.isGM) return this.setTags([...this.tags, tag]);
 			return this.#broadcastUpdate("tags", [...this.tags, tag]);
 		}
@@ -470,11 +550,57 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		return this.#addTagToActor({ id: target, tag });
 	}
 
+	async #addStatus(target) {
+		const status = {
+			name: t("Litm.ui.name-status"),
+			values: Array(6)
+				.fill()
+				.map(() => null),
+			type: "status",
+			isScratched: false,
+			id: foundry.utils.randomID(),
+		};
+
+		if (target === "story-status") {
+			if (game.user.isGM) return this.setTags([...this.tags, status]);
+			return this.#broadcastUpdate("tags", [...this.tags, status]);
+		}
+
+		return this.#addStatusToActor({ id: target, status });
+	}
+
+	async #addMight(target) {
+		const might = {
+			name: t("Litm.ui.name-might"),
+			values: [0, 3, 6], // TODO - deprecated
+			value: 3,
+			type: "might",
+			isScratched: false,
+			id: foundry.utils.randomID(),
+		};
+
+		if (target === "story-might") {
+			if (game.user.isGM) return this.setTags([...this.tags, might]);
+			return this.#broadcastUpdate("tags", [...this.tags, might]);
+		}
+
+		return this.#addMightToActor({ id: target, might });
+	}
+
+	async #addStoryTheme(target) {
+		return;
+	}
+
 	async #removeTag(target) {
 		const id = target.dataset.id;
 		const type = target.dataset.type;
 
-		if (type === "story") {
+		if (type === "story"
+			|| type === "story-tag"
+			|| type === "story-status"
+			|| type === "story-might"
+			|| type === "story-fellowship"
+		) {
 			if (!(await confirmDelete("Litm.other.tag"))) return;
 			if (game.user.isGM)
 				return this.setTags(this.config.tags.filter((t) => t.id !== id));
@@ -516,7 +642,55 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		await actor.createEmbeddedDocuments("ActiveEffect", [
 			{
 				name: tag.name,
-				flags: { ["litm-rn"]: { type: "tag", values: tag.values, isScratched: false } },
+				flags: { ["litm-rn"]: {
+					type: "tag", isScratched: false,
+					isHindering: true, isCrispy: false, isPrivate: true
+				} },
+			},
+		]);
+		return this.#broadcastRender();
+	}
+
+	async #addStatusToActor({ id, status }) {
+		const actor = this.#resolveActor(id);
+		if (!actor)
+			return ui.notifications.error("Litm.ui.error-no-actor", {
+				localize: true,
+			});
+		if (!actor.isOwner)
+			return ui.notifications.error("Litm.ui.warn-not-owner", {
+				localize: true,
+			});
+
+		await actor.createEmbeddedDocuments("ActiveEffect", [
+			{
+				name: status.name,
+				flags: { ["litm-rn"]: {
+					type: "status", values: status.values, isScratched: false,
+					isHindering: true, isPrivate: true } },
+			},
+		]);
+		return this.#broadcastRender();
+	}
+
+	async #addMightToActor({ id, might }) {
+		const actor = this.#resolveActor(id);
+		if (!actor)
+			return ui.notifications.error("Litm.ui.error-no-actor", {
+				localize: true,
+			});
+		if (!actor.isOwner)
+			return ui.notifications.error("Litm.ui.warn-not-owner", {
+				localize: true,
+			});
+
+		const valuesMap = [0, 0, 3, 3, 3, 6, 6];
+		await actor.createEmbeddedDocuments("ActiveEffect", [
+			{
+				name: might.name,
+				flags: { ["litm-rn"]: {
+					type: "might", value: valuesMap[might.value], isScratched: false,
+					isHindering: true, isPrivate: true } },
 			},
 		]);
 		return this.#broadcastRender();
@@ -525,7 +699,15 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	async #updateTagsOnActor({ id, tags }) {
 		const actor = this.#resolveActor(id);
 		if (!actor) return;
-		await actor.updateEmbeddedDocuments("ActiveEffect", tags);
+		if (!actor.isOwner) return;
+		// await actor.updateEmbeddedDocuments("ActiveEffect", tags);
+
+		try {
+			await actor.updateEmbeddedDocuments("ActiveEffect", tags);
+		} catch (err) {
+			console.warn(`Litm | Cannot update effects on ${actor.name}:`, err.message);
+			return;
+		}
 
 		const config = game.settings.get("litm-rn", "storytags")
 			|| { actors: [], tags: [], selectedTags: [] };
@@ -544,8 +726,11 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 			if (fresh.name !== st.name
 				|| fresh.type !== st.type
+				|| fresh.value !== st.value
 				|| fresh.isScratched !== st.isScratched
 				|| fresh.isHindering !== st.isHindering
+				|| fresh.isCrispy !== st.isCrispy
+				|| fresh.isPrivate !== st.isPrivate
 				|| JSON.stringify(fresh.values) !== JSON.stringify(st.values)
 			) {
 				changed = true;
@@ -555,9 +740,13 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		});
 
 		if (changed) {
-			await game.settings.set("litm-rn", "storytags", {
-				...config, selectedTags,
-			});
+			if (game.user.isGM) {
+				await game.settings.set("litm-rn", "storytags", {
+					...config, selectedTags,
+				});
+			} else {
+				this.#broadcastUpdate("selectedTags", selectedTags);
+			}
 		}
 	}
 
@@ -596,8 +785,21 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			return this.#removeSelected(id);
 		}
 
-		const tag = this.tags.find((t) => t.id === id)
-			?? this.actors.flatMap((a) => a.tags).find((t) => t.id === id);
+		// const tag = this.tags.find((t) => t.id === id)
+		// 	?? this.actors.flatMap((a) => a.tags).find((t) => t.id === id);
+
+		let tag = this.tags.find((t) => t.id === id);
+
+		if (!tag) {
+			for (const actor of this.actors) {
+				const actorTag = actor.tags.find((t) => t.id === id);
+				if (actorTag) {
+					tag = { ...actorTag, actorRef: actor.id };
+					break;
+				}
+			}
+		}
+
 		if (!tag) return;
 
 		const freshConfig = game.settings.get("litm-rn", "storytags");
@@ -617,15 +819,36 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 	#effectToTag(effect) {
 		const flags = effect.flags["litm-rn"];
+		const type = flags.type === "status" ? "status"
+			: flags.type === "might" ? "might"
+			: flags.type === "tag" ? (flags.values?.some((v) => !!v) ? "status" : "tag")
+			: (flags.values?.length === 3 ? "might"
+				: flags.values?.some((v) => !!v) ? "status"
+				: "tag");
 		return {
 			id: effect._id,
 			name: effect.name,
 			values: flags.values,
 			isScratched: flags.isScratched,
 			isHindering: flags.isHindering || false,
-			value: flags.values.findLast((v) => !!v),
-			type: flags.values.some((v) => !!v) ? "status" : "tag",
+			isCrispy: flags.isCrispy || false,
+			isPrivate: flags.isPrivate || false,
+			value: type === "might"
+				? (flags.value ?? 3)
+				: (flags.values?.findLast((v) => !!v) || 0),
+			type,
 		};
+	}
+
+	#isVisible(tag, actorOwner = false) {
+		if (game.user.isGM) return true;
+		if (actorOwner) return true;
+		if (!tag.isPrivate) return true;
+		if (tag.actorRef) {
+			const actor = this.#resolveActor(tag.actorRef);
+			if (actor?.isOwner) return true;
+		}
+		return false;
 	}
 
 	_getHeaderButtons() {

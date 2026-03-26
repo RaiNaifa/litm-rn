@@ -45,7 +45,21 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	}
 
 	get storyTags() {
-		return [...this.system.storyTags, ...this.system.statuses];
+		const mapEffect = (t) => {
+			const tag = { ...t };
+			let type = tag.type || (tag.values?.some((v) => !!v) ? "status" : "tag");
+			tag.type = type;
+			if (type === "tag"){
+				delete tag.values;
+				delete tag.value;
+			}
+			return tag;
+		};
+	
+		return [
+			...this.system.storyTags.map(mapEffect),
+			...this.system.statuses.map(mapEffect)
+		];
 	}
 
 	get config() {
@@ -325,15 +339,21 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		// Handle dropping tags and statuses
 		if (!["tag", "status"].includes(data.type)) return super._onDrop(dragEvent);
 
+		const flagData = {
+			type: data.type,
+			isScratched: data.isScratched,
+			isPrivate: data.isPrivate ?? true,
+		};
+		if (data.type === "status") {
+			flagData.values = data.values;
+			flagData.value = data.value || 0;
+		}
+
 		await this.actor.createEmbeddedDocuments("ActiveEffect", [
 			{
 				name: data.name,
 				flags: {
-					["litm-rn"]: {
-						type: data.type,
-						values: data.values,
-						isScratched: data.isScratched,
-					},
+					["litm-rn"]: flagData,
 				},
 			},
 		]);
@@ -485,6 +505,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "add-tag":
 				this.#addTag();
 				break;
+			case "add-status":
+				this.#addStatus();
+				break;
 			case "increase":
 				this.#increase(event);
 				break;
@@ -614,15 +637,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	async #onEffectValueChange(event) {
 		const li = $(event.currentTarget).closest("li[data-id]");
 		const id = li.data("id");
-
 		if (!id) return;
 
 		const checkboxes = li.find("input[type='checkbox']");
-		
 		const values = checkboxes.map((i, cb) => cb.checked ? i + 1 : false).get();
 
 		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
-			{ _id: id, "flags.litm-rn.values": values },
+			{ _id: id, "flags.litm-rn.values": values, "flags.litm-rn.type": "status" },
 		]);
 
 		this.#roll.refreshTags();
@@ -686,8 +707,35 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				flags: {
 					["litm-rn"]: {
 						type: "tag",
-						values: new Array(6).fill(false),
 						isScratched: false,
+						isPrivate: false,
+						isCrispy: false,
+					},
+				},
+			},
+		]);
+
+		this.#roll.refreshTags();
+		if (this.#roll.rendered) this.#roll.render();
+
+		game.litm.storyTags.render();
+		dispatch({
+			app: "story-tags",
+			type: "render",
+		});
+	}
+
+	async #addStatus() {
+		await this.actor.createEmbeddedDocuments("ActiveEffect", [
+			{
+				name: t("Litm.ui.name-status"),
+				flags: {
+					["litm-rn"]: {
+						type: "status",
+						values: new Array(6).fill(false),
+						value: 0,
+						isScratched: false,
+						isPrivate: false,
 					},
 				},
 			},

@@ -110,3 +110,9 @@ export function getAvailableFellowships(actor) {
 		i.testUserPermission(assignedUser, "OWNER")
 	);
 }
+
+const TAG_TYPE_ORDER = { status: 0, tag: 1, might: 2 };
+
+export function compareTagTypes(a, b) {
+	return (TAG_TYPE_ORDER[a.type] ?? 1) - (TAG_TYPE_ORDER[b.type] ?? 1);
+}

@@ -1,5 +1,5 @@
 import { SheetMixin } from "../../mixins/sheet-mixin.js";
-import { confirmDelete, dispatch, localize as t } from "../../utils.js";
+import { compareTagTypes, confirmDelete, dispatch, localize as t } from "../../utils.js";
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
 export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) {
@@ -44,6 +44,29 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		data.items = await Promise.all(this.items.map((i) => i.sheet.getData()));
 
+		// Soft Migration
+		data.effects = this.actor.effects
+			.map(e => {
+				let effect = e.toObject();
+				let flags = effect.flags["litm-rn"] || {};
+				if (flags.type) {
+					return effect;
+				}
+				let type = flags.type || (flags.values?.length === 3 ? "might" : (flags.values?.some((v) => !!v) ? "status" : "tag"));
+
+				flags.type = type;
+				if (type === "tag") {
+					delete flags.values;
+					delete flags.value;
+				}
+				return effect;
+			})
+			.sort((a, b) => {
+				const typeA = a.flags["litm-rn"]?.type;
+				const typeB = b.flags["litm-rn"]?.type;
+				return compareTagTypes({ type: typeA }, { type: typeB });
+			});
+
 		return { data, ...rest, isEditing: this.isEditing };
 	}
 
@@ -64,8 +87,14 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			.find("li.litm--tag-item input.litm--tag-item-tier[type='checkbox']")
 			.on("change", this.#onEffectValueChange.bind(this));
 		html
+			.find("li.litm--tag-item input.litm--tag-item-might-radio[type='radio']")
+			.on("change", this.#onEffectMightChange.bind(this));
+		html
 			.find("li.litm--tag-item input.litm--hindering-checkbox[type='checkbox']")
 			.on("change", this.#onEffectHinderingChange.bind(this));
+		html
+			.find("li.litm--tag-item input.litm--private-checkbox[type='checkbox']")
+			.on("change", this.#onEffectPrivateChange.bind(this));
 
 		if (this.isEditing) html.find("[contenteditable]:has(+#tags)").focus();
 	}
@@ -99,8 +128,14 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "add-threat":
 				this.#addThreat();
 				break;
-			case "add-effect":
-				this.#addEffect();
+			case "add-tag":
+				this.#addTag();
+				break;
+			case "add-status":
+				this.#addStatus();
+				break;
+			case "add-might":
+				this.#addMight();
 				break;
 			case "move-to-story":
 				this.#moveToStory();
@@ -271,13 +306,29 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		
 		const values = checkboxes.map((i, cb) => cb.checked ? i + 1 : false).get();
 		const value = values.findLast((v) => !!v);
-		const type = values.some((v) => !!v) ? "status" : "tag";
 
 		await this.actor.updateEmbeddedDocuments("ActiveEffect", [{
 			_id: id,
 			"flags.litm-rn.values": values,
-			"flags.litm-rn.type": type,
 			"flags.litm-rn.value": value
+		}]);
+
+		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #onEffectMightChange(event) {
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+		if (!id) return;
+
+		const value = Number(event.currentTarget.value);
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [{
+			_id: id,
+			"flags.litm-rn.value": value,
 		}]);
 
 		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
@@ -305,16 +356,77 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		Hooks.callAll("litmStoryTagsUpdated");
 	}
 
-	async #addEffect() {
+	async #onEffectPrivateChange(event) {
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+
+		if (!id) return;
+
+		const isPrivate = event.currentTarget.checked;
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [{
+			_id: id,
+			"flags.litm-rn.isPrivate": isPrivate,
+		}]);
+
+		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #addTag() {
 		await this.actor.createEmbeddedDocuments("ActiveEffect", [
 			{
 				name: t("Litm.ui.name-tag"),
 				flags: {
 					["litm-rn"]: {
 						type: "tag",
-						values: new Array(6).fill(false),
 						isScratched: false,
 						isHindering: false,
+						isPrivate: true,
+					},
+				},
+			},
+		]);
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+	}
+
+	async #addStatus() {
+		await this.actor.createEmbeddedDocuments("ActiveEffect", [
+			{
+				name: t("Litm.ui.name-status"),
+				flags: {
+					["litm-rn"]: {
+						type: "status",
+						values: new Array(6).fill(false),
+						value: 0,
+						isScratched: false,
+						isHindering: false,
+						isPrivate: true,
+					},
+				},
+			},
+		]);
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+	}
+
+	async #addMight() {
+		await this.actor.createEmbeddedDocuments("ActiveEffect", [
+			{
+				name: t("Litm.ui.name-might"),
+				flags: {
+					["litm-rn"]: {
+						type: "might",
+						values: [0, 3, 6],
+						value: 3,
+						isScratched: false,
+						isHindering: false,
+						isPrivate: true,
 					},
 				},
 			},
@@ -340,18 +452,31 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const data = JSON.parse(dragData);
 
 		// Handle dropping tags and statuses
-		if (!["tag", "status"].includes(data.type)) return super._onDrop(dragEvent);
+		if (!["tag", "status", "might"].includes(data.type)) return super._onDrop(dragEvent);
+
+		const flagData = {
+			type: data.type,
+			isScratched: data.isScratched,
+			isHindering: data.isHindering || false,
+			isPrivate: data.isPrivate ?? true,
+		};
+
+		if (data.type === "tag") {
+			flagData.isCrispy = data.isCrispy || false;
+		}
+		if (data.type === "status") {
+			flagData.values = data.values;
+		}
+		if (data.type === "might") {
+			flagData.values = data.values;
+			flagData.value = data.value !== undefined ? data.value : 3;
+		}
 
 		await this.actor.createEmbeddedDocuments("ActiveEffect", [
 			{
 				name: data.name,
 				flags: {
-					["litm-rn"]: {
-						type: data.type,
-						values: data.values,
-						isScratched: data.isScratched,
-						isHindering: data.isHindering || false,
-					},
+					["litm-rn"]: flagData,
 				},
 			},
 		]);

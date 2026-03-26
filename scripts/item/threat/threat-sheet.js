@@ -10,8 +10,8 @@ export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			classes: ["litm", "litm--threat"],
 			template: "systems/litm-rn/templates/item/threat.html",
-			width: 412,
-			height: 231,
+			width: 450,
+			height: 275,
 			resizable: true,
 			submitOnChange: true,
 		});
@@ -128,9 +128,9 @@ export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	}
 
 	async #removeConsequence(event) {
+		const { id } = event.currentTarget.dataset;
 		if (!(await confirmDelete("Litm.other.consequence"))) return;
 
-		const { id } = event.currentTarget.dataset;
 		this.system.consequences.splice(id, 1);
 
 		this.item.update({ "system.consequences": this.system.consequences });

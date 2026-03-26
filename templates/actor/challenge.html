@@ -19,14 +19,36 @@
 				<i class="far fa-plus"></i>
 			</button>
 		{{/if}}
+		{{#if move}}
+			<div class="litm--challenge-effect-buttons">
+				<button class="litm--challenge-add" type="button" data-click="add-tag"
+					aria-label="{{localize 'Litm.ui.add-tag'}}"
+					data-tooltip="{{localize 'Litm.ui.add-tag'}}">
+					<img src="systems/litm-rn/assets/media/icons/add-story-tag_icn.svg"
+						class="litm--add-story-icon" alt="Tag" width="20px" />
+				</button>
+				<button class="litm--challenge-add" type="button" data-click="add-status"
+					aria-label="{{localize 'Litm.ui.add-status'}}"
+					data-tooltip="{{localize 'Litm.ui.add-status'}}">
+					<img src="systems/litm-rn/assets/media/icons/add-story-status_icn.svg"
+						class="litm--add-story-icon" alt="Status" width="20px" />
+				</button>
+				<button class="litm--challenge-add" type="button" data-click="add-might"
+					aria-label="{{localize 'Litm.ui.add-might'}}"
+					data-tooltip="{{localize 'Litm.ui.add-might'}}">
+					<img src="systems/litm-rn/assets/media/icons/add-might_icn.svg"
+						class="litm--add-story-icon" alt="Might" width="20px" />
+				</button>
+			</div>
+		{{/if}}
 	</div>
 {{/inline}}
 {{#*inline 'tagItem' tag source editable}}
 	{{#if tag.flags.litm-rn.type}}
 		<li
-			class="litm--tag-item litm--{{ifThen (eq tag.flags.litm-rn.type 'status') 'status' 'tag'}}"
+			class="litm--tag-item litm--{{tag.flags.litm-rn.type}}{{ifThen tag.flags.litm-rn.isPrivate ' litm--private' ''}}"
 			data-context="remove-effect" data-id="{{tag._id}}"
-			data-tooltip="{{localize (concat 'Litm.other.' tag.flags.litm-rn.type)}}: {{tag.name}}{{#if tag.value}}{{concat '-' tag.value}}{{/if}}">
+			data-tooltip="{{localize (concat 'Litm.other.' tag.flags.litm-rn.type)}}: {{tag.name}}">
 			<div class="litm--tag-item-container">
 				<input class="litm--tag-item-name {{tag.flags.litm-rn.type}}" data-focus="select"
 					name="{{source}}.{{tag._id}}.name" value="{{tag.name}}" type="text"
@@ -34,24 +56,46 @@
 					{{ifThen editable "" "readonly"}} />
 			</div>
 			<div class="litm--tag-item-control">
+				{{> toggle-private source=source tag=tag editable=editable}}
 				{{> toggle-hindering source=source tag=tag editable=editable}}
-				<div class="litm--tag-item-status">
-					{{#each tag.flags.litm-rn.values as |status|}} <input
-						class="litm--tag-item-tier"
-						name="{{../source}}.{{../tag._id}}.values" type="checkbox"
-						value="{{add @index 1}}" {{disabled (not ../editable)}}
-						{{checked status}} />
-					{{/each}}
-				</div>
+				{{#if (eq tag.flags.litm-rn.type 'tag')}}
+					{{> toggle-crispy source=source tag=tag editable=editable}}
+				{{/if}}
+				{{#if (eq tag.flags.litm-rn.type 'status')}}
+					<div class="litm--tag-item-status">
+						{{#each tag.flags.litm-rn.values as |status|}} <input
+							class="litm--tag-item-tier"
+							name="{{../source}}.{{../tag._id}}.values" type="checkbox"
+							value="{{add @index 1}}" {{disabled (not ../editable)}}
+							{{checked status}} />
+						{{/each}}
+					</div>
+				{{/if}}
+				{{#if (eq tag.flags.litm-rn.type 'might')}}
+					<div class="litm--tag-item-might">
+						<label class="litm--might-level litm--might-origin" data-tooltip="{{localize 'Litm.tags.origin-0'}}">
+							<input class="litm--tag-item-might-radio"
+								name="{{source}}.{{tag._id}}.value" type="radio"
+								value="0" {{disabled (not editable)}}
+								{{checked (eq tag.flags.litm-rn.value 0)}} />
+						</label>
+						<label class="litm--might-level litm--might-adventure" data-tooltip="{{localize 'Litm.tags.adventure-3'}}">
+							<input class="litm--tag-item-might-radio"
+								name="{{source}}.{{tag._id}}.value" type="radio"
+								value="3" {{disabled (not editable)}}
+								{{checked (eq tag.flags.litm-rn.value 3)}} />
+						</label>
+						<label class="litm--might-level litm--might-greatness" data-tooltip="{{localize 'Litm.tags.greatness-6'}}">
+							<input class="litm--tag-item-might-radio"
+								name="{{source}}.{{tag._id}}.value" type="radio"
+								value="6" {{disabled (not editable)}}
+								{{checked (eq tag.flags.litm-rn.value 6)}} />
+						</label>
+					</div>
+				{{/if}}
 			</div>
 		</li>
 	{{/if}}
-{{/inline}} {{#*inline 'add-button' id}}
-	<button type="button" data-click="add-tag" data-id="{{id}}"
-		data-tooltip="{{localize 'Litm.ui.add-tag'}}">
-		<span class="litm--sro">{{localize "Litm.ui.add-tag"}}</span>
-		<i class="far fa-add"></i>
-	</button>
 {{/inline}} {{#*inline 'add-theme-button' id}}
 	<button type="button" data-click="add-story-theme" data-id="{{id}}"
 		data-tooltip="{{localize 'Litm.ui.add-story-theme'}}"
@@ -64,6 +108,16 @@
 		name="{{source}}.{{tag._id}}.isHindering"
 		data-tooltip="{{localize (ifThen tag.flags.litm-rn.isHindering 'Litm.tags.isHindering' 'Litm.tags.toHindering')}}" 
 		{{disabled (not editable)}} {{checked tag.flags.litm-rn.isHindering}} />
+{{/inline}} {{#*inline 'toggle-crispy' source tag editable}}
+	<input class="litm--checkbox litm--checkbox-with-bg litm--crispy-checkbox" type="checkbox"
+		name="{{source}}.{{tag._id}}.isCrispy"
+		data-tooltip="{{localize (ifThen tag.flags.litm-rn.isCrispy 'Litm.tags.isCrispy' 'Litm.tags.toCrispy')}}" 
+		{{disabled (not editable)}} {{checked tag.flags.litm-rn.isCrispy}} />
+{{/inline}} {{#*inline 'toggle-private' source tag editable}}
+	<input class="litm--checkbox litm--checkbox-with-bg litm--private-checkbox" type="checkbox"
+		name="{{source}}.{{tag._id}}.isPrivate"
+		data-tooltip="{{localize (ifThen tag.flags.litm-rn.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}" 
+		{{disabled (not editable)}} {{checked tag.flags.litm-rn.isPrivate}} />
 {{/inline}}
 
 <datalist id="litm--challenge-types">
@@ -139,7 +193,7 @@
 				{{/if}}
 			</div>
 			<!-- Active Effects -->
-			{{> divider title="Litm.ui.active-effects" add="effect" move="story"}}
+			{{> divider title="Litm.ui.active-effects" move="story"}}
 			<div class="litm--story-effects">
 				<ul>
 					{{#each data.effects as |tag|}}
@@ -157,10 +211,13 @@
 						data-tooltip="{{localize 'Litm.ui.dblclick-open'}}">
 						<div>
 							<span class="litm--threat-name">{{item.data.name}}</span>
-							<span class="litm--threat-desc">> {{item.data.system.threat}}</span>
+							<span class="litm--threat-desc">{{item.data.system.threat}}</span>
 						</div>
 						{{#each item.data.system.consequences as |consequence|}}
-							<div>>> {{{consequence}}}</div>
+							<div>
+								<img class="litm--consequences-icon" src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt="Consequences" />
+								<div>{{{consequence}}}</div>
+							</div>
 						{{/each}}
 					</li>
 				{{/each}}

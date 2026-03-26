@@ -70,7 +70,7 @@
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			gap: var(--litm-space-1);
+			gap: 1px;
 
 			& legend {
 				flex: 1 0 auto;
@@ -97,7 +97,8 @@
 				background: none;
 				color: var(--litm-color-weakness);
 				font-size: var(--font-size-20);
-				margin-inline-end: var(--litm-space-2);
+				/* margin-inline-end: var(--litm-space-2); */
+				padding: 0;
 				flex: none;
 				width: auto;
 
@@ -126,6 +127,24 @@
 				border: none;
 				padding: 2px var(--litm-space-1);
 				gap: var(--litm-space-2);
+
+				&:has(.litm--private-checkbox:checked) {
+					outline: 1px dashed #191970;
+					outline-offset: -1px;
+				}
+
+				&.litm--might:has(.litm--might-level.litm--might-origin input:checked) {
+					background-color: color-mix(in srgb, rgba(70, 117, 85, 0.65) 25%, rgba(252, 245, 223, 0.25));
+					background-color: color-mix(in srgb, rgba(70, 117, 85, 0.4), rgba(252, 245, 223, 0.35));
+				}
+				&.litm--might:has(.litm--might-level.litm--might-adventure input:checked) {
+					background-color: color-mix(in srgb, rgba(124, 59, 60, 0.55) 25%, rgba(252, 245, 223, 0.25));
+					background-color: color-mix(in srgb, rgba(124, 59, 60, 0.4), rgba(252, 245, 223, 0.35));
+				}
+				&.litm--might:has(.litm--might-level.litm--might-greatness input:checked) {
+					background-color: color-mix(in srgb, rgba(92, 91, 145, 0.75) 25%, rgba(252, 245, 223, 0.25));
+					background-color: color-mix(in srgb, rgba(92, 91, 145, 0.45), rgba(252, 245, 223, 0.35));
+				}
 
 				& .litm--tag-item-container {
 					position: relative;
@@ -182,6 +201,7 @@
 						user-select: none;
 					}
 
+					&.might[data-selected]::before,
 					&.status[data-selected]::before,
 					&.tag[data-selected]::before {
 						content: "";
@@ -191,8 +211,9 @@
 						background: url(../../assets/media/brush.svg) no-repeat center;
 						background-blend-mode: color;
 						background-size: contain;
-						opacity: 0.8;
+						/* opacity: 0.8; */
 						top: -2px;
+						left: -5px;
 						pointer-events: none;
 					}
 				}
@@ -221,10 +242,19 @@
 					display: flex;
 					align-items: center;
 
-					& input.litm--hindering-checkbox {
-						width: 18px;
-						height: 18px;
+					& input.litm--private-checkbox {
+						width: 20px;
+						height: 20px;
 						margin-right: var(--litm-space-1)
+					}
+					& input.litm--hindering-checkbox {
+						width: 20px;
+						height: 20px;
+						margin-right: var(--litm-space-1)
+					}
+					& input.litm--crispy-checkbox {
+						width: 20px;
+						height: 20px;
 					}
 				}
 
@@ -249,6 +279,60 @@
 
 						&:checked {
 							background: var(--litm-color);
+						}
+					}
+				}
+
+				& .litm--tag-item-might {
+					margin-inline: auto 0;
+					display: flex;
+					align-items: center;
+					gap: 2px;
+
+					& .litm--might-level {
+						display: inline-block;
+						width: 20px;
+						height: 20px;
+
+						&.litm--might-origin,
+						&.litm--might-adventure,
+						&.litm--might-greatness {
+							& input {
+								appearance: none;
+								-webkit-appearance: none;
+								margin: -2px 0 0 0;
+								width: 20px;
+								height: 20px;
+								transition: filter 0.2s ease;
+								&:hover {
+									filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+								}
+							}
+						}
+
+						&.litm--might-origin {
+							& input {
+								background: url(../../assets/media/icons/origin-color_litm_btn_inactive.svg);
+								&:checked {
+									background: url(../../assets/media/icons/origin-color_litm_btn_active.svg);
+								}
+							}
+						}
+						&.litm--might-adventure {
+							& input {
+								background: url(../../assets/media/icons/adventure-color_litm_btn_inactive.svg);
+								&:checked {
+									background: url(../../assets/media/icons/adventure-color_litm_btn_active.svg);
+								}
+							}
+						}
+						&.litm--might-greatness {
+							& input {
+								background: url(../../assets/media/icons/greatness-color_litm_btn_inactive.svg);
+								&:checked {
+									background: url(../../assets/media/icons/greatness-color_litm_btn_active.svg);
+								}
+							}
 						}
 					}
 				}

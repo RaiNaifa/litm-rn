@@ -84,12 +84,20 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 
 	get statuses() {
 		return this.parent.appliedEffects
-			.filter((item) => item.getFlag("litm-rn", "values")?.some((v) => !!v))
+			.filter((item) => {
+				const flags = item.flags["litm-rn"];
+				if (!flags) return false;
+				if (flags.type === "status") return true;
+				if (flags.type === "might") return false; // just in case
+				if (flags.type === "tag") return flags.values?.some((v) => !!v) ?? false;
+				// Legacy: no type set
+				return flags.values?.some((v) => !!v) ?? false;
+			})
 			.map((item) => {
 				return {
 					...item.flags["litm-rn"],
 					type: "status",
-					value: item.flags["litm-rn"].values.findLast((v) => !!v),
+					value: item.flags["litm-rn"].values?.findLast((v) => !!v) || 0,
 					id: item._id,
 					name: item.name,
 				};
@@ -104,12 +112,20 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 
 	get storyTags() {
 		return this.parent.appliedEffects
-			.filter((item) => item.getFlag("litm-rn", "values")?.every((v) => !v))
+			.filter((item) => {
+				const flags = item.flags["litm-rn"];
+				if (!flags) return false;
+				if (flags.type === "status") return false;
+				if (flags.type === "might") return false; // just in case
+				if (flags.type === "tag") return !(flags.values?.some((v) => !!v));
+				if (flags.type) return false;
+				// Legacy: no type set
+				return flags.values?.every((v) => !v) ?? true;
+			})
 			.map((item) => {
 				return {
 					...item.flags["litm-rn"],
 					type: "tag",
-					value: item.flags["litm-rn"].values.findLast((v) => !!v),
 					id: item._id,
 					name: item.name,
 				};

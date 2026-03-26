@@ -14,7 +14,7 @@
 	<h2 id="threat-label">{{localize "Litm.other.threat"}}</h2>
 	<div class="litm--threat-box">
 		<span role="textbox" aria-labelledby="threat-label" contenteditable data-input="threat">{{title}}</span>
-		<span role="textbox" aria-labelledby="threat-desc-label" contenteditable data-input="threat-desc">> {{data.system.threat}}</span>
+		<span role="textbox" aria-labelledby="threat-desc-label" contenteditable data-input="threat-desc">{{data.system.threat}}</span>
 		<input type="hidden" name="name" id="threat" value="{{data.name}}" required />
 		<input type="hidden" name="system.threat" id="threat-desc" value="{{data.system.threat}}" required />
 	</div>
@@ -22,7 +22,8 @@
 	<ul class="litm--threat-wrapper">
 		{{#each data.system.consequences as |consequence|}}
 			<li>
-				>> {{> consequence consequence=consequence key=@key}}
+				<img class="litm--consequences-icon" src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt="Consequences" />
+				{{> consequence consequence=consequence key=@key}}
 			</li>
 		{{/each}}
 		<button type="button" class="litm--consequence-add"

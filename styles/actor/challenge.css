@@ -12,7 +12,8 @@
 		margin-inline: 6px;
 		padding-inline: 10px;
 		z-index: 1;
-		background: rgb(16 34 44 / 80%);
+		/* background-color: grey; */
+		background: rgb(16 34 44 / 80%); /* to change */
 	}
 
 	& .window-content {
@@ -20,6 +21,7 @@
 		position: relative;
 		min-height: 100%;
 		top: -24px;
+		/* padding-top: 24px; */
 	}
 
 	& form {
@@ -49,7 +51,7 @@
 		align-items: center;
 		gap: var(--litm-space-1);
 		padding: var(--litm-space-1) 16px var(--litm-space-3) 12px;
-		background-image: linear-gradient(to bottom, rgb(16 34 44 / 80%) 30%, transparent 100%);
+		background-image: linear-gradient(to bottom, rgb(16 34 44 / 80%) 30%, transparent 100%); /* TODO to change */
 
 		& input {
 			margin-inline: 1px;
@@ -168,7 +170,7 @@
 			letter-spacing: 1px;
 		}
 
-		& img {
+		& > img {
 			object-fit: cover;
 			object-position: left;
 			height: 5px;
@@ -179,13 +181,42 @@
 
 		}
 
+		&:has(.litm--challenge-move) > img {
+			&:nth-child(2) {
+				height: 7px;
+			}
+		}
+
+		& .litm--challenge-effect-buttons {
+			display: flex;
+
+			& button {
+				border: none;
+				background: none;
+				padding: 0;
+				margin: 0px;
+				flex: none;
+				width: auto;
+
+				&:not(:first-child) {
+					margin-left: 2px;
+				}
+
+				&:hover,
+				&:focus,
+				&:active {
+					filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+				}
+			}
+		}
+
 		& .litm--challenge-move,
 		& .litm--challenge-add {
 			border: none;
 			background: 0;
 			align-self: baseline;
 			line-height: 1;
-			font-size: var(--font-size-16);
+			font-size: var(--font-size-18);
 			color: var(--litm-color-weakness);
 			padding: 0px;
 			margin: 0px;
@@ -212,6 +243,7 @@
 			font-family: var(--litm-font-sc);
 			font-size: var(--font-size-28);
 			color: var(--litm-color-weakness);
+			/* color: #4e301c; */
 			font-weight: 700;
 			text-align: center;
 			line-height: 1;
@@ -366,12 +398,19 @@
 
 				&:not(:first-child) {
 					margin-block-start: var(--litm-space-1);
-					margin-inline-start: 0.5em;
+					/* margin-inline-start: 0.5em; */
+					display: flex;
+				}
+				
+				& .litm--consequences-icon {
+					margin-right: var(--litm-space-1);
+					align-self: baseline;
+					width: 24px;
 				}
 			}
 
 			& .litm--threat-name {
-				background-color: #f1d2bc;
+				background-color: #cebeb3;
 				padding: 0.15em 0.6em;
 				border-radius: 0;
 				text-transform: uppercase;
@@ -405,7 +444,7 @@
 				);
 			}
 			& .litm--threat-desc {
-
+				line-height: 20px;
 			}
 		}
 	}
@@ -414,7 +453,7 @@
 		border: none;
 		display: flex;
 		flex-direction: column;
-		margin: 0 var(--litm-space-1) 0 var(--litm-space-2);
+		margin: 0 0 0 var(--litm-space-2);
 
 		& ul {
 			display: flex;
@@ -435,6 +474,78 @@
 		border: none;
 		padding: 2px var(--litm-space-1);
 		gap: var(--litm-space-2);
+
+		&:has(.litm--private-checkbox:checked) {
+			outline: 1px dashed #191970;
+			outline-offset: -1px;
+		}
+
+		&.litm--might:has(.litm--might-level.litm--might-origin input:checked) {
+			background-color: color-mix(in srgb, rgba(70, 117, 85, 0.65) 25%, rgba(252, 245, 223, 0.25));
+			background-color: color-mix(in srgb, rgba(70, 117, 85, 0.4), rgba(252, 245, 223, 0.35));
+		}
+		&.litm--might:has(.litm--might-level.litm--might-adventure input:checked) {
+			background-color: color-mix(in srgb, rgba(124, 59, 60, 0.55) 25%, rgba(252, 245, 223, 0.25));
+			background-color: color-mix(in srgb, rgba(124, 59, 60, 0.4), rgba(252, 245, 223, 0.35));
+		}
+		&.litm--might:has(.litm--might-level.litm--might-greatness input:checked) {
+			background-color: color-mix(in srgb, rgba(92, 91, 145, 0.75) 25%, rgba(252, 245, 223, 0.25));
+			background-color: color-mix(in srgb, rgba(92, 91, 145, 0.45), rgba(252, 245, 223, 0.35));
+		}
+
+		& .litm--tag-item-might {
+			margin-inline: auto 0;
+			display: flex;
+			align-items: center;
+			gap: 2px;
+
+			& .litm--might-level {
+				display: inline-block;
+				width: 20px;
+				height: 20px;
+
+				&.litm--might-origin,
+				&.litm--might-adventure,
+				&.litm--might-greatness {
+					& input {
+						appearance: none;
+						-webkit-appearance: none;
+						margin: -2px 0 0 0;
+						width: 20px;
+						height: 20px;
+						transition: filter 0.2s ease;
+						&:hover {
+							filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+						}
+					}
+				}
+
+				&.litm--might-origin {
+					& input {
+						background: url(../../assets/media/icons/origin-color_litm_btn_inactive.svg);
+						&:checked {
+							background: url(../../assets/media/icons/origin-color_litm_btn_active.svg);
+						}
+					}
+				}
+				&.litm--might-adventure {
+					& input {
+						background: url(../../assets/media/icons/adventure-color_litm_btn_inactive.svg);
+						&:checked {
+							background: url(../../assets/media/icons/adventure-color_litm_btn_active.svg);
+						}
+					}
+				}
+				&.litm--might-greatness {
+					& input {
+						background: url(../../assets/media/icons/greatness-color_litm_btn_inactive.svg);
+						&:checked {
+							background: url(../../assets/media/icons/greatness-color_litm_btn_active.svg);
+						}
+					}
+				}
+			}
+		}
 
 		& .litm--tag-item-container {
 			position: relative;
@@ -471,10 +582,19 @@
 			display: flex;
 			align-items: center;
 
-			& input.litm--hindering-checkbox {
-				width: 18px;
-				height: 18px;
+			& input.litm--private-checkbox {
+				width: 20px;
+				height: 20px;
 				margin-right: var(--litm-space-1)
+			}
+			& input.litm--hindering-checkbox {
+				width: 20px;
+				height: 20px;
+				margin-right: var(--litm-space-1)
+			}
+			& input.litm--crispy-checkbox {
+				width: 20px;
+				height: 20px;
 			}
 		}
 
@@ -499,6 +619,24 @@
 
 				&:checked {
 					background: var(--litm-color);
+				}
+
+				&:disabled {
+					cursor: default;
+				}
+			}
+		}
+
+		& .litm--tag-item-might {
+			margin-inline: auto 0;
+			display: flex;
+			align-items: center;
+			gap: 2px;
+
+			& [type="radio"] {
+
+				&:checked {
+
 				}
 
 				&:disabled {

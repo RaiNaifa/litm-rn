@@ -3,7 +3,8 @@
 		data-id="{{data.id}}">
 		<img
 			class="draggable {{#if (eq data.type 'status')}}litm--green-leaf{{/if}}"
-			data-drag="#story-tags" src="systems/litm-rn/assets/media/yellow-leaf.webp"
+			data-drag="#story-tags"
+			src="systems/litm-rn/assets/media/{{ifThen (eq data.type 'status') 'yellow-leaf' 'yellow-leaf-2'}}.webp"
 			aria-hidden="true" width="220" />
 		<div class="{{data.type}}">
 			<label><span class="litm--sro">{{localize "Name"}}</span>
@@ -14,19 +15,21 @@
 				<input type="hidden" name="{{data.id}}.name"
 					value="{{data.name}}" id="hidden-{{data.id}}-name"/>
 			</label>
-			<div class="litm--story-tag-values">
-				{{#each data.values as |value|}}
-					<div class="litm--story-tag-value">
-						{{#if (eq ../data.type 'status')}}
-							<label
-								for="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}">{{add @index 1}}</label>
-						{{/if}}
-						<input id="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}"
-							type="checkbox"
-							value="{{add @index 1}}" {{checked value}} />
-					</div>
-				{{/each}}
-			</div>
+			{{#if data.values}}
+				<div class="litm--story-tag-values">
+					{{#each data.values as |value|}}
+						<div class="litm--story-tag-value">
+							{{#if (eq ../data.type 'status')}}
+								<label
+									for="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}">{{add @index 1}}</label>
+							{{/if}}
+							<input id="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}"
+								type="checkbox"
+								value="{{add @index 1}}" {{checked value}} />
+						</div>
+					{{/each}}
+				</div>
+			{{/if}}
 		</div>
 	</li>
 {{/inline}}
@@ -105,10 +108,18 @@
 		id="story-tags" style="{{tagsFocused}}">
 		<li class="litm--story-tag">
 			<button type="button" data-click="add-tag" data-id="story-tags">
-				<img src="systems/litm-rn/assets/media/yellow-leaf.webp"
+				<img src="systems/litm-rn/assets/media/yellow-leaf-2.webp"
 					class="litm--red-leaf" alt="Leaf" width="220" />
 				<span><i class="fas fa-plus"></i>
 					{{localize "Litm.ui.add-tag"}}</span>
+			</button>
+		</li>
+		<li class="litm--story-tag">
+			<button type="button" data-click="add-status" data-id="story-tags">
+				<img src="systems/litm-rn/assets/media/yellow-leaf-2.webp"
+					class="litm--greeny-leaf" alt="Leaf" width="220" />
+				<span><i class="fas fa-plus"></i>
+					{{localize "Litm.ui.add-status"}}</span>
 			</button>
 		</li>
 		{{#each storyTags as |item|}}

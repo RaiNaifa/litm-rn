@@ -141,12 +141,12 @@ export class LitmRollDialog extends FormApplication {
 		const weaknessValue = tags.weaknessTags.length;
 		
 		const positiveStatusValue = tags.positiveStatuses.reduce(
-			(a, t) => a + Number.parseInt(t.value),
+			(a, t) => a + (Number.parseInt(t.value) || 0),
 			0,
 		);
 
 		const negativeStatusValue = tags.negativeStatuses.reduce(
-			(a, t) => a + Number.parseInt(t.value),
+			(a, t) => a + (Number.parseInt(t.value) || 0),
 			0,
 		);
 
@@ -177,10 +177,10 @@ export class LitmRollDialog extends FormApplication {
 	static #filterTags(tags) {
 		const burntTags = tags.filter((t) => t.state === "burned");
 		const powerTags = tags.filter(
-			(t) => t.type && t.type !== "crispy" && t.type !== "status" && t.state === "positive",
+			(t) => t.type && t.type !== "crispy" && t.type !== "status" && t.type !== "might" && t.state === "positive",
 		);
 		const weaknessTags = tags.filter(
-			(t) => t.type !== "status" && t.state === "negative",
+			(t) => t.type !== "status" && t.type !== "might" && t.state === "negative",
 		);
 		const crispyTags = tags.filter(
 			(t) => t.type === "crispy" || t.type === "hero" || t.type === "powerCrispy" || t.type === "themeCrispy",
@@ -189,10 +189,10 @@ export class LitmRollDialog extends FormApplication {
 			(t) => t.type === "hero" && t.state === "negative",
 		);
 		const positiveStatuses = tags.filter(
-			(t) => t.type === "status" && t.state === "positive",
+			(t) => (t.type === "status" || t.type === "might") && t.state === "positive",
 		);
 		const negativeStatuses = tags.filter(
-			(t) => t.type === "status" && t.state === "negative",
+			(t) => (t.type === "status" || t.type === "might") && t.state === "negative",
 		);
 
 		return {
@@ -261,22 +261,6 @@ export class LitmRollDialog extends FormApplication {
 		})});
 	}
 
-	get storyStatuses() {
-		const { selectedTags } = game.litm.storyTags;
-		const statuses = selectedTags.filter((tag) => tag.values.some((v) => !!v));
-
-		const personalIds = new Set(this.actor.system.statuses.map(t => t.id));
-
-		return [...statuses]
-		.filter(tag => !personalIds.has(tag.id))
-		.map((tag) => ({
-			...tag,
-			state: this.#tagState.find((t) => t.id === tag.id)?.state
-				?? (tag.isHindering ? "negative" : "positive"),
-			states: ",negative,positive",
-		}));
-	}
-
 	get tags() {
 		const { selectedTags } = game.litm.storyTags;
 		const selectedMap = new Map(selectedTags.map(t => [t.id, t]));
@@ -316,10 +300,30 @@ export class LitmRollDialog extends FormApplication {
 			};
 		});
 	}
+	
+	get storyStatuses() {
+		const { selectedTags } = game.litm.storyTags;
+		const statuses = selectedTags.filter(
+			(tag) => tag.type === "status"
+			|| (!tag.type && tag.values?.length === 6)
+		);
+
+		const personalIds = new Set(this.actor.system.statuses.map(t => t.id));
+
+		return [...statuses]
+		.filter(tag => !personalIds.has(tag.id))
+		.map((tag) => ({
+			...tag,
+			displayName: this.#maskTagName(tag),
+			state: this.#tagState.find((t) => t.id === tag.id)?.state
+				?? (tag.isHindering ? "negative" : "positive"),
+			states: ",negative,positive",
+		}));
+	}
 
 	get storyTags() {
 		const { selectedTags } = game.litm.storyTags;
-		const tags = selectedTags.filter((tag) => tag.values.every((v) => !v));
+		const tags = selectedTags.filter((tag) => tag.type === "tag" || (!tag.type && !tag.values));
 
 		const personalIds = new Set(this.actor.system.storyTags.map(t => t.id));
 
@@ -327,9 +331,28 @@ export class LitmRollDialog extends FormApplication {
 		.filter(tag => !personalIds.has(tag.id))
 		.map((tag) => ({
 			...tag,
+			displayName: this.#maskTagName(tag),
 			state: this.#tagState.find((t) => t.id === tag.id)?.state
 				?? (tag.isHindering ? "negative" : "positive"),
 			states: ",negative,positive,burned",
+		}));
+	}
+
+	get storyMights() {
+		const { selectedTags } = game.litm.storyTags;
+		const migths = selectedTags.filter((tag) => tag.type === "might");
+		// const migths = selectedTags.filter((tag) => tag.type === "might" || (!tag.type && tag.values?.length === 3));
+
+		const personalIds = new Set(this.actor.system.storyTags.map(t => t.id));
+
+		return [...migths]
+		.filter(tag => !personalIds.has(tag.id))
+		.map((tag) => ({
+			...tag,
+			displayName: this.#maskTagName(tag),
+			state: this.#tagState.find((t) => t.id === tag.id)?.state
+				?? (tag.isHindering ? "negative" : "positive"),
+			states: ",negative,positive",
 		}));
 	}
 
@@ -370,7 +393,7 @@ export class LitmRollDialog extends FormApplication {
 		const personalWithState = [...this.tags, ...this.statuses]
 			.filter(t => !!t.state);
 		const personalIds = new Set(personalWithState.map(t => t.id));
-		const storyWithState = [...this.storyTags, ...this.storyStatuses, ...this.helpingTags]
+		const storyWithState = [...this.storyTags, ...this.storyStatuses, ...this.storyMights, ...this.helpingTags]
 			.filter(t => !!t.state && !personalIds.has(t.id));
 
 		const state = [
@@ -407,6 +430,7 @@ export class LitmRollDialog extends FormApplication {
 			skipModeration,
 			statuses: sortTags(this.statuses),
 			storyStatuses: sortTags(this.storyStatuses),
+			storyMights: sortTags(this.storyMights),
 			tags: sortTags(this.tags),
 			storyTags: sortTags(this.storyTags),
 			helpingTags: sortTags(this.helpingTags),
@@ -433,14 +457,21 @@ export class LitmRollDialog extends FormApplication {
 			for (const e of this.actor.effects) {
 				const flags = e.flags?.["litm-rn"];
 				if (!flags?.type) continue;
+				const type = flags.type || (
+					flags.values?.length === 3 ? "might"
+					: flags.values?.some((v) => !!v) ? "status"
+					: "tag"
+				);
 				freshMap.set(e._id, {
 					id: e._id,
 					name: e.name,
 					values: flags.values,
 					isScratched: flags.isScratched,
 					isHindering: flags.isHindering || false,
-					value: flags.values?.findLast((v) => !!v),
-					type: flags.values?.some((v) => !!v) ? "status" : "tag",
+					value: type === "might"
+						? (flags.value ?? 3)
+						: (flags.values?.findLast((v) => !!v) || 0),
+					type,
 				});
 			}
 		}
@@ -586,7 +617,7 @@ export class LitmRollDialog extends FormApplication {
 
 	getFilteredArrayFromFormData(formData) {
 		const personalWithState = [...this.tags, ...this.statuses];
-		const storyWithState = [...this.storyTags, ...this.storyStatuses, ...this.helpingTags];
+		const storyWithState = [...this.storyTags, ...this.storyStatuses, ...this.storyMights, ...this.helpingTags];
 
 		const allTags = [
 			...this.characterTags,
@@ -649,6 +680,29 @@ export class LitmRollDialog extends FormApplication {
 		return this.#createModerationRequest(data);
 	}
 
+	#maskTagName(tag) {
+		if (!tag.isPrivate) return tag.name;
+		if (game.user.isGM) return tag.name;
+
+		// actorRef - from StoryTagApp, actorId - from helpingTags
+		const ref = tag.actorRef || tag.actorId;
+		if (ref) {
+			const id = typeof ref === "string" ? ref.replaceAll('___', '.') : ref;
+			let actor = game.actors.get(id);
+			if (!actor) {
+				try {
+					const doc = fromUuidSync(id);
+					if (doc instanceof TokenDocument) actor = doc.actor;
+					else if (doc instanceof Actor) actor = doc;
+				} catch (_) { /* no-op */ }
+			}
+			if (actor?.isOwner) return tag.name;
+		}
+
+		const maskName = "???";
+		return maskName;
+	}
+
 	#handleClick(event) {
 		const button = event.currentTarget;
 		const action = button.dataset.click;
@@ -681,6 +735,7 @@ export class LitmRollDialog extends FormApplication {
 					...this.statuses,
 					...this.storyTags,
 					...this.storyStatuses,
+					...this.storyMights,
 					...this.helpingTags
 					].find((t) => t.id === id);
 				if (tag) {
