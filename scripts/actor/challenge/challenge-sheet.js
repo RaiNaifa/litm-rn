@@ -38,9 +38,16 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		data.permissionLevel = permissionLevel;
 
 		data.system.challenges = this.system.challenges;
-		data.system.special = await TextEditor.enrichHTML(data.system.special);
 		data.system.note = await TextEditor.enrichHTML(data.system.note);
 		data.system.renderedTags = await TextEditor.enrichHTML(data.system.tags);
+		data.system.enrichedSpecials = await Promise.all(
+			(data.system.specials || []).map(async (s, index) => ({
+				index,
+				name: s.name,
+				description: s.description,
+				enrichedDescription: await TextEditor.enrichHTML(s.description || ""),
+			})),
+		);
 
 		data.items = await Promise.all(this.items.map((i) => i.sheet.getData()));
 
@@ -95,6 +102,18 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		html
 			.find("li.litm--tag-item input.litm--private-checkbox[type='checkbox']")
 			.on("change", this.#onEffectPrivateChange.bind(this));
+    // Special name fields — simple contenteditable with blur save
+    html
+			.find(".litm--special-name[contenteditable]")
+			.on("blur", this.#onSpecialFieldBlur.bind(this));
+
+    // Special description — focus toggles edit/display, blur saves
+    html
+			.find(".litm--special-description-display")
+			.on("click", this.#onSpecialDescriptionClick.bind(this));
+    html
+			.find(".litm--special-description-edit[contenteditable]")
+			.on("blur", this.#onSpecialDescriptionBlur.bind(this));
 
 		if (this.isEditing) html.find("[contenteditable]:has(+#tags)").focus();
 	}
@@ -130,6 +149,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			case "add-tag":
 				this.#addTag();
+				break;
+			case "add-special":
+				this.#addSpecial();
 				break;
 			case "add-status":
 				this.#addStatus();
@@ -169,6 +191,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "remove-limit":
 				this.#removeLimit(button);
 				break;
+			case "remove-special":
+				this.#removeSpecial(button);
+				break;
 			case "remove-threat":
 				this.#removeThreat(button);
 				break;
@@ -201,6 +226,15 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		threats[0].sheet.render(true);
 	}
 
+	#addSpecial() {
+		const specials = this.system.specials || [];
+		specials.push({
+			name: t("Litm.ui.new-special"),
+			description: t("Litm.ui.new-special-description"),
+		});
+		this.actor.update({ "system.specials": specials });
+	}
+
 	async #removeLimit(button) {
 		if (!(await confirmDelete("Litm.other.limit"))) return;
 		const index = Number(button.dataset.id);
@@ -208,6 +242,15 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		limits.splice(index, 1);
 		this.actor.update({ "system.limits": limits });
+	}
+
+	async #removeSpecial(button) {
+		if (!(await confirmDelete("Litm.other.special"))) return;
+		const index = Number(button.dataset.id);
+		const specials = this.system.specials || [];
+
+		specials.splice(index, 1);
+		this.actor.update({ "system.specials": specials });
 	}
 
 	async #removeThreat(button) {
@@ -279,6 +322,66 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		formData["system.tags"] = marks.length > 0 ? marks.join(" ") : "";
 
 		return formData;
+	}
+
+	async #onSpecialFieldBlur(event) {
+		const el = event.currentTarget;
+		const index = Number(el.dataset.specialIndex);
+		const field = el.dataset.specialField; // "name" or "description"
+		const value = el.textContent.trim();
+
+		const specials = foundry.utils.deepClone(this.system.specials || []);
+		if (!specials[index]) return;
+
+		if (specials[index][field] === value) return;
+
+		specials[index][field] = value;
+		await this.actor.update({ "system.specials": specials });
+	}
+
+	#onSpecialDescriptionClick(event) {
+		const display = event.currentTarget;
+		const index = display.dataset.specialIndex;
+		const wrapper = display.closest(".litm--special-description-wrapper");
+		const editField = wrapper.querySelector(".litm--special-description-edit");
+
+		display.style.display = "none";
+		editField.style.display = "";
+		editField.focus();
+
+		// Place cursor at end
+		const range = document.createRange();
+		const sel = window.getSelection();
+		if (editField.childNodes.length > 0) {
+			range.selectNodeContents(editField);
+			range.collapse(false);
+		} else {
+			range.setStart(editField, 0);
+			range.collapse(true);
+		}
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+
+	async #onSpecialDescriptionBlur(event) {
+		const editField = event.currentTarget;
+		const index = Number(editField.dataset.specialIndex);
+		const value = editField.textContent.trim();
+		const wrapper = editField.closest(".litm--special-description-wrapper");
+		const display = wrapper.querySelector(".litm--special-description-display");
+
+		const specials = foundry.utils.deepClone(this.system.specials || []);
+		if (!specials[index]) return;
+
+		if (specials[index].description !== value) {
+			specials[index].description = value;
+			await this.actor.update({ "system.specials": specials });
+
+			return;
+		}
+
+		editField.style.display = "none";
+		display.style.display = "";
 	}
 
 	async #onEffectNameChange(event) {

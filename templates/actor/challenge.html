@@ -194,8 +194,30 @@
 					{{/each}}
 				</ul>
 			</div>
-			{{> divider title="Litm.ui.special-features"}}
-			{{editor data.system.special target="system.special" owner=owner button=true editable=true engine="prosemirror"}}
+			{{> divider title="Litm.ui.special-features" add="special"}}
+			<ul class="litm--challenge-specials">
+				{{#each data.system.enrichedSpecials as |special|}}
+					<li class="litm--special-item" data-context="remove-special" data-id="{{special.index}}">
+						<span class="litm--special-field litm--special-name"
+							role="textbox" contenteditable
+							data-special-index="{{special.index}}"
+							data-special-field="name"
+							data-placeholder="{{localize 'Litm.other.special'}}">{{special.name}}</span><span
+							class="litm--special-separator">:</span>
+						<span class="litm--special-description-wrapper"
+							data-special-index="{{special.index}}">
+							<span class="litm--special-field litm--special-description-edit"
+								role="textbox" contenteditable
+								data-special-index="{{special.index}}"
+								data-special-field="description"
+								data-placeholder="{{localize 'Litm.ui.new-special-description'}}"
+								style="display:none;">{{special.description}}</span>
+							<span class="litm--special-description-display"
+								data-special-index="{{special.index}}">{{{special.enrichedDescription}}}</span>
+						</span>
+					</li>
+				{{/each}}
+		</ul>
 			{{> divider title="Litm.ui.threats-consequences" add="threat"}}
 			<ul class="litm--challenge-threats item-list">
 				{{#each data.items as |item|}}

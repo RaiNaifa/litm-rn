@@ -284,6 +284,8 @@
 			"name-status": "Name your Status",
 			"name-weakness": "Name your Weakness",
 			"new-limit": "New Limit",
+			"new-special": "New Special",
+			"new-special-description": "New Special Description",
 			"new-threat": "New Threat",
 			"no-assigned-user": "This character is not assigned to a Player",
 			"no-fellowships": "Please create Fellowship first",
