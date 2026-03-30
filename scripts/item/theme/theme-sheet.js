@@ -27,6 +27,7 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		data.system.themebooks = this.system.themebooks;
 		data.system.backside = this.#backside,
 		data.system.note = await TextEditor.enrichHTML(data.system.note);
+		data.system.draftTags = this.system.draftTags;
 		data.system.specials = await Promise.all(
 			this.system.specials.map(async (special) => ({
 				...special,
@@ -86,8 +87,17 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			case "add-weakness-tag":
 				this.#addTag("weaknessTag");
 				break;
+			case "add-draft-tag":
+				this.#addDraftTag();
+				break;
 			case "add-special":
 				this.#addSpecial();
+				break;
+			case "promote-draft":
+				this.#promoteDraft(id);
+				break;
+			case "toggle-draft-weakness":
+				this.#toggleDraftWeakness(id);
 				break;
 			case "increase":
 				this.#increase(id);
@@ -118,6 +128,9 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 				break;
 			case "remove-weakness":
 				this.#removeTag(button, "weaknessTag");
+				break;
+			case "remove-draft":
+				this.#removeDraftTag(button);
 				break;
 			case "remove-special":
 				this.#removeSpecial(button);
@@ -211,6 +224,59 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		const specials = this.system.specials.filter((t) => t.id !== id);
 
 		await this.item.update({ "system.specials": specials });
+	}
+
+	async #addDraftTag() {
+		const drafts = this.system.draftTags;
+		drafts.push({
+			id: foundry.utils.randomID(),
+			name: t("Litm.ui.name-tag"),
+			isWeakness: false,
+		});
+
+		await this.item.update({ "system.draftTags": drafts });
+	}
+
+	async #removeDraftTag(button) {
+		if (!(await confirmDelete("Litm.other.draft"))) return;
+		const id = button.dataset.id;
+		const drafts = this.system.draftTags.filter((d) => d.id !== id);
+
+		await this.item.update({ "system.draftTags": drafts });
+	}
+
+	async #toggleDraftWeakness(id) {
+		const drafts = this.system.draftTags;
+		const draft = drafts.find((d) => d.id === id);
+		if (!draft) return;
+
+		draft.isWeakness = !draft.isWeakness;
+		await this.item.update({ "system.draftTags": drafts });
+	}
+
+	async #promoteDraft(id) {
+		const drafts = this.system.draftTags;
+		const draftIndex = drafts.findIndex((d) => d.id === id);
+		if (draftIndex === -1) return;
+
+		const draft = drafts[draftIndex];
+		const type = draft.isWeakness ? "weaknessTag" : "powerTag";
+		const newTag = {
+			name: draft.name,
+			isScratched: false,
+			type: type,
+			id: foundry.utils.randomID(),
+		};
+
+		const tags = foundry.utils.deepClone(this.system[`${type}s`]);
+		tags.push(newTag);
+
+		drafts.splice(draftIndex, 1);
+
+		await this.item.update({
+			[`system.${type}s`]: tags,
+			"system.draftTags": drafts,
+		});
 	}
 
 	async #toggleBackside() {

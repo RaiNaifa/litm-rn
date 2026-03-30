@@ -55,6 +55,22 @@ export class ThemeData extends foundry.abstract.DataModel {
               })),
         },
       ),
+      draftTags: new fields.ArrayField(
+        new fields.SchemaField({
+          id: new fields.StringField({
+            initial: () => foundry.utils.randomID(),
+          }),
+          name: new fields.StringField({
+            initial: () => t("Litm.ui.name-tag"),
+          }),
+          isWeakness: new fields.BooleanField({
+            initial: false,
+          }),
+        }),
+        {
+          initial: () => [],
+        },
+      ),
       specials: new fields.ArrayField(
         new fields.EmbeddedDataField(abstract.SpecialData),
         {

@@ -182,12 +182,14 @@
 			"relationship": "Отношение",
 			"relationships": "Отношения",
 			"power": "Сила",
+			"power-tag": "Тег Силы",
 			"scratch": "Зачеркнуть",
 			"story": "Сюжет",
 			"toCrispy": "Сделать тег Одноразовым",
 			"toHindering": "Помогающий",
 			"toPrivate": "Скрыть от игроков",
 			"weakness": "Слабость",
+			"weakness-tag": "Тег Слабости",
 			"origin-0": "Истоки (0)",
 			"adventure-3": "Приключение (3)",
 			"greatness-6": "Величие (6)"
@@ -222,6 +224,7 @@
 		"ui": {
 			"active-effects": "Активные Эффекты",
 			"add-consequence": "Добавить Последствие",
+			"add-draft-tag": "Наметить Тег",
 			"add-effect": "Добавить Эффект",
 			"add-limit": "Добавить Лимит",
 			"add-relationship": "Добавить Отношение",

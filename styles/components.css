@@ -87,7 +87,9 @@
 }
 
 :where(.litm--checkbox-with-bg.litm--hindering-checkbox),
-.app.litm.litm :where(.litm--checkbox-with-bg.litm--hindering-checkbox) {
+.app.litm.litm :where(.litm--checkbox-with-bg.litm--hindering-checkbox),
+:where(.litm--checkbox-with-bg.litm--weakness-toggle),
+.app.litm.litm :where(.litm--checkbox-with-bg.litm--weakness-toggle) {
 	background: url("../assets/media/icons/weakness-marker-litm_inactive.svg") no-repeat;
 
 	&.checked,
@@ -490,6 +492,10 @@ li.litm--special {
 	justify-content: center;
 	align-items: center;
 	margin-top: 1rem;
+
+	& + .litm--add-tags-buttons {
+		margin-top: 0.5rem;
+	}
 
 	& button {
 		flex: 1;

@@ -175,10 +175,12 @@
 			"relationship": "Relationship",
 			"relationships": "Relationships",
 			"power": "Power",
+			"power-tag": "Power Tag",
 			"scratch": "Scratch",
 			"story": "Story",
 			"toHindering": "Make Hindering",
 			"weakness": "Weakness",
+			"weakness-tag": "Weakness Tag",
 			"origin-0": "Origin (0)",
 			"adventure-3": "Adventure (3)",
 			"greatness-6": "Greatness (6)"
@@ -213,6 +215,7 @@
 		"ui": {
 			"active-effects": "Active Effects",
 			"add-consequence": "Add Consequence",
+			"add-draft-tag": "Draft a Tag",
 			"add-effect": "Add Effect",
 			"add-limit": "Add Limit",
 			"add-relationship": "Add Relationship",

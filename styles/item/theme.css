@@ -46,6 +46,7 @@
 			background-repeat: no-repeat;
 			margin: 7px 13px 0px 6px;
 
+			& button[data-click="add-draft-tag"],
 			& button[data-click="add-power-tag"],
 			button[data-click="add-weakness-tag"],
 			button[data-click="add-special"] {
@@ -325,6 +326,110 @@
 				&:focus,
 				&:active {
 					box-shadow: none;
+				}
+			}
+		}
+
+		& .litm--draft-tags {
+			margin: var(--litm-space-2) 10px 0;
+			padding: var(--litm-space-2) 0 0;
+			display: flex;
+			flex-direction: column;
+			list-style: none;
+			border-top: 1px dashed rgb(0 0 0 / 0.15);
+
+			& .litm--draft-tag {
+				display: flex;
+				align-items: center;
+				width: 100%;
+				gap: var(--litm-space-2);
+				opacity: 0.6;
+				transition: opacity 0.15s;
+
+				&:hover,
+				&:focus,
+				&:focus-within,
+				&:active {
+					opacity: 0.95;
+				}
+
+				&:nth-child(odd) {
+					background-image: linear-gradient(
+						to right,
+						transparent,
+						rgba(69, 59, 29, 0.15),
+						transparent
+					);
+				}
+
+				& .litm--draft-promote {
+					flex: none;
+					border: none;
+					background: none;
+					padding: 2px;
+					margin: 0;
+					color: var(--litm-color);
+					font-size: var(--font-size-14);
+					cursor: pointer;
+					line-height: 1;
+					width: auto;
+
+					&:hover,
+					&:focus,
+					&:active {
+						text-shadow: 0 0 4px rgb(0 0 0 / 0.4);
+						box-shadow: none;
+					}
+				}
+
+				& .litm--draft-name {
+					flex: 1;
+					text-align: center;
+					border: none;
+					border-radius: 0px;
+					padding-block: var(--litm-space-2);
+					min-height: var(--font-size-14);
+					font-size: var(--font-size-16);
+					height: auto;
+					background-color: transparent;
+					font-family: var(--litm-font-text);
+					color: var(--litm-color-primary);
+
+					&:focus,
+					&:active {
+						box-shadow: none;
+					}
+				}
+
+				& .litm--weakness-toggle {
+					flex: none;
+					cursor: pointer;
+					width: 20px;
+					height: 20px;
+					margin-right: var(--litm-space-1)
+				}
+
+				&.litm--draft-weakness {
+					& .litm--draft-name {
+						color: var(--litm-color-weakness);
+					}
+				}
+			}
+		}
+
+		& .litm--add-tags-buttons {
+
+			& button[data-click="add-draft-tag"] {
+				color: var(--litm-color);
+				font-size: var(--font-size-20);
+				font-family: var(--litm-font-accent);
+				transition: all 0.15s;
+
+				&:hover,
+				&:focus,
+				&:active {
+					box-shadow: none;
+					text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
 				}
 			}
 		}

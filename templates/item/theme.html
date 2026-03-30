@@ -90,6 +90,25 @@
 						</li>
 						{{/each}}
 					</ul>
+					{{#if data.system.draftTags.length}}
+						<ul class="litm--draft-tags">
+							{{#each data.system.draftTags as |draft|}}
+								<li class="litm--draft-tag{{#if draft.isWeakness}} litm--draft-weakness{{/if}}" data-context="remove-draft" data-id="{{draft.id}}">
+									<button type="button" class="litm--draft-promote" data-click="promote-draft" data-id="{{draft.id}}"
+										data-tooltip="{{localize 'Litm.ui.add-tag'}}">
+										<i class="fas fa-plus"></i>
+									</button>
+									<input class="litm--draft-name" type="text" name="system.draftTags.{{@index}}.name" value="{{draft.name}}" />
+									<input type="hidden" name="system.draftTags.{{@index}}.id" value="{{draft.id}}" />
+									<input type="hidden" name="system.draftTags.{{@index}}.isWeakness" data-dtype="Boolean" value="{{draft.isWeakness}}" />
+									<input class="litm--checkbox litm--checkbox-with-bg litm--weakness-toggle" type="checkbox"
+										data-click="toggle-draft-weakness" data-id="{{draft.id}}"
+										data-tooltip="{{localize (ifThen draft.isWeakness 'Litm.tags.weakness-tag' 'Litm.tags.power-tag')}}"
+										{{checked draft.isWeakness}} />
+								</li>
+							{{/each}}
+						</ul>
+					{{/if}}
 				</div>
 			{{/if}}
 			{{#if data.system.backside}}
@@ -98,14 +117,14 @@
 				</div>
 			{{else}}
 				<div class="litm--add-tags-buttons">
+					<button type="button" data-click="add-draft-tag">{{localize "Litm.ui.add-draft-tag"}}</button>
+				</div>
+				<div class="litm--add-tags-buttons">
 					<button type="button" data-click="add-power-tag">{{localize "Litm.ui.add-power-tag"}}</button>
 					<img src="systems/litm-rn/assets/media/separator-small.webp" alt="" class="litm--add-tags-separator">
 					<button type="button" data-click="add-weakness-tag">{{localize "Litm.ui.add-weakness-tag"}}</button>
 				</div>
 			{{/if}}
-			<!-- Add Tag button -->
-			<!-- Might Reimplement later -->
-			<!-- <button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button> -->
 			<div class="litm--theme-progression">
 				<!-- Abandon buttons -->
 				<div data-click="increase" data-context="decrease" data-id="system.abandon"
