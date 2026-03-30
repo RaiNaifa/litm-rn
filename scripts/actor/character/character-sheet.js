@@ -926,39 +926,46 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const selected = t.hasAttribute("data-selected");
 
 		if (tag) tag.actorId = this.actor.id; // for "toHelp" tags
-		if (!tag) {
-			if (!toScratch)
-				return;
-			// scratch/unscratch storyTheme tag 
-			const storyItem = this.items.find(
-				(i) =>
-					(i.type === "story"),
-			);			
+    if (!tag) {
+			if (!toScratch) return;
 
-			// scratch/unscratch special
-			if (!storyItem){
-				let parentItem = this.items.find(
-					(i) =>
-						(i.type === "theme") &&
-						i.system.specials.some((t) => t.id === id),
-					);
-				if (!parentItem) {
+			const storyItem = this.items.find(
+				(i) => i.type === "story" && i.system.themeTag.id === id,
+			);
+			if (storyItem) {
+				await this.actor.updateEmbeddedDocuments("Item", [
+					{
+						_id: storyItem.id,
+						"system.themeTag.isScratched": !storyItem.system.themeTag.isScratched,
+					},
+				]);
+				this.render();
+				return;
+			}
+
+			let parentItem = this.items.find(
+				(i) => i.type === "theme" && i.system.specials.some((s) => s.id === id),
+			);
+			if (!parentItem) {
 					parentItem = this.items.find(
-						(i) =>
-							(i.type === "backpack") &&
-							i.system.specials.some((t) => t.id === id),
-					)
-				}
-				if (!parentItem) {
-					parentItem = this.system.fellowship;
-				}
-				if (parentItem) {
-					const { specials } = parentItem.system.toObject();
-					const special = specials.find((s) => s.id === id);
-					special.isActive = !special.isActive;
-					return parentItem.update({ 'system.specials': specials });
+							(i) => i.type === "backpack" && i.system.specials.some((s) => s.id === id),
+					);
+			}
+			if (!parentItem) {
+				const fellowship = this.system.fellowship;
+				if (fellowship?.system?.specials?.some((s) => s.id === id)) {
+					parentItem = fellowship;
 				}
 			}
+			if (parentItem) {
+				const { specials } = parentItem.system.toObject();
+				const special = specials.find((s) => s.id === id);
+				if (special) {
+					special.isActive = !special.isActive;
+					return parentItem.update({ "system.specials": specials });
+				}
+			}
+			return;
 		} else {
 			// select tag
 			const freshConfig = game.settings.get("litm-rn", "storytags")
