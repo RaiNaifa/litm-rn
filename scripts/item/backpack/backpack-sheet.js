@@ -115,8 +115,25 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 
 		const itemData = item.toObject();
 		delete itemData._id;
+		this.#regenerateInternalIds(itemData);
+
 		await actor.createEmbeddedDocuments("Item", [itemData]);
 		this.render();
+	}
+
+	#regenerateInternalIds(data) {
+		const regen = (arr) => {
+			if (!Array.isArray(arr)) return;
+			for (const item of arr) {
+				if (item.id) item.id = foundry.utils.randomID();
+			}
+		};
+
+		if (data.system.themeTag?.id) {
+			data.system.themeTag.id = foundry.utils.randomID();
+		}
+		regen(data.system.powerTags);
+		regen(data.system.weaknessTags);
 	}
 
 	#onClick(event) {

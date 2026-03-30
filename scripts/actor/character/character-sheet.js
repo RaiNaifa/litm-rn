@@ -671,6 +671,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				regen(data.system.weaknessTags);
 				regen(data.system.specials);
 				break;
+			case "story":
+				if (data.system.themeTag?.id) {
+					data.system.themeTag.id = foundry.utils.randomID();
+				}
+				regen(data.system.powerTags);
+				regen(data.system.weaknessTags);
+				break;
 			case "backpack":
 				regen(data.system.contents);
 				regen(data.system.specials);
