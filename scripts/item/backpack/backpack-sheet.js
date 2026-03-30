@@ -12,7 +12,10 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 			height: 450,
 			resizable: false,
 			scrollY: [".taglist"],
-			dragDrop: [{ dropSelector: null }],
+			dragDrop: [{
+				dragSelector: ".litm--backpack-story[draggable]",
+				dropSelector: null,
+			}],
 		});
 	}
 
@@ -119,6 +122,19 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 
 		await actor.createEmbeddedDocuments("Item", [itemData]);
 		this.render();
+	}
+
+	_onDragStart(event) {
+		const li = event.currentTarget.closest(".litm--backpack-story");
+		if (!li) return;
+
+		const actor = this.item.parent;
+		if (!actor) return;
+
+		const item = actor.items.get(li.dataset.id);
+		if (!item) return;
+
+		event.dataTransfer.setData("text/plain", JSON.stringify(item.toDragData()));
 	}
 
 	#regenerateInternalIds(data) {

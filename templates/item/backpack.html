@@ -24,7 +24,7 @@
 				{{#if isCharacterEmbedded}}
 					{{#each stories as |story|}}
 						<li class="litm--backpack-story litm--story-{{story.system.level}}" data-id="{{story.id}}"
-							data-dblclick="open-story" data-context="remove-story"
+							data-dblclick="open-story" data-context="remove-story" draggable="true"
 							data-tooltip="{{localize 'Litm.ui.click-open-context-remove'}}<hr>{{story.system.note}}">
 							<div class="litm--story-wrapper">
 								<div class="litm--theme-title-wrapper">
