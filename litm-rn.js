@@ -14,6 +14,8 @@ import { ToggledInput } from "./scripts/components/toggled-input.js";
 import { TagData } from "./scripts/data/abstract.js";
 import { RelationshipData } from "./scripts/data/abstract.js";
 import { SpecialData } from "./scripts/data/abstract.js";
+import { StoryThemeData } from "./scripts/item/story/story-data.js";
+import { StoryThemeSheet } from "./scripts/item/story/story-sheet.js";
 import { BackpackData } from "./scripts/item/backpack/backpack-data.js";
 import { BackpackSheet } from "./scripts/item/backpack/backpack-sheet.js";
 import { HeroData } from "./scripts/item/hero/hero-data.js";
@@ -70,6 +72,7 @@ Hooks.once("init", () => {
 	CONFIG.Item.dataModels.backpack = BackpackData;
 	CONFIG.Item.dataModels.fellowship = FellowshipThemeData;
 	CONFIG.Item.dataModels.hero = HeroData;
+	CONFIG.Item.dataModels.story = StoryThemeData;
 	CONFIG.Item.dataModels.theme = ThemeData;
 	CONFIG.Item.dataModels.threat = ThreatData;
 	CONFIG.litm = new LitmConfig();
@@ -99,10 +102,10 @@ Hooks.once("init", () => {
 		types: ["hero"],
 		makeDefault: true,
 	});
-	// Items.registerSheet("litm-rn", StoryThemeSheet, {
-	// 	types: ["storytheme"],
-	// 	makeDefault: true,
-	// });
+	foundry.documents.collections.Items.registerSheet("litm-rn", StoryThemeSheet, {
+		types: ["story"],
+		makeDefault: true,
+	});
 	foundry.documents.collections.Items.registerSheet("litm-rn", ThemeSheet, {
 		types: ["theme"],
 		makeDefault: true,

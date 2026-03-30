@@ -96,13 +96,6 @@
 			</div>
 		</li>
 	{{/if}}
-{{/inline}} {{#*inline 'add-theme-button' id}}
-	<button type="button" data-click="add-story-theme" data-id="{{id}}"
-		data-tooltip="{{localize 'Litm.ui.add-story-theme'}}"
-		style="margin-right: 2px; padding-right: 2px;">
-		<span class="litm--sro">{{localize "Litm.ui.add-story-theme"}}</span>
-		<i class="fas fa-file-circle-plus"></i>
-	</button>
 {{/inline}} {{#*inline 'toggle-hindering' source tag editable}}
 	<input class="litm--checkbox litm--checkbox-with-bg litm--hindering-checkbox" type="checkbox"
 		name="{{source}}.{{tag._id}}.isHindering"

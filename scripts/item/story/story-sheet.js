@@ -2,21 +2,16 @@ import { SheetMixin } from "../../mixins/sheet-mixin.js";
 import { confirmDelete, localize as t } from "../../utils.js";
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
-export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
+export class StoryThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	static defaultOptions = foundry.utils.mergeObject(foundry.appv1.sheets.ItemSheet.defaultOptions, {
-		classes: ["litm", "litm--theme"],
-		width: 330,
-		height: 700,
+		classes: ["litm", "litm--story-theme"],
+		template: "systems/litm-rn/templates/item/story.html",
+		width: 360,
+		resizable: true,
 	});
-
-	#backside = false;
 
 	get system() {
 		return this.item.system;
-	}
-
-	get template() {
-		return "systems/litm-rn/templates/item/theme.html";
 	}
 
 	async getData() {
@@ -24,29 +19,18 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 
 		data.system.weakness = this.system.weakness;
 		data.system.levels = this.system.levels;
-		data.system.themebooks = this.system.themebooks;
-		data.system.backside = this.#backside,
 		data.system.note = await TextEditor.enrichHTML(data.system.note);
-		data.system.specials = await Promise.all(
-			this.system.specials.map(async (special) => ({
-				...special,
-				enrichedDescription: await TextEditor.enrichHTML(special.description),
-			}))
-		);
 
 		const fallbackSrc = ["origin", "adventure", "greatness"].includes(
 			data.system.level,
 		)
 			? data.system.level
 			: "origin";
-		const themesrc =
-			CONFIG.litm.theme_src[data.system.level] ||
-			`systems/litm-rn/assets/media/${fallbackSrc}`;
 		const themeiconsrc =
 			CONFIG.litm.themeicon_src[data.system.level] ||
 			`systems/litm-rn/assets/media/icons/${fallbackSrc}`;
 
-		return { data, themesrc, themeiconsrc, ...rest };
+		return { data, themeiconsrc, ...rest };
 	}
 
 	activateListeners(html) {
@@ -78,28 +62,18 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	#handleClicks(event) {
 		const t = event.currentTarget;
 		const action = t.dataset.click;
-		const id = t.dataset.id;
 		switch (action) {
 			case "add-power-tag":
 				this.#addTag("powerTag");
 				break;
 			case "add-weakness-tag":
-				this.#addTag("weaknessTag");
-				break;
-			case "add-special":
-				this.#addSpecial();
-				break;
-			case "increase":
-				this.#increase(id);
+				this.#addTag("weaknessStoryTag");
 				break;
 			case "open-levels":
 				this.#openlevels(event);
 				break;
 			case "select-level":
 				this.#selectlevel(event);
-				break;
-			case "toggle-backside":
-				this.#toggleBackside();
 				break;
 		}
 	}
@@ -110,17 +84,11 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		const id = button.dataset.id;
 
 		switch (action) {
-			case "decrease":
-				this.#decrease(id);
-				break;
 			case "remove-tag":
 				this.#removeTag(button, "powerTag");
 				break;
 			case "remove-weakness":
-				this.#removeTag(button, "weaknessTag");
-				break;
-			case "remove-special":
-				this.#removeSpecial(button);
+				this.#removeTag(button, "weaknessStoryTag");
 				break;
 		}
 	}
@@ -168,18 +136,19 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 	}
 
 	async #addTag(type) {
-		const l = type === "weaknessTag" ? "weakness" : "power";
+		const fixedType = type === "weaknessStoryTag" ? "weaknessTag" : "powerTag"
+		const label = type === "weaknessStoryTag" ? "weakness" : "power";
 		const item = {
-			name: t(`Litm.ui.name-${l}`),
+			name: t(`Litm.ui.name-${label}`),
 			isScratched: false,
 			type: type,
 			id: foundry.utils.randomID(),
 		};
 
-		const tags = this.system[`${type}s`];
+		const tags = this.system[`${fixedType}s`];
 		tags.push(item);
 
-		await this.item.update({ [`system.${type}s`]: tags });
+		await this.item.update({ [`system.${fixedType}s`]: tags });
 	}
 
 	async #removeTag(button, type) {
@@ -188,44 +157,5 @@ export class ThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 		const tags = this.system[`${type}s`].filter((t) => t.id !== id);
 
 		await this.item.update({ [`system.${type}s`]: tags });
-	}
-
-	async #addSpecial() {
-		const item = {
-			name: t("Litm.ui.name-special"),
-			description: t("Litm.ui.name-special-description"),
-			isActive: true,
-			id: foundry.utils.randomID(),
-		};
-
-		const specials = this.system.specials;
-		specials.push(item);
-
-		await this.item.update({ "system.specials": specials });
-	}
-
-	async #removeSpecial(button) {
-		if (!(await confirmDelete("Litm.other.special"))) return;
-
-		const id = button.dataset.id;
-		const specials = this.system.specials.filter((t) => t.id !== id);
-
-		await this.item.update({ "system.specials": specials });
-	}
-
-	async #toggleBackside() {
-		this.#backside = !this.#backside;
-
-		this.render(false);
-	}
-
-	async #increase(field) {
-		const attribute = foundry.utils.getProperty(this.item, field);
-		await this.item.update({ [field]: attribute + 1 });
-	}
-
-	async #decrease(field) {
-		const attribute = foundry.utils.getProperty(this.item, field);
-		await this.item.update({ [field]: attribute - 1 });
 	}
 }

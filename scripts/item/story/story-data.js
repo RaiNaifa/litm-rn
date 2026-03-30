@@ -2,15 +2,11 @@
 
 import { localize as t } from "../../utils.js";
 
-export class FellowshipThemeData extends foundry.abstract.DataModel {
+export class StoryThemeData extends foundry.abstract.DataModel {
   static defineSchema() {
     const fields = foundry.data.fields;
     const abstract = game.litm.data;
     return {
-      themebook: new fields.StringField({
-        trim: true,
-        initial: t("Litm.other.fellowship"),
-      }),
       level: new fields.StringField({
         trim: true,
         initial: () => Object.keys(CONFIG.litm.theme_levels)[0],
@@ -23,7 +19,7 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
         initial: () => ({
           id: foundry.utils.randomID(),
           name: t("Litm.ui.name-theme-tag"),
-          type: "themeCrispy",
+          type: "themeTag",
           isScratched: false,
         })
       }),
@@ -36,7 +32,7 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 							.map((_, i) => ({
                 id: foundry.utils.randomID(),
                 name: t("Litm.ui.name-power"),
-                type: "powerCrispy",
+                type: "powerTag",
                 isScratched: false,
               })),
         },
@@ -50,46 +46,11 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 							.map(() => ({
                 id: foundry.utils.randomID(),
                 name: t("Litm.ui.name-weakness"),
-                type: "weaknessTag",
+                type: "weaknessStoryTag",
                 isScratched: false,
               })),
         },
       ),
-      specials: new fields.ArrayField(
-        new fields.EmbeddedDataField(abstract.SpecialData),
-        {
-          initial: () =>
-            Array(1)
-							.fill()
-							.map(() => ({
-                id: foundry.utils.randomID(),
-                name: t("Litm.ui.name-special"),
-                description: t("Litm.ui.name-special-description"),
-                isActive: false,
-              })),
-        }
-      ),
-      improve: new fields.NumberField({
-				integer: true,
-				min: 0,
-				initial: 0,
-				max: 3,
-			}),
-      abandon: new fields.NumberField({
-				integer: true,
-				min: 0,
-				initial: 0,
-				max: 3,
-			}),
- 			milestone: new fields.NumberField({
-				integer: true,
-				min: 0,
-				initial: 0,
-				max: 3,
-			}),
-			motivation: new fields.StringField({
-				initial: t("Litm.ui.name-motivation"),
-			}),
 			note: new fields.HTMLField({
 				initial: t("Litm.ui.name-note"),
 			}),

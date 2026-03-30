@@ -560,6 +560,9 @@ export class LitmHooks {
 				case "backpack":
 					img += "backpack.svg";
 					break;
+				case "story":
+					img += "story-theme_icn.svg";
+					break;
 				case "hero":
 					img = "icons/svg/aura.svg";
 					break;

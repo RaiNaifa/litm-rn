@@ -145,6 +145,7 @@
 			"rating": "Rating",
 			"roll": "Roll",
 			"status": "Status",
+			"story-theme": "Story Theme",
 			"story-tags": "Story Tags",
 			"special": "Special",
 			"specials": "Specials",
@@ -216,6 +217,7 @@
 			"add-limit": "Add Limit",
 			"add-relationship": "Add Relationship",
 			"add-special": "Add Special",
+			"add-story": "Add Story",
 			"add-story-theme": "Add Story Theme",
 			"add-tag": "Add Tag",
 			"add-status": "Add Status",
@@ -229,7 +231,7 @@
 			"cancel": "Cancel",
 			"change-roll-type": "Change Roll Type",
 			"choose-fellowship-hint": "For a character to join a Fellowship, they must first be assigned to a Player. When editing a Hero card, select the desired Fellowship from the list of Fellowships owned by the assigned player.",
-			"click-open-context-remove": "<span class='reference'>Click</span> to open sheet, <span class='reference'>Right-Click</span> to remove.",
+			"click-open-context-remove": "<span class='reference'>Click</span> to open sheet.<br /><span class='reference'>Right-Click</span> to remove.",
 			"confirm-delete-content": "Are you sure you want to remove this {thing}?",
 			"confirm-delete-title": "Confirm Removal",
 			"confirm-unlink-content": "Are you sure you want to unlink this {thing}?",
@@ -381,6 +383,7 @@
 			"backpack": "Backpack",
 			"fellowship": "Fellowship",
 			"hero": "Hero",
+			"story": "Story Theme",
 			"theme": "Theme",
 			"threat": "Threat"
 		}

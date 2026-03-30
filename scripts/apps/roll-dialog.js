@@ -287,6 +287,9 @@ export class LitmRollDialog extends FormApplication {
 				case "weaknessTag":
 					states = ",negative";
 					break;
+				case "weaknessStoryTag":
+					states = ",negative";
+					break;
 				default:
 					states = ",negative,positive,burned";
 					break;
@@ -375,6 +378,9 @@ export class LitmRollDialog extends FormApplication {
 					case "weaknessTag":
 						states = ",negative";
 						break;
+					case "weaknessStoryTag":
+						states = ",negative";
+						break;
 					default:
 						states = ",negative,positive,burned";
 						break;
@@ -383,7 +389,7 @@ export class LitmRollDialog extends FormApplication {
 				return ({
 				...tag,
 				state: this.#tagState.find((t) => t.id === tag.id)?.state
-					?? (tag.type === "weaknessTag" ? "negative" : "positive"),
+					?? ((tag.type === "weaknessTag" || tag.type === "weaknessStoryTag") ? "negative" : "positive"),
 				states,
 			})});
 	}
@@ -588,6 +594,10 @@ export class LitmRollDialog extends FormApplication {
 				tag.states = ",positive,burned";
 				break;
 			case "weaknessTag":
+				tag.state = "negative";
+				tag.states = ",negative";
+				break;
+			case "weaknessStoryTag":
 				tag.state = "negative";
 				tag.states = ",negative";
 				break;

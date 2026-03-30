@@ -104,11 +104,6 @@ export class ThemeData extends foundry.abstract.DataModel {
     return this.activatedPowerTags.filter((tag) => !tag.isScratched);
   }
 
-  get powerTagRatio() {
-    const total = this.activatedPowerTags.length;
-    return total > 0 ? this.availablePowerTags.length / total : 0;
-  }
-
   get weakness() {
     return this.weaknessTags;
   }

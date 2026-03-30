@@ -31,6 +31,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	});
 	#fellowshipUpdateHook = null;
 	#storyTagsHookId = null;
+	#expandedStories = new Set();
 
 	get template() {
 		return "systems/litm-rn/templates/actor/character.html";
@@ -109,16 +110,16 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			}
 			case "powerTag": {
-				const parentTheme = this.items.find(
+				const parentItem = this.items.find(
 					(i) =>
-						(i.type === "theme") &&
+						(i.type === "theme" || i.type === "story") &&
 						i.system.powerTags.some((t) => t.id === tag.id),
 				);
-				const { powerTags } = parentTheme.system.toObject();
+				const { powerTags } = parentItem.system.toObject();
 				powerTags.find((t) => t.id === tag.id).isScratched = !tag.isScratched;
 				await this.actor.updateEmbeddedDocuments("Item", [
 					{
-						_id: parentTheme.id,
+						_id: parentItem.id,
 						"system.powerTags": powerTags,
 					},
 				]);
@@ -131,14 +132,14 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				await parentTheme.update({ "system.themeTag.isScratched": !tag.isScratched });
 				break;
 			case "themeTag": {
-				const parentTheme = this.items.find(
+				const parentItem = this.items.find(
 					(i) =>
-						(i.type === "theme") &&
+						(i.type === "theme" || i.type === "story") &&
 						i.system.themeTag.id === tag.id,
 				);
 				await this.actor.updateEmbeddedDocuments("Item", [
 					{
-						_id: parentTheme.id,
+						_id: parentItem.id,
 						"system.themeTag.isScratched": !tag.isScratched,
 					},
 				]);
@@ -184,7 +185,23 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	async getData() {
 		const assignedUser = getAssignedUser(this.actor);
 		const availableFellowships = getAvailableFellowships(this.actor);
-		const fellowship = this.system.fellowship;
+
+		let fellowship = null;
+		const fellowshipItem = this.system.fellowship;
+
+		if (fellowshipItem) {
+			const fData = await fellowshipItem.sheet.getData();
+
+			fData.data.system.specials = await Promise.all(
+				fellowshipItem.system.specials.map(async (special) => ({
+					...special,
+					enrichedDescription: await TextEditor.enrichHTML(special.description),
+				}))
+			);
+			fData.data.system.backside = this.#getBackside(fellowshipItem.id);
+
+			fellowship = fData;
+		}
 
 		const themes = await Promise.all(
 			this.items
@@ -199,21 +216,38 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		);
 		const note = await TextEditor.enrichHTML(this.system.note);
 		const backpackItem = this.items.find((i) => i.type === "backpack");
+		const enrichedBackpackSpecials = backpackItem ? await Promise.all(
+				(this.system.backpack.specials || []).map(async (special) => ({
+					...special,
+					enrichedDescription: await TextEditor.enrichHTML(special.description),
+				}))
+			) : [];
+		const stories = await Promise.all(
+			this.items
+				.filter((i) => i.type === "story")
+				.sort((a, b) => a.sort - b.sort)
+				.map(async (s) => {
+					const data = await s.sheet.getData();
+					data.collapsed = !this.#expandedStories.has(s.id);
+					return data;
+				}),
+		);
 		const backpack = {
 			name: backpackItem?.name,
 			id: backpackItem?._id,
 			backside: this.#getBackside(backpackItem?._id),
-			contents: this.system.backpack.contents,
-			specials: this.system.backpack.specials,
+			contents: this.system.backpack?.contents ?? [],
+			specials: enrichedBackpackSpecials,
+			stories,
 		};
 		const heroItem = this.items.find((i) => i.type === "hero");
 		const hero = {
 			name: heroItem?.name,
 			id: heroItem?._id,
 			backside: this.#getBackside(heroItem?.id),
-			fulfillment: this.system.hero.fulfillment,
-			promise: this.system.hero.promise,
-			contents: this.system.hero.contents,
+			fulfillment: this.system.hero?.fulfillment,
+			promise: this.system.hero?.promise,
+			contents: this.system.hero?.contents,
 		};
 		return {
 			...this.object.system,
@@ -223,7 +257,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			note,
 			themes,
 			_id: this.actor.id,
-			fellowship,          // world-level Item or null
+			fellowship,
 			availableFellowships,
 			hasAssignedUser: !!assignedUser,
 			scratchedTags: this.#roll.characterTags.filter(
@@ -369,9 +403,18 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	async _onDropItem(event, data) {
 		// TODO: сделать проходку по всем внутренним id чтобы не дублировать
 		const item = await Item.implementation.fromDropData(data);
-		if (!["backpack", "theme", "hero", "fellowship"].includes(item.type)) return;
+		if (!["backpack", "theme", "hero", "fellowship", "story"].includes(item.type)) return;
 
 		if (this.items.get(item.id)) return this._onSortItem(event, item);
+
+		if (item.type === "story") {
+			const backpack = this.items.find((i) => i.type === "backpack");
+			if (!backpack) {
+				return ui.notifications.warn(
+					game.i18n.localize("Litm.ui.error-no-backpack"),
+				);
+			}
+		}
 
 		const numThemes = this.items.filter((i) => i.type === "theme").length;
 		if (item.type === "theme" && numThemes >= 4)
@@ -508,6 +551,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "add-status":
 				this.#addStatus();
 				break;
+			case "add-story":
+				this.#addStory();
+				break;
 			case "increase":
 				this.#increase(event);
 				break;
@@ -523,6 +569,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "toggle-backside":
 				this.#toggleBackside(id);
 				break;
+			case "toggle-collapse":
+				this.#toggleCollapse(t);
+				break;
 		}
 	}
 
@@ -535,6 +584,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				this.#tagsFocused = null;
 				t.classList.remove("focused");
 				t.style.cssText = this.#tagsFocused;
+				break;
+			case "open-story":
+				this.#openStorySheet(t);
 				break;
 		}
 	}
@@ -553,6 +605,11 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				event.preventDefault();
 				event.stopPropagation();
 				this.#removeEffect(t.dataset.id);
+				break;
+			case "remove-story":
+				event.preventDefault();
+				event.stopPropagation();
+				this.#removeStory(t.dataset.id);
 				break;
 		}
 	}
@@ -751,6 +808,13 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		});
 	}
 
+	async #addStory() {
+		const [story] = await this.actor.createEmbeddedDocuments("Item", [
+			{ name: t("Litm.other.story-theme"), type: "story" },
+		]);
+		story.sheet.render(true);
+	}
+
 	async #removeItem(id) {
 		const item = this.items.get(id);
 		if (!(await confirmDelete(`TYPES.Item.${item.type}`))) return;
@@ -772,6 +836,12 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			app: "story-tags",
 			type: "render",
 		});
+	}
+
+	async #removeStory(id) {
+		if (!(await confirmDelete("TYPES.Item.story"))) return;
+		const item = this.items.get(id);
+		if (item) await item.delete();
 	}
 
 	async #increase(event) {
@@ -809,6 +879,11 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		return item.update({ [attrib]: Math.max(value - 1, 0) });
 	}
 
+	#openStorySheet(button) {
+		const item = this.items.get(button.dataset.id);
+		if (item) item.sheet.render(true);
+	}
+
 	#open(id) {
 		switch (id) {
 			case "note":
@@ -844,31 +919,38 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const selected = t.hasAttribute("data-selected");
 
 		if (tag) tag.actorId = this.actor.id; // for "toHelp" tags
-
 		if (!tag) {
 			if (!toScratch)
 				return;
-			// select special
-			let parentItem = this.items.find(
+			// scratch/unscratch storyTheme tag 
+			const storyItem = this.items.find(
 				(i) =>
-					(i.type === "theme") &&
-					i.system.specials.some((t) => t.id === id),
-				);
-			if (!parentItem) {
-				parentItem = this.items.find(
+					(i.type === "story"),
+			);			
+
+			// scratch/unscratch special
+			if (!storyItem){
+				let parentItem = this.items.find(
 					(i) =>
-						(i.type === "backpack") &&
+						(i.type === "theme") &&
 						i.system.specials.some((t) => t.id === id),
-				)
-			}
-			if (!parentItem) {
-				parentItem = this.system.fellowship;
-			}
-			if (parentItem) {
-				const { specials } = parentItem.system.toObject();
-				const special = specials.find((s) => s.id === id);
-				special.isActive = !special.isActive;
-				return parentItem.update({ 'system.specials': specials });
+					);
+				if (!parentItem) {
+					parentItem = this.items.find(
+						(i) =>
+							(i.type === "backpack") &&
+							i.system.specials.some((t) => t.id === id),
+					)
+				}
+				if (!parentItem) {
+					parentItem = this.system.fellowship;
+				}
+				if (parentItem) {
+					const { specials } = parentItem.system.toObject();
+					const special = specials.find((s) => s.id === id);
+					special.isActive = !special.isActive;
+					return parentItem.update({ 'system.specials': specials });
+				}
 			}
 		} else {
 			// select tag
@@ -985,6 +1067,19 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		if (!id) return;
 		this.#backsideStates.set(id, !this.#getBackside(id));
 		this.render(false);
+	}
+
+	#toggleCollapse(button) {
+		const targetId = button.dataset.target;
+		if (this.#expandedStories.has(targetId)) {
+			this.#expandedStories.delete(targetId);
+		} else {
+			this.#expandedStories.add(targetId);
+		}
+		const container = this.element.find(`[data-collapse-id="${targetId}"]`);
+		const icon = $(button).find("i");
+		container.slideToggle(150);
+		icon.toggleClass("fa-angle-down fa-angle-right");
 	}
 
 	async setHelpingTags(helpingTags) {

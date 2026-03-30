@@ -151,6 +151,7 @@
 			"roll": "Бросок",
 			"status": "Статус",
 			"story-tags": "Теги Истории",
+			"story-theme": "Тема Истории",
 			"special": "Особенность",
 			"specials": "Особенности",
 			"tag": "Тег",
@@ -225,6 +226,7 @@
 			"add-limit": "Добавить Лимит",
 			"add-relationship": "Добавить Отношение",
 			"add-special": "Добавить Особенность",
+			"add-story": "Добавить Историю",
 			"add-story-theme": "Добавить Тему Истории",
 			"add-tag": "Добавить Тег",
 			"add-status": "Добавить Статус",
@@ -238,7 +240,7 @@
 			"cancel": "Отменить",
 			"change-roll-type": "Сменить тип броска",
 			"choose-fellowship-hint": "Чтобы персонаж мог вступить в Содружество, он сначала должен быть закреплён за Игроком. В редактировании карточки Героя выберите из списка Содружеств, которыми владеет закреплённый игрок, нужное.",
-			"click-open-context-remove": "<span class='reference'>Двойной клик ЛКМ</span> — открыть карточку, <span class='reference'>ПКМ</span> — удалить.",
+			"click-open-context-remove": "<span class='reference'>Двойной клик ЛКМ</span> — открыть.<br /><span class='reference'>ПКМ</span> — удалить.",
 			"confirm-delete-content": "Вы уверены, что хотите удалить {thing}?",
 			"confirm-delete-title": "Подтвердите удаление",
 			"confirm-unlink-content": "Вы уверены, что хотите отвязать {thing}?",
@@ -389,6 +391,7 @@
 			"backpack": "Рюкзак",
 			"fellowship": "Содружество",
 			"hero": "Герой",
+			"story": "Тема Истории",
 			"theme": "Тема",
 			"threat": "Угроза"
 		}

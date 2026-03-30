@@ -20,6 +20,47 @@
 			</ul>
 		{{else}}
 			<ul class="taglist front">
+				{{#each backpack.stories as |story|}}
+					<li class="litm--story-item litm--story-{{story.data.system.level}}">
+						<div class="litm--theme-title-wrapper">
+							<button type="button" class="litm--collapse-btn" data-click="toggle-collapse" data-target="{{story.data._id}}">
+								<i class="fas {{#if story.collapsed}}fa-angle-right{{else}}fa-angle-down{{/if}}"></i>
+							</button>
+							<button type="button" class="litm--theme-title {{#if (includes @root.helpingTags story.data.system.themeTag.id 'id')}}litm--theme-helping-tag{{/if}}"
+								data-id="{{story.data.system.themeTag.id}}"  data-click="select"
+								{{#if (includes @root.rollTags story.data.system.themeTag.id 'id' )}}data-selected{{/if}}
+								data-tooltip="{{localize (ifThen story.data.system.themeTag.isScratched 'Litm.ui.toggle-scratch' 'Litm.ui.toggle-roll-full')}}<hr>{{story.data.system.note}}">
+								<!-- Name input -->
+								<span class="litm--theme-name{{#if story.data.system.themeTag.isScratched}} scratched{{/if}}">{{data.name}}</span>
+								<!-- isBurnt checkbox -->
+								<span class="litm--sro">{{localize (ifThen story.data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+								<span class="litm--scratch {{checked (or story.data.system.themeTag.isScratched (includes @root.scratchedTags story.data.system.themeTag.id 'id'))}}{{#if (includes @root.burntTags story.data.system.themeTag.id 'id')}} burnt{{/if}}"
+									aria-hidden="true"></span>
+							</button>
+							<input type="hidden" name="items.{{data._id}}.system.themeTag.id" value="{{data.system.themeTag.id}}">
+							<input type="hidden" name="items.{{data._id}}.system.themeTag.type" value="{{data.system.themeTag.type}}">
+							<input type="hidden" name="items.{{data._id}}.system.themeTag.name" value="{{data.system.themeTag.name}}">
+							<input type="hidden" name="items.{{data._id}}.system.themeTag.isScratched" data-dtype="Boolean" value="{{data.system.themeTag.isScratched}}">
+						</div>
+						<div class="litm--story-tags-collapsible" data-collapse-id="{{story.data._id}}"
+							{{#if story.collapsed}}style="display: none;"{{/if}}>
+							<ul class="taglist-stories">
+								{{#each story.data.system.powerTags as |tag|}} {{> systems/litm-rn/templates/partials/tag.html
+									tag=tag key=@key path=(concat 'items.' ../data._id '.system.powerTags') embedded=true}}
+								{{/each}}
+							</ul>
+							<!-- Weakness -->
+							{{#each story.data.system.weakness as |tag|}}
+								<button type="button" class="litm--weakness {{#if (includes @root.helpingTags tag.id 'id')}}litm--theme-helping-tag{{/if}}" data-click="select"
+									data-tooltip="{{localize 'Litm.ui.toggle-roll-select-help'}}" data-id="{{tag.id}}" {{#if (includes @root.rollTags
+									tag.id 'id' )}}data-selected{{/if}}>
+									<!-- Weakness Name -->
+									<span class="litm--weakness-part">{{tag.name}}</span>
+								</button>
+							{{/each}}
+						</div>
+					</li>
+				{{/each}}
 				{{#each backpack.contents as |tag|}}
 					{{> systems/litm-rn/templates/partials/tag.html tag=tag key=@key path=(concat "items." ../backpack.id ".system.contents") embedded=true remove=false}}
 				{{/each}}

@@ -45,6 +45,11 @@
 				]
 			},
 			"hero": {},
+			"story": {
+				"htmlFields": [
+					"note"
+				]
+			},
 			"theme": {
 				"htmlFields": [
 					"note"

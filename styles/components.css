@@ -236,6 +236,7 @@
 :where(.litm--powerCrispy),
 :where(.litm--powerTag),
 :where(.litm--weaknessTag),
+:where(.litm--weaknessStoryTag),
 :where(.litm--themeTag),
 :where(.litm--themeCrispy),
 :where(.litm--hero),
@@ -259,7 +260,8 @@
 	}
 
 	&.litm--limit,
-	&.litm--weaknessTag {
+	&.litm--weaknessTag,
+	&.litm--weaknessStoryTag {
 		background: var(--litm-color-limit-bg);
 	}
 

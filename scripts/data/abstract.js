@@ -17,7 +17,7 @@ export class TagData extends foundry.abstract.DataModel {
 			}),
 			type: new fields.StringField({
 				required: true,
-				choices: ["weaknessTag", "powerCrispy", "powerTag", "backpack", "hero", "themeCrispy", "themeTag", "fulfillment"],
+				choices: ["weaknessTag", "weaknessStoryTag", "powerCrispy", "powerTag", "backpack", "hero", "themeCrispy", "themeTag", "fulfillment"],
 			}),
 		};
 	}

@@ -7,7 +7,7 @@
 
 	& .window-header {
 		position: absolute;
-		top: 40px;
+		top: 16px;
 		padding-inline: 76px;
 		width: 100%;
 		flex-wrap: nowrap;
@@ -37,6 +37,7 @@
 	}
 
 	& .litm--backpack-bg-frame {
+		height: 452px;
 		pointer-events: none;
 		z-index: 1;
 	}
@@ -47,7 +48,7 @@
 		box-shadow: none;
 		display: flex;
 		flex-direction: column;
-		height: 398px;
+		height: 440px;
 		width: 260px;
 
 		& .meta {
@@ -97,10 +98,11 @@
 			display: flex;
 			flex-direction: column;
 			list-style: none;
-			margin: 0 4px 0px 0px;
-			padding: var(--litm-space-1) var(--litm-space-1) var(--litm-space-2) var(--litm-space-3);
+			margin: 0;
+			padding: var(--litm-space-1) var(--litm-space-1) var(--litm-space-2) var(--litm-space-2);
 			height: 100%;
 			overflow: auto;
+			scrollbar-gutter: stable;
 
 			& li {
 				display: flex;
@@ -180,9 +182,221 @@
 					}
 				}
 			}
+			
+			& li.litm--backpack-story {
+				cursor: pointer;
+				margin: 0 -4px 0 -8px;
+				padding: 4px;
+				gap: 0;
+				display: flex;
+				flex-direction: column;
+				box-sizing: border-box;
+				border-image-slice: 20 24 20 22;
+				border-image-width: 12px;
+				border-image-outset: 0px 1px 3px 0px;
+				border-image-repeat: stretch round;
+				border-style: solid;
+				background-clip: content-box;
+
+				&:hover {
+					background: url(../../assets/media/story_bg.webp) round;
+				}
+
+				&.litm--story-origin {
+					border-image-source: url("../../assets/media/might-border_origin.webp");
+				}
+				&.litm--story-adventure {
+					border-image-source: url("../../assets/media/might-border_adventure.webp");
+				}
+				&.litm--story-greatness {
+					border-image-source: url("../../assets/media/might-border_greatness.webp");
+				}
+
+				& .litm--story-wrapper {
+					width: 100%;
+					padding: 10px 6px 8px 8px;
+				}
+
+				& .litm--collapse-btn {
+					cursor: pointer;
+					background: none;
+					border: none;
+					padding: 0 4px 0 0;
+					margin: 0;
+					color: inherit;
+					font-size: 0.85em;
+					line-height: 1;
+					opacity: 0.6;
+					transition: opacity 0.15s, transform 0.15s;
+					flex-shrink: 0;
+					width: 16px;
+					height: 16px;
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+
+					&:hover {
+						opacity: 1;
+					}
+
+					& i {
+						transition: transform 0.15s ease;
+					}
+					& i.fa-angle-right {
+						transform: rotate(0deg);
+					}
+					& i.fa-angle-down {
+						transform: rotate(0deg);
+					}
+				}
+
+				& .litm--story-tags-collapsible {
+					padding: 4px 0px 0px 0px;
+					width: 100%;
+					overflow: hidden;
+
+					&  .litm--theme-tags {
+						margin: 0;
+						padding: 0;
+
+						& .litm--theme-tag,
+						& .litm--tag-readonly {
+							padding: 4px 0;
+							position: relative;
+							display: flex;
+							justify-content: space-between;
+							align-items: center;
+							width: 100%;
+							gap: var(--litm-space-1);
+							color: var(--litm-color);
+							font-family: var(--font-primary);
+							font-size: var(--font-size-14);
+							line-height: 135%;
+
+							&:last-child {
+								border-bottom: 1.5px solid rgb(0, 0, 0, 0.2);
+							}
+
+							&.scratched {
+								& span:first-child {
+									text-decoration: line-through var(--litm-color);
+								}
+							}
+
+							& span:first-child {
+								flex-grow: 1;
+								text-align: center;
+								color: var(--litm-color);
+								font-family: var(--litm-font-text);
+								font-size: var(--font-size-14);
+								font-style: normal;
+								line-height: 135%;
+							}
+						}
+					}
+
+					& .litm--weakness {
+						position: relative;
+						padding: 4px 0px;
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+						list-style: none;
+						line-height: 135%;
+						background-image: radial-gradient(ellipse at top, var(--litm-color-weakness-bg) 30%, transparent 70%);
+
+						& .litm--weakness-part {
+							margin: 0px var(--litm-space-2);
+							width: 100%;
+							height: auto;
+							min-height: var(--font-size-14);
+							font-family: var(--litm-font-text);
+							font-size: var(--font-size-14);
+							font-style: normal;
+							color: var(--litm-color-weakness);
+							text-align: center;
+							border: none;
+							border-radius: 0px;
+							padding-block: var(--litm-space-1);
+							background-color: transparent;
+						}
+					}
+				}
+
+				& .litm--theme-title-wrapper {
+					display: flex;
+					align-items: center;
+					width: 100%;
+					gap: var(--litm-space-1);
+					padding: 0px 0px 4px 0px;
+
+					& .litm--theme-title {
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+						position: relative;
+						width: 100%;
+						gap: var(--litm-space-1);
+						font-style: normal;
+						color: var(--litm-color);
+						line-height: 135%;
+						padding: 0px;
+
+						&[data-selected]::before {
+							content: unset;
+							width: 0;
+							height: 0;
+							background: none;
+							background-blend-mode: none;
+							background-size: none;
+							opacity: 1;
+						}
+
+						&.litm--theme-helping-tag::before {
+							width: 85%;
+							height: calc(5px + 100%);
+							top: 0px;
+							left: 45%;
+						}
+
+						&[data-selected] {
+							& .litm--theme-name::before {
+								content: "";
+								position: absolute;
+								width: 85%;
+								height: calc(5px + 100%);
+								background: url(../../assets/media/brush.svg) no-repeat center;
+								background-blend-mode: color;
+								background-size: contain;
+								opacity: 0.8;
+								top: 0px;
+								left: calc(50% - 14px);
+								transform: translateX(-50%);
+							}
+						}
+
+						& .litm--theme-name {
+							flex-grow: 1;
+							font-family: var(--litm-font-primary);
+							font-size: var(--font-size-20);
+							border: none;
+							text-align: center;
+							line-height: 1;
+							letter-spacing: -1px;
+							margin-bottom: -0.35rem;
+
+							&.scratched {
+								text-decoration: line-through var(--litm-color);
+							}
+						}
+					}
+				}
+			}
 		}
 
-		& button[data-click="add-tag"], button[data-click="add-special"] {
+		& button[data-click="add-tag"],
+		& button[data-click="add-story"],
+		& button[data-click="add-special"] {
 			margin-block: auto 0px;
 			margin-inline: 2rem;
 			padding-bottom: var(--litm-space-2);

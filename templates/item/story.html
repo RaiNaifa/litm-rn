@@ -1,0 +1,63 @@
+<form class="{{cssClass}} {{data.system.level}}" autocomplete="off">
+	<div class="litm--story-theme-top litm--theme-{{data.system.level}}">
+				<div class="litm--story-theme-front">
+					<!-- Might Dropdown -->
+					<div class="litm--story-theme-title">
+						<div class="litm--image-dropdown" data-name="system.level">
+							<input type="hidden" name="system.level" value="{{data.system.level}}" />
+							<div class="selected-image" data-click="open-levels" data-tooltip="{{localize 'Litm.other.might-theme'}}">
+								<img src="{{themeiconsrc}}-color_litm_icn.svg" alt="Выбор мощи" />
+								<i class="fas fa-angle-down"></i>
+							</div>
+							<div class="dropdown-options">
+								{{#each data.system.levels as |level key|}}
+									<div class="image-option" data-click="select-level" data-value="{{key}}" title="{{level}}">
+										<img src="systems/litm-rn/assets/media/icons/{{key}}-color_litm_icn.svg" alt="{{label}}" />
+										<span>{{level}}</span>
+									</div>
+								{{/each}}
+							</div>
+						</div>
+						<!-- Name input -->
+						<input type="hidden" name="name" id="name" value="{{title}}" required />
+						<span class="litm--story-theme-name {{#if data.system.themeTag.isScratched}}scratched{{/if}}" role="textbox" contenteditable data-input="name">{{title}}</span>
+						<!-- isScratched checkbox -->
+						<label>
+							<span class="litm--sro">{{localize (ifThen data.system.themeTag.isScratched "Litm.tags.isScratched" "Litm.tags.scratch")}}</span>
+							<input class="litm--scratch {{disabled data.system.themeTag.isScratched}} {{#if (includes @root.burntTags data.system.themeTag.id 'id')}} burnt{{/if}}" type="checkbox" name="system.themeTag.isScratched"
+							data-tooltip="{{localize (ifThen data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}" data-dtype="Boolean"
+							{{checked data.system.themeTag.isScratched}} />
+							<input type="hidden" name="system.themeTag.id" value="{{data.system.themeTag.id}}" />
+							<input type="hidden" name="system.themeTag.type" value="{{data.system.themeTag.type}}" />
+							<input type="hidden" name="system.themeTag.name" value="{{title}}" />
+						</label>
+					</div>
+					<!-- Add Tag button -->
+					<ul class="litm--story-theme-tags">
+						{{#each data.system.powerTags as |tag|}}
+						{{> systems/litm-rn/templates/partials/tag.html tag=tag key=@key path="system.powerTags" readonly=false remove=true}}
+						{{/each}}
+					</ul>
+					<ul class="litm--weakness">
+						{{#each data.system.weakness as |tag|}}
+						<li data-context="remove-weakness" data-id="{{tag.id}}">
+							<!-- Name -->
+							<input class="litm--weakness-part" type="text" name="system.weaknessTags.{{@index}}.name" value="{{name}}" />
+							<!-- The way foundry validates data these have to be present else validation fails -->
+							<input type="hidden" name="system.weaknessTags.{{@index}}.type" value="{{type}}" />
+							<input type="hidden" name="system.weaknessTags.{{@index}}.id" value="{{id}}" />
+							<input type="hidden" name="system.weaknessTags.{{@index}}.isScratched" data-dtype="Boolean" value="{{isScratched}}" />
+						</li>
+						{{/each}}
+					</ul>
+				</div>
+				<div class="litm--add-tags-buttons">
+					<button type="button" data-click="add-power-tag">{{localize "Litm.ui.add-power-tag"}}</button>
+					<img src="systems/litm-rn/assets/media/separator-small.webp" alt="" class="litm--add-tags-separator">
+					<button type="button" data-click="add-weakness-tag">{{localize "Litm.ui.add-weakness-tag"}}</button>
+				</div>
+				<div class="note">
+					{{editor data.system.note target="system.note" owner=owner button=true editable=true engine="prosemirror"}}
+				</div>
+	</div>
+</form>

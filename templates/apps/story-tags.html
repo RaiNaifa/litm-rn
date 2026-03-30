@@ -54,14 +54,6 @@
 		{{/if}}
 		</div>
 	</li>
-{{/inline}} {{#*inline 'add-theme-button' id}}
-	<button type="button" data-click="add-story-theme" data-id="{{id}}"
-		data-tooltip="{{localize 'Litm.ui.add-story-theme'}}"
-		style="margin-right: 2px; padding-right: 2px;">
-		<span class="litm--sro">{{localize "Litm.ui.add-story-theme"}}</span>
-		<img src="systems/litm-rn/assets/media/icons/add-story-theme_icn.svg"
-			class="litm--add-story-icon" alt="Story Theme" width="28px" />
-	</button>
 {{/inline}} {{#*inline 'add-tag-button' id}}
 	<button type="button" data-click="add-tag" data-id="{{id}}"
 		data-tooltip="{{localize 'Litm.ui.add-tag'}}">
@@ -109,7 +101,6 @@
 					<legend>
 						{{localize "Litm.other.story-tags"}}
 					</legend>
-					{{> add-theme-button id="story-theme"}}
 					{{> add-tag-button id="story-tag"}}
 					{{> add-status-button id="story-status"}}
 					{{> add-might-button id="story-might"}}

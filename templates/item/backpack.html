@@ -21,6 +21,47 @@
 			</ul>
 		{{else}}
 			<ul class="taglist">
+				{{#if isCharacterEmbedded}}
+					{{#each stories as |story|}}
+						<li class="litm--backpack-story litm--story-{{story.system.level}}" data-id="{{story.id}}"
+							data-dblclick="open-story" data-context="remove-story"
+							data-tooltip="{{localize 'Litm.ui.click-open-context-remove'}}<hr>{{story.system.note}}">
+							<div class="litm--story-wrapper">
+								<div class="litm--theme-title-wrapper">
+									<button type="button" class="litm--collapse-btn" data-click="toggle-collapse" data-target="{{story.id}}">
+										<i class="fas fa-angle-down"></i>
+									</button>
+									<!-- Story title -->
+									<div class="litm--theme-title">
+										<span class="litm--theme-name{{#if story.system.themeTag.isScratched}} scratched{{/if}}">
+											{{story.name}}
+										</span>
+										<span class="litm--scratch {{checked (or story.system.themeTag.isScratched (includes @root.scratchedTags story.system.themeTag.id 'id'))}}"
+											aria-hidden="true"></span>
+									</div>
+								</div>
+								<div class="litm--story-tags-collapsible" data-collapse-id="{{story.id}}">
+									<!-- Power Tags (read-only) -->
+									<ul class="litm--theme-tags">
+										{{#each story.system.powerTags as |tag|}}
+											<li class="litm--tag-readonly{{#if tag.isScratched}} scratched{{/if}}">
+												<span>{{tag.name}}</span>
+												<span class="litm--scratch {{checked (or tag.isScratched (includes @root.scratchedTags tag.id 'id'))}}"
+													aria-hidden="true"></span>
+											</li>
+										{{/each}}
+									</ul>
+									<!-- Weakness Tags (read-only) -->
+									{{#each story.system.weaknessTags as |tag|}}
+										<div class="litm--weakness">
+											<span class="litm--weakness-part{{#if tag.isScratched}} scratched{{/if}}">{{tag.name}}</span>
+										</div>
+									{{/each}}
+								</div>
+							</div>
+						</li>
+					{{/each}}
+				{{/if}}
 				{{#each backpack as |tag|}}
 					{{> systems/litm-rn/templates/partials/tag.html tag=tag key=@key path="system.contents" readonly=false remove=true}}
 				{{/each}}
@@ -29,6 +70,9 @@
 		{{#if backside}}
 			<button type="button" data-click="add-special">{{localize "Litm.ui.add-special"}}</button>
 		{{else}}
+		{{#if isCharacterEmbedded}}
+			<button type="button" data-click="add-story">{{localize "Litm.ui.add-story"}}</button>
+		{{/if}}
 			<button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button>
 		{{/if}}
 	</div>

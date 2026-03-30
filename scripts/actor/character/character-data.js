@@ -43,7 +43,10 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		const themeTags = this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.allTags);
-		return [...hero, ...backpack, ...themeTags];
+		const storyThemeTags = this.parent.items
+			.filter((item) => item.type === "story")
+			.flatMap((item) => item.system.allTags);
+		return [...hero, ...backpack, ...themeTags, ...storyThemeTags];
 	}
 
 	get allTags() {
@@ -67,8 +70,11 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		const themeWeakness =  this.parent.items
 			.filter((item) => item.type === "theme")
 			.flatMap((item) => item.system.weakness);
+		const storyThemeWeakness =  this.parent.items
+			.filter((item) => item.type === "theme")
+			.flatMap((item) => item.system.weakness);
 		const fellowshipWeakness = this.fellowship?.system?.weakness ?? [];
-		return [...themeWeakness, ...fellowshipWeakness];
+		return [...themeWeakness, ...storyThemeWeakness, ...fellowshipWeakness];
 	}
 
 	get availablePowerTags() {
