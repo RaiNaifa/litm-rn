@@ -6,11 +6,11 @@
 	<div class="litm--backpack-bg">
 		<div class="meta">
 			<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
-				data-tooltip="{{localize 'Litm.other.specials'}}">
+				data-tooltip="{{localize 'Litm.ui.tags-quintessence'}}">
 				<img src="systems/litm-rn/assets/media/icons/{{ifThen backside 'special_icn.svg' 'special-front_icn.svg'}}"
 					alt="{{localize 'Litm.other.specials'}}" class="litm--specials-backside"/>
 			</button>
-			{{localize 'Litm.tags.item-tags'}}
+			{{localize (ifThen backside 'Litm.other.quintessences' 'Litm.tags.item-tags')}}
 		</div>
 		<input class="title" name="name" value="{{name}}" />
 		{{#if backside}}
@@ -68,7 +68,7 @@
 			</ul>
 		{{/if}}
 		{{#if backside}}
-			<button type="button" data-click="add-special">{{localize "Litm.ui.add-special"}}</button>
+			<button type="button" data-click="add-special">{{localize "Litm.ui.add-quintessence"}}</button>
 		{{else}}
 		{{#if isCharacterEmbedded}}
 			<button type="button" data-click="add-story">{{localize "Litm.ui.add-story"}}</button>

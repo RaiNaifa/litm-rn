@@ -427,5 +427,9 @@
 				text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
 			}
 		}
+
+		& button[data-click="add-special"] {
+			margin-inline: 0.5rem; // "Add Quintessence" is too long in russian 
+		}
 	}
 }

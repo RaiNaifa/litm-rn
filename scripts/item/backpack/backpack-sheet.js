@@ -223,8 +223,8 @@ export class BackpackSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
 
 	#addSpecial() {
 		const item = {
-			name: t("Litm.ui.name-special"),
-			description: t("Litm.ui.name-special-description"),
+			name: t("Litm.ui.name-quintessence"),
+			description: t("Litm.ui.name-quintessence-description"),
 			isActive: true,
 			id: foundry.utils.randomID(),
 		};

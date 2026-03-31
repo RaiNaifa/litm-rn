@@ -27,8 +27,8 @@ export class BackpackData extends foundry.abstract.DataModel {
 							.fill()
 							.map(() => ({
 								id: foundry.utils.randomID(),
-								name: t("Litm.ui.name-special"),
-								description: t("Litm.ui.name-special-description"),
+								name: t("Litm.ui.name-quintessence"),
+								description: t("Litm.ui.name-quintessence-description"),
 								isActive: false,
 							})),
 				}
