@@ -378,7 +378,7 @@
 					gap: var(--litm-space-1);
 					min-height: 20px;
 					min-width: 0; 
-   				width: 100%;
+					width: 100%;
 					overflow: hidden;
 
 					& .litm--limit-consequence-edit,
@@ -398,7 +398,7 @@
 
 						&:focus {
 							outline: none;
-							background-color: rgb(0 0 0 / 0.2);
+							background-color: rgb(0 0 0 / 0.15);
 							border-radius: 2px;
 						}
 
@@ -749,7 +749,7 @@
 
 			&:focus {
 				outline: none;
-				background-color: rgb(0 0 0 / 0.2);
+				background-color: rgb(0 0 0 / 0.15);
 				border-radius: 2px;
 			}
 
@@ -794,7 +794,147 @@
 
 			&:focus {
 				outline: none;
-				background-color: rgb(0 0 0 / 0.2);
+				background-color: rgb(0 0 0 / 0.15);
+				border-radius: 2px;
+			}
+
+			&:empty::before {
+				content: attr(data-placeholder);
+				opacity: 0.4;
+			}
+		}
+	}
+
+	& .litm--challenge-secrets {
+		list-style: none;
+		padding: 0 var(--litm-space-3) 0 var(--litm-space-3);
+		margin: var(--litm-space-1) 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--litm-space-2);
+
+		& .litm--secret-item {
+			position: relative;
+			font-size: var(--font-size-14);
+			color: var(--litm-color-primary);
+			line-height: 1.4;
+			align-items: flex-start;
+
+			&:not(:has(.litm--torch-active)):has(.litm--secret-description-edit.hidden) {
+				display: flex;
+			}
+		}
+
+		& .litm--secret-torch {
+			display: inline-block;
+			float: left;
+			margin-top: -6px;
+			margin-bottom: -2px;
+			margin-right: var(--litm-space-1);
+			width: auto;
+			height: 1.8em;
+			cursor: pointer;
+			opacity: 0.35;
+			transition: opacity 0.2s, filter 0.2s;
+			align-self: flex-start;
+
+			&:hover {
+				opacity: 0.7;
+				filter: drop-shadow(0 0 4px rgba(255, 160, 40, 0.5));
+			}
+
+			&.litm--torch-active {
+				opacity: 1;
+				filter: drop-shadow(0 0 6px rgba(255, 160, 40, 0.7));
+			}
+		}
+
+		& .litm--secret-name {
+			cursor: text;
+			font-family: var(--litm-font-text);
+			font-size: var(--font-size-14);
+			font-weight: 700;
+			text-transform: uppercase;
+			min-width: 10px;
+
+			&:focus {
+				outline: none;
+				background-color: rgb(0 0 0 / 0.15);
+				border-radius: 2px;
+			}
+
+			&:empty::before {
+				content: attr(data-placeholder);
+				opacity: 0.4;
+			}
+		}
+
+		& .litm--secret-separator {
+			font-size: var(--font-size-14);
+			font-weight: 700;
+			margin-right: 0.3em;
+		}
+
+		& .litm--secret-description-wrapper {
+			flex: 1;
+			min-width: 0;
+		}
+
+		& .litm--secret-description-display {
+			cursor: text;
+			font-family: var(--litm-font-text);
+			font-size: var(--font-size-14);
+			font-weight: 500;
+			min-width: 10px;
+
+			&:empty::before {
+				content: attr(data-placeholder);
+				opacity: 0.4;
+				font-style: italic;
+			}
+
+			& mark {
+				display: inline-flex;
+				margin-bottom: var(--litm-space-1);
+				box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+			}
+
+			&.litm--secret-hidden {
+				display: flex;
+				margin-left: var(--litm-space-1);
+				align-items: center;
+				min-height: 1.4em;
+			}
+		}
+
+		& .litm--secret-redacted {
+			display: inline-block;
+			width: 100%;
+			height: 1.1em;
+			border-radius: 3px;
+			background: linear-gradient(
+				90deg,
+				rgba(80, 60, 50, 0.45) 0%,
+				rgba(80, 60, 50, 0.55) 20%,
+				rgba(80, 60, 50, 0.4) 40%,
+				rgba(80, 60, 50, 0.6) 60%,
+				rgba(80, 60, 50, 0.45) 80%,
+				rgba(80, 60, 50, 0.5) 100%
+			);
+			background-size: 200% 100%;
+			cursor: text;
+		}
+
+		& .litm--secret-description-edit {
+			cursor: text;
+			font-family: var(--litm-font-text);
+			font-size: var(--font-size-14);
+			font-weight: 500;
+			min-width: 10px;
+
+			&:focus {
+				outline: none;
+				background-color: rgb(0 0 0 / 0.15);
 				border-radius: 2px;
 			}
 

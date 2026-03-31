@@ -256,7 +256,42 @@
 						</span>
 					</li>
 				{{/each}}
-		</ul>
+			</ul>
+			{{> divider title="Litm.ui.secrets" add="secret"}}
+			<ul class="litm--challenge-secrets">
+				{{#each data.system.enrichedSecrets as |secret|}}
+					<li class="litm--secret-item{{ifThen secret.isRevealed ' litm--revealed' ''}}" data-context="remove-secret" data-id="{{secret.index}}">
+						<img src="systems/litm-rn/assets/media/icons/torch.svg"
+							class="litm--secret-torch{{ifThen secret.isRevealed ' litm--torch-active' ''}}"
+							data-secret-index="{{secret.index}}"
+							data-tooltip="{{localize (ifThen secret.isRevealed 'Litm.ui.hide-secret' 'Litm.ui.reveal-secret')}}"
+							alt="{{localize 'Litm.other.secret'}}" />
+						<span class="litm--secret-field litm--secret-name"
+							role="textbox" contenteditable
+							data-secret-index="{{secret.index}}"
+							data-secret-field="name"
+							data-placeholder="{{localize 'Litm.other.secret'}}">{{secret.name}}</span><span
+							class="litm--secret-separator">:</span>
+						<span class="litm--secret-description-wrapper"
+							data-secret-index="{{secret.index}}">
+							<span class="litm--secret-field litm--secret-description-edit hidden"
+								role="textbox" contenteditable
+								data-secret-index="{{secret.index}}"
+								data-secret-field="description"
+								data-placeholder="{{localize 'Litm.ui.new-secret-description'}}">{{secret.description}}</span>
+							{{#if secret.isRevealed}}
+								<span class="litm--secret-description-display"
+									data-secret-index="{{secret.index}}">{{{secret.enrichedDescription}}}</span>
+							{{else}}
+								<span class="litm--secret-description-display litm--secret-hidden"
+										data-secret-index="{{secret.index}}">
+										<span class="litm--secret-redacted"></span>
+								</span>
+							{{/if}}
+						</span>
+					</li>
+				{{/each}}
+			</ul>
 			{{> divider title="Litm.ui.threats-consequences" add="threat"}}
 			<ul class="litm--challenge-threats item-list">
 				{{#each data.items as |item|}}

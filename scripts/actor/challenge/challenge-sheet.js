@@ -48,6 +48,15 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				enrichedDescription: await TextEditor.enrichHTML(s.description || ""),
 			})),
 		);
+		data.system.enrichedSecrets = await Promise.all(
+			(data.system.secrets || []).map(async (s, index) => ({
+				index,
+				name: s.name,
+				description: s.description,
+				isRevealed: s.isRevealed || false,
+				enrichedDescription: await TextEditor.enrichHTML(s.description || ""),
+			})),
+		);
 		data.system.enrichedLimits = await Promise.all(
 			(data.system.limits || []).map(async (limit, index) => ({
 				...limit,
@@ -117,18 +126,29 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		html
 			.find("li.litm--tag-item input.litm--private-checkbox[type='checkbox']")
 			.on("change", this.#onEffectPrivateChange.bind(this));
-    // Special name fields — simple contenteditable with blur save
-    html
+		// Specials
+		html
 			.find(".litm--special-name[contenteditable]")
 			.on("blur", this.#onSpecialFieldBlur.bind(this));
-
-    // Special description — focus toggles edit/display, blur saves
-    html
+		html
 			.find(".litm--special-description-display")
 			.on("click", this.#onSpecialDescriptionClick.bind(this));
-    html
+		html
 			.find(".litm--special-description-edit[contenteditable]")
 			.on("blur", this.#onSpecialDescriptionBlur.bind(this));
+		// Secrets
+		html
+			.find(".litm--secret-name[contenteditable]")
+			.on("blur", this.#onSecretFieldBlur.bind(this));
+		html
+			.find(".litm--secret-description-display")
+			.on("click", this.#onSecretDescriptionClick.bind(this));
+		html
+			.find(".litm--secret-description-edit[contenteditable]")
+			.on("blur", this.#onSecretDescriptionBlur.bind(this));
+		html
+			.find(".litm--secret-torch")
+			.on("click", this.#onSecretRevealToggle.bind(this));
 
 		if (this.isEditing) html.find("[contenteditable]:has(+#tags)").focus();
 	}
@@ -196,6 +216,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "add-special":
 				this.#addSpecial();
 				break;
+			case "add-secret":
+				this.#addSecret();
+				break;
 			case "add-status":
 				this.#addStatus();
 				break;
@@ -239,6 +262,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			case "remove-special":
 				this.#removeSpecial(button);
+				break;
+			case "remove-secret":
+				this.#removeSecret(button);
 				break;
 			case "remove-threat":
 				this.#removeThreat(button);
@@ -361,6 +387,16 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		this.actor.update({ "system.specials": specials });
 	}
 
+	#addSecret() {
+    const secrets = this.system.secrets || [];
+    secrets.push({
+			name: t("Litm.ui.new-secret"),
+			description: t("Litm.ui.new-secret-description"),
+			isRevealed: false,
+    });
+    this.actor.update({ "system.secrets": secrets });
+	}
+
 	async #removeLimit(button) {
 		if (!(await confirmDelete("Litm.other.limit"))) return;
 		const index = Number(button.dataset.id);
@@ -381,6 +417,15 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		specials.splice(index, 1);
 		this.actor.update({ "system.specials": specials });
+	}
+
+	async #removeSecret(button) {
+		if (!(await confirmDelete("Litm.other.secret"))) return;
+		const index = Number(button.dataset.id);
+		const secrets = this.system.secrets || [];
+
+		secrets.splice(index, 1);
+		this.actor.update({ "system.secrets": secrets });
 	}
 
 	async #removeThreat(button) {
@@ -525,6 +570,76 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 
 		editField.style.display = "none";
 		display.style.display = "";
+	}
+
+	async #onSecretFieldBlur(event) {
+		const el = event.currentTarget;
+		const index = Number(el.dataset.secretIndex);
+		const field = el.dataset.secretField;
+		const value = el.textContent.trim();
+
+		const secrets = foundry.utils.deepClone(this.system.secrets || []);
+		if (!secrets[index]) return;
+
+		if (secrets[index][field] === value) return;
+
+		secrets[index][field] = value;
+		await this.actor.update({ "system.secrets": secrets });
+	}
+
+	#onSecretDescriptionClick(event) {
+		const display = event.currentTarget;
+		const wrapper = display.closest(".litm--secret-description-wrapper");
+		const editField = wrapper.querySelector(".litm--secret-description-edit");
+
+		display.classList.add("hidden");
+		editField.classList.remove("hidden");
+		editField.focus();
+
+		// Place cursor at end
+		const range = document.createRange();
+		const sel = window.getSelection();
+		if (editField.childNodes.length > 0) {
+			range.selectNodeContents(editField);
+			range.collapse(false);
+		} else {
+			range.setStart(editField, 0);
+			range.collapse(true);
+		}
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+
+	async #onSecretDescriptionBlur(event) {
+		const editField = event.currentTarget;
+		const index = Number(editField.dataset.secretIndex);
+		const value = editField.textContent.trim();
+		const wrapper = editField.closest(".litm--secret-description-wrapper");
+		const display = wrapper.querySelector(".litm--secret-description-display");
+
+		const secrets = foundry.utils.deepClone(this.system.secrets || []);
+		if (!secrets[index]) return;
+
+		if (secrets[index].description !== value) {
+			secrets[index].description = value;
+			await this.actor.update({ "system.secrets": secrets });
+			return;
+		}
+
+		editField.classList.add("hidden");
+		display.classList.remove("hidden");
+	}
+
+	async #onSecretRevealToggle(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		const index = Number(event.currentTarget.dataset.secretIndex);
+
+		const secrets = foundry.utils.deepClone(this.system.secrets || []);
+		if (!secrets[index]) return;
+
+		secrets[index].isRevealed = !secrets[index].isRevealed;
+		await this.actor.update({ "system.secrets": secrets });
 	}
 
 	async #onEffectNameChange(event) {

@@ -23,6 +23,17 @@ export class ChallengeData extends foundry.abstract.TypeDataModel {
 					}),
 				}),
 			),
+			secrets: new fields.ArrayField(
+				new fields.SchemaField({
+					name: new fields.StringField({
+						initial: () => t("Litm.ui.new-secret"),
+					}),
+					description: new fields.StringField({
+						initial: () => t("Litm.ui.new-secret-description"),
+					}),
+					isRevealed: new fields.BooleanField({ initial: false }),
+				}),
+			),
 			limits: new fields.ArrayField(
 				new fields.SchemaField({
 					name: new fields.StringField(),
