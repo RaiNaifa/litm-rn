@@ -48,6 +48,15 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				enrichedDescription: await TextEditor.enrichHTML(s.description || ""),
 			})),
 		);
+		data.system.enrichedLimits = await Promise.all(
+			(data.system.limits || []).map(async (limit, index) => ({
+				...limit,
+				index,
+				enrichedConsequence: limit.consequence 
+					? await TextEditor.enrichHTML(limit.consequence) 
+					: "",
+			})),
+		);
 
 		data.items = await Promise.all(this.items.map((i) => i.sheet.getData()));
 
@@ -91,8 +100,11 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			.find("li.litm--tag-item input[type='text']")
 			.on("change", this.#onEffectNameChange.bind(this));
 		html
-			.find(".litm--limit-consequence-text[contenteditable]")
-			.on("blur", this.#onConsequenceBlur.bind(this));
+			.find(".litm--limit-consequence-display")
+			.on("click", this.#onConsequenceDisplayClick.bind(this));
+		html
+			.find(".litm--limit-consequence-edit[contenteditable]")
+			.on("blur", this.#onConsequenceEditBlur.bind(this));
 		html
 			.find("li.litm--tag-item input.litm--tag-item-tier[type='checkbox']")
 			.on("change", this.#onEffectValueChange.bind(this));
@@ -286,21 +298,51 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		this.actor.update({ "system.limits": limits });
 	}
 
-	async #onConsequenceBlur(event) {
-		const el = event.currentTarget;
-		const index = Number(el.dataset.limitIndex);
-		const value = el.textContent.trim();
+	#onConsequenceDisplayClick(event) {
+		const display = event.currentTarget;
+		const wrapper = display.closest(".litm--limit-consequence-wrapper");
+		const editField = wrapper.querySelector(".litm--limit-consequence-edit");
 
-		const limits = foundry.utils.deepClone(this.system.limits);
+		display.style.display = "none";
+		editField.style.display = "";
+		editField.focus();
+
+		// Place cursor at end
+		const range = document.createRange();
+		const sel = window.getSelection();
+		if (editField.childNodes.length > 0) {
+			range.selectNodeContents(editField);
+			range.collapse(false);
+		} else {
+			range.setStart(editField, 0);
+			range.collapse(true);
+		}
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+
+	async #onConsequenceEditBlur(event) {
+		const editField = event.currentTarget;
+		const index = Number(editField.dataset.limitIndex);
+		const value = editField.textContent.trim();
+		const wrapper = editField.closest(".litm--limit-consequence-wrapper");
+		const display = wrapper.querySelector(".litm--limit-consequence-display");
+
+		const limits = foundry.utils.deepClone(this.system.limits || []);
 		if (!limits[index]) return;
-		if (limits[index].consequence === value) return;
 
-		limits[index].consequence = value;
-		await this.actor.update({ "system.limits": limits });
+		if (limits[index].consequence !== value) {
+			limits[index].consequence = value;
+			await this.actor.update({ "system.limits": limits });
 
-		game.litm.storyTags.render();
-		dispatch({ app: "story-tags", type: "render" });
-		Hooks.callAll("litmStoryTagsUpdated");
+			game.litm.storyTags.render();
+			dispatch({ app: "story-tags", type: "render" });
+			Hooks.callAll("litmStoryTagsUpdated");
+			return;
+		}
+
+		editField.style.display = "none";
+		display.style.display = "";
 	}
 
 	async #addThreat() {

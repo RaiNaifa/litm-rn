@@ -1,5 +1,6 @@
 import { SheetMixin } from "../mixins/sheet-mixin.js";
 import { compareTagTypes, confirmDelete, dispatch, localize as t } from "../utils.js";
+const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
 export class StoryTagApp extends SheetMixin(FormApplication) {
 	#contextmenu = null;
@@ -266,6 +267,14 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		const visibleActors = game.user.isGM
 			? allActors
 			: allActors.filter(actor => actor.isOwner || actor.tags.length > 0);
+
+		for (const actor of visibleActors) {
+			for (const limit of actor.limits) {
+				limit.enrichedConsequence = limit.consequence
+					? await TextEditor.enrichHTML(limit.consequence)
+					: "";
+			}
+		}
 
 		return {
 			actors: visibleActors,

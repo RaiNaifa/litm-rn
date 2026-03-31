@@ -161,9 +161,9 @@
 				</span>
 			{{/if}}
 		</div>
-		{{#if (and limit.consequence isGM (eq limit.currentValue limit.value))}}
+		{{#if (and limit.enrichedConsequence isGM (eq limit.currentValue limit.value))}}
 			<div class="litm--limit-consequence-line">
-				<span>{{limit.consequence}}</span>
+				<div>{{{limit.enrichedConsequence}}}</div>
 			</div>
 		{{/if}}
 		{{#if limit.statuses.length}}

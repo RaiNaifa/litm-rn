@@ -123,16 +123,16 @@ export class StoryThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) 
 	}
 
 	async #selectlevel(event) {
-			const $option = $(event.currentTarget);
-			const value = $option.data("value");
+		const $option = $(event.currentTarget);
+		const value = $option.data("value");
 
-			const $dropdown = $option.closest(".litm--image-dropdown");
-			const $input = $dropdown.find("input[type=hidden]");
+		const $dropdown = $option.closest(".litm--image-dropdown");
+		const $input = $dropdown.find("input[type=hidden]");
 
-			$input.val(value);
+		$input.val(value);
 
-			await this._onSubmit(event);
-			await this.render();
+		await this._onSubmit(event);
+		await this.render();
 	}
 
 	async #addTag(type) {
@@ -154,8 +154,9 @@ export class StoryThemeSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) 
 	async #removeTag(button, type) {
 		if (!(await confirmDelete("Litm.other.tag"))) return;
 		const id = button.dataset.id;
-		const tags = this.system[`${type}s`].filter((t) => t.id !== id);
+		const fixedType = type === "weaknessStoryTag" ? "weaknessTag" : "powerTag"
+		const tags = this.system[`${fixedType}s`].filter((t) => t.id !== id);
 
-		await this.item.update({ [`system.${type}s`]: tags });
+		await this.item.update({ [`system.${fixedType}s`]: tags });
 	}
 }
