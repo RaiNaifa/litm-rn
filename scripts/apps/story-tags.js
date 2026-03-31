@@ -39,9 +39,6 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	// TODO:
 	// сейчас игрокам видно всех актёров в менеджере - добавить возможность скрывать их по кнопке isPrivate
 	//
-	// совсем TODO 
-	// добавить storyThemes (хотя бы в основные теги сцены, без актёров)
-
 
 	get config() {
 		const config = game.settings.get("litm-rn", "storytags");
@@ -56,6 +53,9 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 				?.map((ref) => {
 					const actor = this.#resolveActor(ref);
 					if (!actor) return null;
+
+					const isGM = game.user.isGM;
+					const isOwner = actor.isOwner;
 
 					const allTags = actor.effects
 						.filter((e) => !!e.flags["litm-rn"]?.type)
@@ -80,10 +80,63 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 										: "tag"),
 							}
 						})
-						.sort((a, b) => a.name.localeCompare(b.name))
+						// .sort((a, b) => a.name.localeCompare(b.name))
 						.sort((a, b) => compareTagTypes(a, b));
 
-					const visibleTags = allTags.filter(tag => this.#isVisible(tag, actor.isOwner));
+					const allTagsById = new Map(allTags.map(t => [t.id, t]));
+
+					// Build limits
+					const rawLimits = actor.system?.limits || [];
+
+					// Determine which status IDs are visually "inside" a limit
+					// For GM/owner: all statuses in limits stay in limits
+					// For non-owner: statuses in private limits appear outside (in main list)
+					const statusIdsVisuallyInLimits = new Set();
+					for (const limit of rawLimits) {
+							const canSeeLimit = isGM || isOwner || !limit.isPrivate;
+							if (canSeeLimit) {
+									for (const sid of (limit.statusIds || [])) {
+											statusIdsVisuallyInLimits.add(sid);
+									}
+							}
+					}
+
+					const limits = rawLimits.map((limit, index) => {
+						const validStatusIds = (limit.statusIds || [])
+							.filter(id => actor.effects.has(id));
+
+						const statusEffects = validStatusIds
+							.map(id => actor.effects.get(id))
+							.filter(Boolean);
+
+						const currentValue = this.#computeLimitCurrentValue(
+							limit.value, statusEffects,
+						);
+
+						const statuses = validStatusIds
+							.map(id => allTagsById.get(id))
+							.filter(Boolean)
+							.filter(tag => this.#isVisible(tag, isOwner));
+
+						return {
+							name: limit.name,
+							value: limit.value,
+							consequence: limit.consequence || "",
+							isPrivate: limit.isPrivate || false,
+							statusIds: validStatusIds,
+							index,
+							currentValue,
+							statuses,
+							hasValue: limit.value != null && limit.value > 0,
+						};
+					});
+
+					const visibleLimits = limits.filter(l => this.#isVisible(l, isOwner));
+
+					// Tags not visually in limits
+					const visibleTags = allTags
+						.filter(tag => this.#isVisible(tag, isOwner))
+						.filter(tag => !statusIdsVisuallyInLimits.has(tag.id));
 
 					return {
 						ref,
@@ -92,8 +145,9 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 						img: actor.prototypeToken.texture.src || actor.img,
 						id: ref,
 						formKey: ref.replaceAll('.', '___'),
-						isOwner: actor.isOwner,
+						isOwner,
 						tags: visibleTags,
+						limits: visibleLimits,
 					};
 				})
 				.filter(Boolean) || []
@@ -103,7 +157,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	get tags() {
 		return this.config.tags
 			.filter(tag => this.#isVisible(tag))
-			.sort((a, b) => compareTagTypes(a, b));
+			// .sort((a, b) => compareTagTypes(a, b));
 	}
 
 	get selectedTags() {
@@ -277,6 +331,24 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		html.find("[data-focus")
 			.on("focus", (event) => event.currentTarget.select());
 
+		// Draggable statuses in tag list (not in limits)
+		html.find(".litm--tag-item.litm--status[draggable]:not(.litm--limit-status-draggable)")
+			.on("dragstart", this.#onStatusDragStart.bind(this));
+
+		// Draggable statuses inside limits
+		html.find(".litm--limit-status-draggable[draggable]")
+			.on("dragstart", this.#onLimitStatusChipDragStart.bind(this));
+
+		// Limit drop zones
+		html.find(".litm--limit-drop")
+			.on("dragover", (e) => {
+				e.preventDefault();
+				e.currentTarget.classList.add("drag-over");
+			})
+			.on("dragleave", (e) => {
+				e.currentTarget.classList.remove("drag-over");
+			});
+
 		// contenteditable=true
 		const contenteditable = html.find(".litm--tag-item-name[contenteditable='true']");
 		contenteditable.on("keydown", (event) => {
@@ -341,7 +413,8 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 		this.#contextmenu._setPosition = function (contextMenuHtmlElement, targetHtmlElement) {
 			// biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
-			contextMenuHtmlElement.classList.toggle("expand-up", (this._expandUp = true));
+			// contextMenuHtmlElement.classList.toggle("expand-up", (this._expandUp = true));
+			contextMenuHtmlElement.classList.toggle("expand-up");
 			targetHtmlElement.appendChild(contextMenuHtmlElement);
 			targetHtmlElement.classList.add("context");
 		};
@@ -422,36 +495,61 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	}
 
 	async _onDrop(dragEvent) {
-		const dragData = dragEvent.dataTransfer.getData("text/plain");
-		const data = JSON.parse(dragData);
+		const raw = dragEvent.dataTransfer.getData("text/plain");
+		let data;
+		try { data = JSON.parse(raw); } catch { return; }
 
-		// Handle only Actors to begin with
+		// ── Internal drag (status from this manager, has effectId) ──
+		if (data.effectId) {
+			if (data.type !== "status") return;
+
+			// Determine target actor from where the drop landed
+			const actorSection = dragEvent.target.closest(".litm--story-tags-actor");
+			if (!actorSection) return;
+			const targetActorRef = actorSection.dataset.id;
+
+			// Only allow drops within the same actor
+			if (data.actorRef !== targetActorRef) return;
+
+			const limitZone = dragEvent.target.closest(".litm--limit-drop");
+
+			if (data.fromLimit) {
+				if (limitZone) {
+					const targetLimitIndex = Number(limitZone.dataset.limitIndex);
+					if (targetLimitIndex !== data.fromLimitIndex) {
+						return this.#handleLimitStatusDrop(data, limitZone);
+					}
+					return;
+				}
+				// Dropped outside any limit zone — return to main pool
+				return this.#handleReturnStatusFromLimit(data);
+			}
+
+			// Dragged from main pool
+			if (limitZone) {
+				return this.#handleLimitStatusDrop(data, limitZone);
+			}
+
+			return;
+		}
+
+		// ── External drops (from enriched text, sidebar, other sheets) ──
 		if (!["Actor", "tag", "status", "might"].includes(data.type)) return;
-		const id = data.uuid?.split(".").pop() || data.id;
 
 		// Add tags and statuses to the story / Actor
 		if (data.type === "tag" || data.type === "status" || data.type === "might") {
 			const target = dragEvent.target
-				.closest(".litm--story-tags-actor[data-id]")?.dataset?.id;
+					.closest(".litm--story-tags-actor[data-id]")?.dataset?.id;
 			if (target) {
-				if (data.type === "tag") {
-					return this.#addTagToActor({
-						id: target,
-						tag: data,
-					});
-				}
-				if (data.type === "status") {
-					return this.#addStatusToActor({
-						id: target,
-						status: data,
-					});
-				}
-				if (data.type === "might") {
-					return this.#addMightToActor({
-						id: target,
-						might: data,
-					});
-				}
+					if (data.type === "tag") {
+						return this.#addTagToActor({ id: target, tag: data });
+					}
+					if (data.type === "status") {
+						return this.#addStatusToActor({ id: target, status: data });
+					}
+					if (data.type === "might") {
+						return this.#addMightToActor({ id: target, might: data });
+					}
 			}
 
 			if (game.user.isGM) return this.setTags([...this.tags, data]);
@@ -505,6 +603,9 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			case "select":
 				this.#select(event);
 				break;
+			case "toggle-limit-private":
+				this.#toggleLimitPrivate(event.currentTarget);
+				break;
 		}
 	}
 
@@ -527,6 +628,11 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 				event.preventDefault();
 				event.stopPropagation();
 				this.#removeActor(target);
+				break;
+			case "remove-limit-status":
+				event.preventDefault();
+				event.stopPropagation();
+				this.#removeLimitStatus(event.currentTarget);
 				break;
 		}
 	}
@@ -588,6 +694,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	}
 
 	async #addStoryTheme(target) {
+		// TODO: remove or add?
 		return;
 	}
 
@@ -696,11 +803,52 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		return this.#broadcastRender();
 	}
 
+	#computeLimitCurrentValue(limitValue, statusEffects) {
+		if (!limitValue || statusEffects.length === 0) return 0;
+
+		const filled = new Array(6).fill(false);
+
+		const firstValues = statusEffects[0].flags["litm-rn"]?.values || [];
+		for (let i = 0; i < 6; i++) {
+			if (firstValues[i] != null && firstValues[i] !== false && firstValues[i] !== 0) {
+				filled[i] = true;
+			}
+		}
+
+		for (let s = 1; s < statusEffects.length; s++) {
+			const values = statusEffects[s].flags["litm-rn"]?.values || [];
+			for (let i = 0; i < 6; i++) {
+				if (values[i] == null || values[i] === false || values[i] === 0) continue;
+
+				let placed = false;
+				for (let j = i; j < 6; j++) {
+					if (!filled[j]) {
+						filled[j] = true;
+						placed = true;
+						break;
+					}
+				}
+
+				if (!placed) continue;
+			}
+		}
+
+		let lastFilledIndex = -1;
+		for (let i = 5; i >= 0; i--) {
+			if (filled[i]) {
+				lastFilledIndex = i;
+				break;
+			}
+		}
+
+		if (lastFilledIndex === -1) return 0;
+		return Math.min(lastFilledIndex + 1, limitValue);
+	}
+
 	async #updateTagsOnActor({ id, tags }) {
 		const actor = this.#resolveActor(id);
 		if (!actor) return;
 		if (!actor.isOwner) return;
-		// await actor.updateEmbeddedDocuments("ActiveEffect", tags);
 
 		try {
 			await actor.updateEmbeddedDocuments("ActiveEffect", tags);
@@ -763,6 +911,21 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 		await this.#removeSelected(id);
 		await actor.deleteEmbeddedDocuments("ActiveEffect", [id]);
+
+		if (actor.system?.limits) {
+			const limits = foundry.utils.deepClone(actor.system.limits);
+			let needsCleanup = false;
+			for (const limit of limits) {
+				if (limit.statusIds?.includes(id)) {
+					limit.statusIds = limit.statusIds.filter(sid => sid !== id);
+					needsCleanup = true;
+				}
+			}
+			if (needsCleanup) {
+				await actor.update({ "system.limits": limits });
+			}
+		}
+
 		return this.#broadcastRender();
 	}
 
@@ -785,8 +948,6 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			return this.#removeSelected(id);
 		}
 
-		// const tag = this.tags.find((t) => t.id === id)
-		// 	?? this.actors.flatMap((a) => a.tags).find((t) => t.id === id);
 
 		let tag = this.tags.find((t) => t.id === id);
 
@@ -797,6 +958,20 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 					tag = { ...actorTag, actorRef: actor.id };
 					break;
 				}
+			}
+		}
+
+		// Also search in limit statuses
+		if (!tag) {
+			for (const actor of this.actors) {
+				for (const limit of actor.limits) {
+					const limitTag = limit.statuses.find((t) => t.id === id);
+					if (limitTag) {
+						tag = { ...limitTag, actorRef: actor.id };
+						break;
+					}
+				}
+				if (tag) break;
 			}
 		}
 
@@ -815,6 +990,145 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			"selectedTags",
 			currentSelected,
 		);
+	}
+
+	async #toggleLimitPrivate(target) {
+		const actorRef = target.dataset.actorId;
+		const index = Number(target.dataset.id);
+
+		const actor = this.#resolveActor(actorRef);
+		if (!actor?.isOwner) return;
+
+		const limits = foundry.utils.deepClone(actor.system.limits || []);
+		if (!limits[index]) return;
+
+		limits[index].isPrivate = !limits[index].isPrivate;
+		await actor.update({ "system.limits": limits });
+		this.#broadcastRender();
+	}
+
+	#onStatusDragStart(event) {
+		const li = event.currentTarget;
+		const id = li.dataset.id;
+		const actorSection = li.closest(".litm--story-tags-actor");
+		const actorRef = actorSection?.dataset?.id;
+		if (!actorRef) return;
+
+		const actor = this.actors.find(a => a.id === actorRef);
+		const tag = actor?.tags.find(t => t.id === id);
+		if (!tag || tag.type !== "status") {
+			event.preventDefault();
+			return;
+		}
+
+		// Stop propagation so document-level hook doesn't override
+		event.stopPropagation();
+
+		event.originalEvent.dataTransfer.setData("text/plain", JSON.stringify({
+			type: "status",
+			effectId: id,
+			actorRef,
+			fromLimit: false,
+			name: tag.name,
+			values: tag.values,
+			value: tag.value,
+		}));
+	}
+
+	#onLimitStatusChipDragStart(event) {
+		const li = event.currentTarget;
+		const statusId = li.dataset.statusId || li.dataset.id;
+		const actorRef = li.dataset.actorId || li.closest(".litm--story-tags-actor")?.dataset?.id;
+		const fromLimitIndex = Number(li.dataset.limitIndex);
+
+		if (!actorRef || !statusId) {
+			event.preventDefault();
+			return;
+		}
+
+		// Stop propagation so document-level hook and other handlers don't fire
+		event.stopPropagation();
+
+		event.originalEvent.dataTransfer.setData("text/plain", JSON.stringify({
+			type: "status",
+			effectId: statusId,
+			actorRef,
+			fromLimit: true,
+			fromLimitIndex,
+		}));
+	}
+
+	async #handleLimitStatusDrop(data, limitZone) {
+		const targetActorRef = limitZone.dataset.actorId;
+		const limitIndex = Number(limitZone.dataset.limitIndex);
+
+		// Only same-actor statuses
+		if (data.actorRef !== targetActorRef) return;
+
+		if (data.fromLimit && data.fromLimitIndex === limitIndex) return;
+
+		const actor = this.#resolveActor(targetActorRef);
+		if (!actor?.isOwner) return;
+
+		const limits = foundry.utils.deepClone(actor.system.limits || []);
+		if (!limits[limitIndex]) return;
+		if (!limits[limitIndex].value) return;
+
+		if (!limits[limitIndex].statusIds) limits[limitIndex].statusIds = [];
+
+		// If coming from another limit, remove from there first
+		if (data.fromLimit && data.fromLimitIndex != null) {
+			const srcLimit = limits[data.fromLimitIndex];
+			if (srcLimit) {
+				srcLimit.statusIds = (srcLimit.statusIds || [])
+					.filter(id => id !== data.effectId);
+			}
+		}
+
+		// Don't add duplicate
+		if (limits[limitIndex].statusIds.includes(data.effectId)) return;
+
+		limits[limitIndex].statusIds.push(data.effectId);
+		await actor.update({ "system.limits": limits });
+		this.#broadcastRender();
+	}
+
+	async #handleReturnStatusFromLimit(data) {
+		const actor = this.#resolveActor(data.actorRef);
+		if (!actor?.isOwner) return;
+
+		const limits = foundry.utils.deepClone(actor.system.limits || []);
+
+		if (data.fromLimitIndex != null && limits[data.fromLimitIndex]) {
+			limits[data.fromLimitIndex].statusIds = (limits[data.fromLimitIndex].statusIds || [])
+					.filter(id => id !== data.effectId);
+		} else {
+			// Fallback: remove from any limit
+			for (const limit of limits) {
+				limit.statusIds = (limit.statusIds || []).filter(id => id !== data.effectId);
+			}
+		}
+
+		await actor.update({ "system.limits": limits });
+		this.#broadcastRender();
+	}
+
+	async #removeLimitStatus(target) {
+		const actorRef = target.dataset.actorId;
+		const limitIndex = Number(target.dataset.limitIndex);
+		const statusId = target.dataset.statusId;
+
+		const actor = this.#resolveActor(actorRef);
+		if (!actor?.isOwner) return;
+
+		const limits = foundry.utils.deepClone(actor.system.limits || []);
+		if (!limits[limitIndex]) return;
+
+		limits[limitIndex].statusIds = (limits[limitIndex].statusIds || [])
+			.filter(id => id !== statusId);
+
+		await actor.update({ "system.limits": limits });
+		this.#broadcastRender();
 	}
 
 	#effectToTag(effect) {

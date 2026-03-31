@@ -155,18 +155,51 @@
 			{{> divider title="Litm.other.limits" add="limit"}}
 			<ul class="litm--challenge-limits">
 				{{#each data.system.limits as |limit|}}
-					<li class="litm--challenge-limit" data-context="remove-limit"
-						data-id="{{@key}}">
-						<label class="litm--sro"
-							for="limit-{{limit.name}}-name">{{localize "Name"}}</label>
-						<input class="litm--limit-label" type="text" data-size-input
-							id="limit-{{limit.name}}-name" name="system.limits.{{@key}}.name"
-							value="{{limit.name}}" />
-						<label class="litm--sro"
-							for="limit-{{limit.name}}-value">{{localize "Value"}}</label>
-						<input class="litm--limit-value" type="number"
-							id="limit-{{limit.name}}-value" name="system.limits.{{@key}}.value"
-							placeholder="-" value="{{limit.value}}" />
+					<li class="litm--challenge-limit{{ifThen limit.isPrivate ' litm--private' ''}}">
+						<div class="litm--limit-top-row">
+							<label class="litm--sro" for="limit-{{@key}}-name">{{localize "Name"}}</label>
+							<input class="litm--limit-name" type="text" data-size-input
+								id="limit-{{@key}}-name"
+								name="system.limits.{{@key}}.name"
+								data-context="remove-limit" data-id="{{@key}}"
+								value="{{limit.name}}" />
+							<div class="litm--limit-value-wrap">
+								<img src="systems/litm-rn/assets/media/icons/limit.svg"
+									class="litm--limit-icon" alt="" />
+								<label class="litm--sro" for="limit-{{@key}}-value">{{localize "Value"}}</label>
+								<input class="litm--limit-value" type="number"
+									id="limit-{{@key}}-value"
+									name="system.limits.{{@key}}.value"
+									min="0" max="6"
+									placeholder="—" value="{{limit.value}}" />
+							</div>
+							<button type="button"
+								class="litm--limit-arrow-btn{{ifThen limit.consequence ' flipped' ''}}"
+								data-click="{{ifThen limit.consequence '' 'add-consequence'}}"
+								data-id="{{@key}}"
+								{{#if limit.consequence}}disabled{{/if}}
+								data-tooltip="{{localize 'Litm.ui.add-consequence'}}">
+								<img src="systems/litm-rn/assets/media/icons/limit-arrow.svg" alt="" />
+							</button>
+							<input class="litm--checkbox litm--checkbox-with-bg litm--private-checkbox"
+								type="checkbox"
+								name="system.limits.{{@key}}.isPrivate"
+								data-dtype="Boolean"
+								data-tooltip="{{localize (ifThen limit.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}"
+								{{checked limit.isPrivate}} />
+							<input type="hidden" name="system.limits.{{@key}}.consequence"
+								id="consequence-{{@key}}" value="{{limit.consequence}}" />
+						</div>
+						{{#if limit.consequence}}
+							<div class="litm--limit-consequence-row"
+								data-context="remove-consequence" data-id="{{@key}}"
+								data-tooltip="{{localize 'Litm.ui.context-remove-consequence'}}">
+								<span class="litm--limit-consequence-text"
+									role="textbox" contenteditable
+									data-limit-index="{{@key}}"
+									data-input="consequence-{{@key}}">{{limit.consequence}}</span>
+							</div>
+						{{/if}}
 					</li>
 				{{/each}}
 			</ul>

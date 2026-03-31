@@ -26,7 +26,13 @@ export class ChallengeData extends foundry.abstract.TypeDataModel {
 			limits: new fields.ArrayField(
 				new fields.SchemaField({
 					name: new fields.StringField(),
-					value: new fields.NumberField(),
+					value: new fields.NumberField({ min: 0, max: 6, nullable: true }),
+					consequence: new fields.StringField({ initial: "" }),
+					isPrivate: new fields.BooleanField({ initial: false }),
+					statusIds: new fields.ArrayField(
+						new fields.StringField(),
+						{ initial: () => [] },
+					),
 				}),
 			),
 			tags: new fields.StringField({
@@ -51,6 +57,17 @@ export class ChallengeData extends foundry.abstract.TypeDataModel {
 			}
 		}
 		delete source.special;
+
+		// Migrate old limits without new fields
+		if (Array.isArray(source.limits)) {
+			source.limits = source.limits.map(l => ({
+				name: l.name ?? "",
+				value: l.value != null ? Math.min(Number(l.value) || 0, 6) : null,
+				consequence: l.consequence ?? "",
+				isPrivate: l.isPrivate ?? false,
+				statusIds: l.statusIds ?? [],
+			}));
+		}
 
 		return super.migrateData(source);
 	}

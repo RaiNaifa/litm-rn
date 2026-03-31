@@ -1,6 +1,7 @@
 {{#*inline 'tagItem' tag source editable isLocked}}
 	<li
 		class="litm--tag-item litm--{{tag.type}}{{ifThen tag.isPrivate ' litm--private' ''}}"
+		{{#if (and (eq tag.type 'status') (not (eq source 'story')) isGM)}}draggable="true"{{/if}}
 		data-context="remove-tag" data-id="{{tag.id}}" data-type="{{source}}"
 		data-tooltip="{{localize (concat 'Litm.other.' tag.type)}}: {{tag.name}}{{#if tag.value}}{{concat '-' tag.value}}{{/if}}">
 		<div class="litm--tag-item-container">
@@ -15,7 +16,7 @@
 				value="{{tag.type}}">
 		</div>
 		<div class="litm--tag-item-control">
-			{{#if isGM}}
+			{{#if (or isGM editable)}}
 				{{> toggle-private source=source tag=tag editable=editable}}
 			{{else}}
 				<input type="hidden" name="{{source}}.{{tag.id}}.isPrivate" value="{{tag.isPrivate}}" data-dtype="Boolean">
@@ -54,6 +55,44 @@
 		{{/if}}
 		</div>
 	</li>
+{{/inline}} {{#*inline 'limitStatusItem' tag source editable isLocked isGM actorId limitIndex}}
+	<li
+		class="litm--tag-item litm--status litm--limit-status-draggable{{ifThen tag.isPrivate ' litm--private' ''}}"
+		{{#if isGM}}draggable="true"{{/if}}
+		data-context="remove-tag"
+		data-id="{{tag.id}}" data-actor-id="{{actorId}}"
+		data-status-id="{{tag.id}}"
+		data-type="{{source}}"
+		data-limit-index="{{limitIndex}}"
+		data-tooltip="{{localize 'Litm.other.status'}}: {{tag.name}}{{#if tag.value}}{{concat '-' tag.value}}{{/if}}">
+		<div class="litm--tag-item-container">
+			<div contenteditable="{{ifThen isLocked 'false' 'true'}}" class="litm--tag-item-name status"
+				data-click="{{ifThen isLocked 'select' ''}}" data-id="{{tag.id}}" data-type="{{source}}-status"
+				data-original-name="{{source}}.{{tag.id}}.name"
+				{{#if (includes @root.selectedTags tag.id 'id' )}}data-selected{{/if}}
+				{{ifThen (and editable (not isLocked)) "" "readonly"}} >{{tag.name}}</div>
+			<input type="hidden" name="{{source}}.{{tag.id}}.name" 
+				value="{{tag.name}}" id="hidden-{{source}}-{{tag.id}}-name">
+			<input type="hidden" name="{{source}}.{{tag.id}}.type"
+				value="status">
+		</div>
+		<div class="litm--tag-item-control">
+			{{#if (or isGM editable)}}
+				{{> toggle-private source=source tag=tag editable=editable}}
+			{{else}}
+				<input type="hidden" name="{{source}}.{{tag.id}}.isPrivate" value="{{tag.isPrivate}}" data-dtype="Boolean">
+			{{/if}}
+			{{> toggle-hindering source=source tag=tag editable=editable}}
+			<div class="litm--tag-item-status">
+				{{#each tag.values as |status|}}
+					<input
+						name="{{../source}}.{{../tag.id}}.values" type="checkbox"
+						value="{{add @index 1}}" {{disabled (not ../editable)}}
+						{{checked status}} />
+				{{/each}}
+			</div>
+		</div>
+	</li>
 {{/inline}} {{#*inline 'add-tag-button' id}}
 	<button type="button" data-click="add-tag" data-id="{{id}}"
 		data-tooltip="{{localize 'Litm.ui.add-tag'}}">
@@ -90,6 +129,51 @@
 		name="{{source}}.{{tag.id}}.isPrivate"
 		data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}" 
 		{{disabled (not editable)}} {{checked tag.isPrivate}} />
+{{/inline}} {{#*inline 'limitItem' limit actor source isLocked isGM}}
+	<div class="litm--limit-row litm--limit-drop{{ifThen limit.isPrivate ' litm--private' ''}}"
+		data-actor-id="{{actor.id}}" data-limit-index="{{limit.index}}">
+		<div class="litm--limit-info">
+			<span class="litm--limit-label">{{limit.name}}</span>
+			{{#if limit.hasValue}}
+				<div class="litm--limit-values">
+					<span class="litm--limit-current-badge">
+						<img src="systems/litm-rn/assets/media/icons/limit.svg" alt="" />
+						<span>{{limit.currentValue}}</span>
+					</span>
+					<span class="litm--limit-slash">/</span>
+					<span class="litm--limit-max-badge">
+						<img src="systems/litm-rn/assets/media/icons/limit.svg" alt="" />
+						<span>{{limit.value}}</span>
+					</span>
+				</div>
+			{{else}}
+				<span class="litm--limit-max-badge">
+					<img src="systems/litm-rn/assets/media/icons/limit.svg" alt="" />
+					<span>—</span>
+				</span>
+			{{/if}}
+			{{#if isGM}}
+				<span class="litm--limit-private-icon{{#if limit.isPrivate}} checked{{/if}}"
+					data-click="toggle-limit-private"
+					data-actor-id="{{actor.id}}"
+					data-id="{{limit.index}}"
+					data-tooltip="{{localize (ifThen limit.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+				</span>
+			{{/if}}
+		</div>
+		{{#if (and limit.consequence isGM (eq limit.currentValue limit.value))}}
+			<div class="litm--limit-consequence-line">
+				<span>{{limit.consequence}}</span>
+			</div>
+		{{/if}}
+		{{#if limit.statuses.length}}
+			<ul class="litm--limit-statuses">
+				{{#each limit.statuses as |tag|}}
+					{{> limitStatusItem tag=tag source=../source editable=../actor.isOwner isLocked=../isLocked isGM=../isGM actorId=../actor.id limitIndex=../limit.index}}
+				{{/each}}
+			</ul>
+		{{/if}}
+	</div>
 {{/inline}}
 <form class="{{cssClass}}" autocomplete="off" data-context='menu'>
 	<section>
@@ -107,7 +191,8 @@
 				</div>
 				<ul>
 					{{#each tags as |tag|}}
-						{{> tagItem tag=tag source="story" editable=true isLocked=../isLocked isGM=../isGM}} {{/each}}
+						{{> tagItem tag=tag source="story" editable=true isLocked=../isLocked isGM=../isGM}}
+					{{/each}}
 				</ul>
 			</fieldset>
 		</div>
@@ -120,7 +205,7 @@
 					<div class="litm--story-tags-section-header">
 						<legend aria-label="{{actor.name}} tags" data-click="open-sheet"
 							data-context="remove-actor" data-id="{{actor.id}}"
-							data-tooltip="{{localize 'Litm.ui.click-open-context-remove'}}">
+							data-tooltip="{{localize 'Litm.ui.click-once-open-context-remove'}}">
 							{{actor.name}}
 						</legend>
 						{{#if actor.isOwner}}
@@ -131,9 +216,16 @@
 							{{/if}}
 						{{/if}}
 					</div>
+					{{#if actor.limits.length}}
+						<div class="litm--actor-limits">
+							{{#each actor.limits as |limit|}}
+								{{> limitItem limit=limit actor=actor source=../formKey isLocked=../../isLocked isGM=../../isGM}}
+							{{/each}}
+						</div>
+					{{/if}}
 					<ul>
 						{{#each actor.tags as |tag|}}
-							{{> tagItem tag=tag source=../formKey editable=actor.isOwner isLocked=../../isLocked isGM=(or ../../isGM actor.isOwner) }}
+							{{> tagItem tag=tag source=../formKey editable=actor.isOwner isLocked=../../isLocked isGM=../../isGM}}
 						{{/each}}
 					</ul>
 				</fieldset>

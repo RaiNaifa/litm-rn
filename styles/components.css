@@ -109,6 +109,8 @@
 }
 
 :where(.litm--checkbox-with-bg.litm--private-checkbox),
+:where(.litm--limit-private-icon),
+.app.litm.litm :where(.litm--limit-private-icon),
 .app.litm.litm :where(.litm--checkbox-with-bg.litm--private-checkbox) {
 	background: url("../assets/media/icons/sight-disabled_inactive.svg") no-repeat;
 

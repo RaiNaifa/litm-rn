@@ -91,6 +91,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			.find("li.litm--tag-item input[type='text']")
 			.on("change", this.#onEffectNameChange.bind(this));
 		html
+			.find(".litm--limit-consequence-text[contenteditable]")
+			.on("blur", this.#onConsequenceBlur.bind(this));
+		html
 			.find("li.litm--tag-item input.litm--tag-item-tier[type='checkbox']")
 			.on("change", this.#onEffectValueChange.bind(this));
 		html
@@ -119,9 +122,37 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	}
 
 	async _updateObject(event, formData) {
+    // Preserve statusIds in limits (form doesn't include them)
+		const currentLimits = this.system.limits || [];
+		for (let i = 0; i < currentLimits.length; i++) {
+			if (!formData.hasOwnProperty(`system.limits.${i}.statusIds`)) {
+				formData[`system.limits.${i}.statusIds`] = currentLimits[i].statusIds || [];
+			}
+		}
+
+		// Clamp limit values to 6
+		for (const key of Object.keys(formData)) {
+			const match = key.match(/^system\.limits\.(\d+)\.value$/);
+			if (match) {
+				const val = Number(formData[key]);
+				if (!Number.isFinite(val) || val <= 0) {
+					formData[key] = null;
+				} else {
+					formData[key] = Math.min(val, 6);
+				}
+			}
+		}
+
 		const sanitizedFormData = this.#sanitizeTags(formData);
 
-		return super._updateObject(event, sanitizedFormData);
+		const result = await super._updateObject(event, sanitizedFormData);
+
+		// Re-render story tag manager when limits change
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+
+		return result;
 	}
 
 	// Prevent dropping non-threat items
@@ -158,6 +189,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				break;
 			case "add-might":
 				this.#addMight();
+				break;
+			case "add-consequence":
+				this.#addConsequence(button);
 				break;
 			case "move-to-story":
 				this.#moveToStory();
@@ -197,6 +231,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "remove-threat":
 				this.#removeThreat(button);
 				break;
+			case "remove-consequence":
+				this.#removeConsequence(button);
+				break;
 			case "decrease":
 				this.#decrease(button);
 				break;
@@ -208,15 +245,62 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		}
 	}
 
-	#addLimit() {
-		const limits = this.system.limits;
-		const limit = {
+	async #addLimit() {
+		const limits = foundry.utils.deepClone(this.system.limits);
+		limits.push({
 			name: t("Litm.ui.new-limit"),
-			value: 0,
-		};
+			value: null,
+			consequence: "",
+			isPrivate: true,
+			statusIds: [],
+		});
 
-		limits.push(limit);
+		await this.actor.update({ "system.limits": limits });
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #addConsequence(button) {
+		const index = Number(button.dataset.id);
+		const limits = foundry.utils.deepClone(this.system.limits);
+		if (!limits[index] || limits[index].consequence) return;
+
+		limits[index].consequence = t("Litm.ui.name-limit-consequence");
+
+		await this.actor.update({ "system.limits": limits });
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #removeConsequence(button) {
+		if (!(await confirmDelete("Litm.other.consequence"))) return;
+		const index = Number(button.dataset.id);
+		const limits = foundry.utils.deepClone(this.system.limits);
+		if (!limits[index]) return;
+
+		limits[index].consequence = "";
 		this.actor.update({ "system.limits": limits });
+	}
+
+	async #onConsequenceBlur(event) {
+		const el = event.currentTarget;
+		const index = Number(el.dataset.limitIndex);
+		const value = el.textContent.trim();
+
+		const limits = foundry.utils.deepClone(this.system.limits);
+		if (!limits[index]) return;
+		if (limits[index].consequence === value) return;
+
+		limits[index].consequence = value;
+		await this.actor.update({ "system.limits": limits });
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
 	}
 
 	async #addThreat() {
@@ -241,7 +325,11 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		const limits = this.system.limits;
 
 		limits.splice(index, 1);
-		this.actor.update({ "system.limits": limits });
+		await this.actor.update({ "system.limits": limits });
+
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
 	}
 
 	async #removeSpecial(button) {
@@ -281,6 +369,19 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		}
 
 		await effect.delete();
+
+		// Clean up limit statusIds
+		const limits = foundry.utils.deepClone(this.system.limits || []);
+		let needsCleanup = false;
+		for (const limit of limits) {
+			if (limit.statusIds?.includes(id)) {
+				limit.statusIds = limit.statusIds.filter(sid => sid !== id);
+				needsCleanup = true;
+			}
+		}
+		if (needsCleanup) {
+			await this.actor.update({ "system.limits": limits });
+		}
 
 		game.litm.storyTags.render();
 		dispatch({

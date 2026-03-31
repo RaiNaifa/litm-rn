@@ -619,6 +619,8 @@ export class LitmHooks {
 	static #listenToTagDragTransfer() {
 		Hooks.on("ready", () => {
 			$(document).on("dragstart", ".litm--tag", (event) => {
+				if (event.target.closest(".litm--story-tags")) return;
+
 				const text = event.target.textContent;
 				const matches = `{${text}}`.matchAll(CONFIG.litm.regexp.tagStringRe);
 				const match = [...matches][0];
@@ -637,6 +639,8 @@ export class LitmHooks {
 			});
 
 			$(document).on("dragstart", ".litm--status", (event) => {
+				if (event.target.closest(".litm--story-tags")) return;
+
 				const text = event.target.textContent;
 				const matches = `{${text}}`.matchAll(CONFIG.litm.regexp.tagStringRe);
 				const match = [...matches][0];
@@ -659,6 +663,8 @@ export class LitmHooks {
 			});
 
 			$(document).on("dragstart", ".litm--might", (event) => {
+				if (event.target.closest(".litm--story-tags")) return;
+
 				const target = event.target;
 				const text = target.textContent;
 				const matches = `{${text}}`.matchAll(CONFIG.litm.regexp.mightStringReverseRe);
