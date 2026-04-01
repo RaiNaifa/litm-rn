@@ -12,6 +12,7 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		top: window.innerHeight / 2 - 350,
 		scrollY: [".taglist", ".editor", ".litm--theme-front", ".litm--theme-back"],
 		resizable: false,
+		dragDrop: [{ dragSelector: null, dropSelector: "form" }],
 	});
 
 	#dragAvatarTimeout = null;
@@ -373,6 +374,45 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		// Handle dropping tags and statuses
 		if (!["tag", "status"].includes(data.type)) return super._onDrop(dragEvent);
 
+		// Check if dropped on a story-theme inside backpack
+		const storyElement = dragEvent.target.closest(".litm--story-item");
+		const backpackElement = dragEvent.target.closest(".litm--character-backpack");
+
+		if (storyElement && backpackElement && data.type === "tag") {
+			const storyId = storyElement.dataset.id;
+			if (!storyId) return;
+
+			const storyItem = this.items.get(storyId);
+			if (!storyItem || storyItem.type !== "story") return;
+
+			const powerTags = storyItem.system.powerTags.slice();
+			powerTags.push({
+				id: foundry.utils.randomID(),
+				name: data.name,
+				type: "powerTag",
+				isScratched: false,
+			});
+			await storyItem.update({ "system.powerTags": powerTags });
+			return;
+		}
+
+		if (backpackElement && data.type === "tag") {
+			// Dropped on backpack but not on a story-theme — add to backpack contents
+			const backpack = this.items.find((i) => i.type === "backpack");
+			if (!backpack) return;
+
+			const contents = backpack.system.contents.slice();
+			contents.push({
+				id: foundry.utils.randomID(),
+				name: data.name,
+				type: "backpack",
+				isScratched: false,
+			});
+			await backpack.update({ "system.contents": contents });
+			return;
+		}
+
+		// Default behavior — add as ActiveEffect on the actor
 		const flagData = {
 			type: data.type,
 			isScratched: data.isScratched,

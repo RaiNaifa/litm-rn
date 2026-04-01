@@ -21,7 +21,8 @@
 		{{else}}
 			<ul class="taglist front">
 				{{#each backpack.stories as |story|}}
-					<li class="litm--story-item litm--story-{{story.data.system.level}}">
+					<li class="litm--story-item litm--story-{{story.data.system.level}}"
+						data-id="{{story.data._id}}">
 						<div class="litm--theme-title-wrapper">
 							<button type="button" class="litm--collapse-btn" data-click="toggle-collapse" data-target="{{story.data._id}}">
 								<i class="fas {{#if story.collapsed}}fa-angle-right{{else}}fa-angle-down{{/if}}"></i>
