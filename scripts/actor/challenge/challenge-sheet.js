@@ -121,6 +121,9 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			.find("li.litm--tag-item input.litm--tag-item-might-radio[type='radio']")
 			.on("change", this.#onEffectMightChange.bind(this));
 		html
+			.find("li.litm--tag-item input.litm--crispy-checkbox[type='checkbox']")
+			.on("change", this.#onEffectCrispyChange.bind(this));
+		html
 			.find("li.litm--tag-item input.litm--hindering-checkbox[type='checkbox']")
 			.on("change", this.#onEffectHinderingChange.bind(this));
 		html
@@ -690,6 +693,24 @@ export class ChallengeSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		await this.actor.updateEmbeddedDocuments("ActiveEffect", [{
 			_id: id,
 			"flags.litm-rn.value": value,
+		}]);
+
+		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
+		game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+		Hooks.callAll("litmStoryTagsUpdated");
+	}
+
+	async #onEffectCrispyChange(event) {
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+		if (!id) return;
+
+		const isCrispy = event.currentTarget.checked;
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [{
+			_id: id,
+			"flags.litm-rn.isCrispy": isCrispy,
 		}]);
 
 		await game.litm.storyTags.syncSelectedTagsFromActor(this.#storyRef);
