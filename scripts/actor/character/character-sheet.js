@@ -560,6 +560,9 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			case "open":
 				this.#open(id);
 				break;
+			case "open-item":
+				this.#openItem(id);
+				break;
 			case "close":
 				this.#close(id);
 				break;
@@ -911,6 +914,11 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 				notes.hide(100);
 			}
 		}
+	}
+
+	#openItem(id) {
+		const item = game.items.get(id);
+		if (item) item.sheet.render(true);
 	}
 
 	async #select(event) {

@@ -314,6 +314,7 @@
 			"no-fellowships": "Сначала создайте Содружество",
 			"no-fellowship-chosen": "Вы пока не состоите в Содружестве",
 			"open-item": "<span class='reference'>Двойной клик ЛКМ</span> — открыть",
+			"open-item-click": "<span class='reference'>ЛКМ</span> — открыть",
 			"player-skipped-moderation": "{name} пропускает модерацию броска.",
 			"reject": "Отклонить",
 			"remove": "Удалить",

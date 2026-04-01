@@ -61,7 +61,7 @@
 			text-transform: uppercase;
 			font-size: var(--font-size-12);
 			text-align: center;
-			padding: var(--litm-space-2) var(--litm-space-3);
+			padding: var(--litm-space-2) var(--litm-space-3) var(--litm-space-2) var(--litm-space-2);
 
 			&:nth-child(1) {
 				justify-self: start;

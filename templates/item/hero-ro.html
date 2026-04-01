@@ -4,12 +4,25 @@
 	<div class="litm--hero-bg litm--hero-bg" data-context="menu">
 		{{#if hero.backside}}
 			<div class="meta">
-				<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
-					data-type="hero" data-id="{{hero.id}}" data-tooltip="{{localize 'Litm.ui.tags-fellowship'}}">
-				<img src="systems/litm-rn/assets/media/icons/special_icn.svg"
-					alt="{{localize 'Litm.other.specials'}}" class="litm--specials-backside"/>
-				</button>
-				{{ifThen fellowship.name fellowship.system.themebook (localize "Litm.other.fellowship")}}
+				<div class="litm--controls-wrapper">
+					<button class="litm--specials litm--specials-button" type="button" data-click="toggle-backside"
+						data-type="hero" data-id="{{hero.id}}" data-tooltip="{{localize 'Litm.ui.tags-fellowship'}}">
+						<img class="litm--specials-backside{{#if fellowship}} litm--fellowship-icon{{/if}}"
+							src="systems/litm-rn/assets/media/icons/{{ifThen fellowship 'fellowship-color' 'special'}}_icn.svg"
+							alt="{{localize 'Litm.other.specials'}}"/>
+					</button>
+					{{#if fellowship}}
+						<span class="litm--theme-meta-part"
+							data-click="open-item"
+							data-id="{{fellowship._id}}"
+							data-tooltip="{{concat (localize 'Litm.ui.open-item-click') '<hr />' fellowship.system.motivation}}">
+							<img src="systems/litm-rn/assets/media/icons/{{fellowship.system.level}}_litm_icn.svg" aria-hidden="true" />
+						</span>
+					{{/if}}
+				</div>
+				<span class="litm--meta-hero">
+					{{ifThen fellowship.name fellowship.system.themebook (localize "Litm.other.fellowship")}}
+				</span>
 			</div>
 			{{#if fellowship}}
 				{{> systems/litm-rn/templates/item/fellowship-ro.html data=fellowship}}
