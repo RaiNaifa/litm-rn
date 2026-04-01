@@ -273,6 +273,7 @@
 			"lock-actor": "Themes Removing: ON/OFF",
 			"lock-story": "Choose to roll / Change name",
 			"manage-tags": "Manage Tags & Statuses",
+			"manage-tags-hint": "Open Tags & Statuses Manager",
 			"moderate-roll-gm": "Moderate Roll",
 			"moderate-roll-gm-hint": "wants to roll with a",
 			"moderate-roll-player": "Wait for it!",
