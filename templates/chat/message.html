@@ -22,17 +22,33 @@
 			{{#unless (eq type 'quick')}}<span>{{power}}
 				{{localize 'Litm.tags.power'}}</span>{{/unless}}
 		</h4>
+		{{#if (eq type 'quick')}}
+			{{#if (eq outcome.label 'success')}}
+				<p class="litm--dice-roll-subtle">
+					{{{localize "Litm.ui.roll-tracked-quick-success"}}}
+				</p>
+			{{/if}}
+		{{/if}}
+		{{#if tradeMode}}
+			<p class="litm--dice-roll-trade">
+				{{#if (eq tradeMode 'caution')}}
+					<em>{{localize "Litm.ui.trade-caution"}}</em>
+				{{else}}
+					<em>{{localize "Litm.ui.trade-hedge"}}</em>
+				{{/if}}
+			</p>
+		{{/if}}
 		{{#if (eq type 'tracked')}}
-		{{#if (eq outcome.label 'consequence')}}
-		<p class="litm--dice-roll-subtle">
-			{{{localize "Litm.ui.roll-tracked-hint"}}}
-		</p>
-		{{/if}}
-		{{#if (eq outcome.label 'success')}}
-		<p class="litm--dice-roll-subtle">
-			{{localize 'Litm.ui.roll-tracked-success'}}
-		</p>
-		{{/if}}
+			{{#if (eq outcome.label 'consequence')}}
+				<p class="litm--dice-roll-subtle">
+					{{{localize "Litm.ui.roll-tracked-hint"}}}
+				</p>
+			{{/if}}
+			{{#if (eq outcome.label 'success')}}
+				<p class="litm--dice-roll-subtle">
+					{{{localize 'Litm.ui.roll-tracked-success'}}}
+				</p>
+			{{/if}}
 		{{/if}}
 		{{#if (and isOwner (or hasBurntTags hasCrispyTags))}}
 		<button class="litm--roll-burn-button" data-click="scratch-tags">{{localize 'Litm.ui.scratch-tags'}}</button>

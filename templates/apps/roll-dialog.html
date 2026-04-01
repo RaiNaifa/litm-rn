@@ -195,10 +195,41 @@
 			<input id="modifier-input" type="number" name="modifier" value="{{modifier}}" data-update="modifier" />
 		</label>
 	</div>
-	<div class="litm--tags-summary-total">
-		<span>{{localize "Litm.ui.total-power"}}: </span>
-		<span data-update="totalPower">{{totalPower}}</span>
+	<div class="litm--tags-summary-total-wrapper">
+		<div class="litm--tags-summary-total{{#if (eq type 'tracked')}} litm--summary-tracked{{/if}}">
+			{{#if (eq type 'tracked')}}
+			<button type="button" class="litm--trade-btn litm--trade-caution {{#if (eq tradeMode 'caution')}}active{{/if}}"
+				data-click="trade-caution"
+				data-tooltip="{{localize 'Litm.ui.throw-caution-tooltip'}}"
+				{{#unless canThrowCaution}}disabled{{/unless}}>
+				<span>
+					{{{localize "Litm.ui.throw-caution"}}}
+				</span>
+			</button>
+			{{/if}}
+			<div class="litm--tags-total-center">
+				<span>{{localize "Litm.ui.total-power"}}: </span>
+				<span data-update="totalPower">{{totalPower}}</span>
+			</div>
+			{{#if (eq type 'tracked')}}
+			<button type="button" class="litm--trade-btn litm--trade-hedge {{#if (eq tradeMode 'hedge')}}active{{/if}}"
+				data-click="trade-hedge"
+				data-tooltip="{{localize 'Litm.ui.hedge-risks-tooltip'}}"
+				{{#unless canHedgeRisks}}disabled{{/unless}}>
+				<span>
+					{{{localize "Litm.ui.hedge-risks"}}}
+				</span>
+			</button>
+			{{/if}}
+		</div>
+		{{#if (and tradeMode (eq type 'tracked'))}}
+		<div class="litm--trade-info">
+			<span>{{localize "Litm.ui.spend-power"}}: </span>
+			<span data-update="spendPower">{{spendPower}}</span>
+		</div>
+		{{/if}}
 	</div>
+	<input type="hidden" name="tradeMode" value="{{tradeMode}}" />
 	<button type="button" data-click="add-tag">{{localize "Litm.other.add"}} {{localize "Litm.other.tags"}}</button>
 	<div class="litm--roll-dialog-buttons">
 		<label class="litm--roll-dialog-skip-moderation">

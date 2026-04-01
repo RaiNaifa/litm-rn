@@ -98,6 +98,14 @@
 		padding: 0.1em 0.5em;
 	}
 
+	& .litm--dice-roll-trade {
+		color: color-mix(in hsl, var(--litm-color-tag-bg), yellow);
+		font-family: var(--litm-font-primary);
+		font-size: var(--font-size-12);
+		text-align: center;
+		margin-top: var(--litm-space-1);
+	}
+
 	& .litm--dice-roll-subtle {
 		color: color-mix(in hsl, var(--litm-color-primary-bg) 80%, transparent);
 		font-family: var(--litm-font-primary);

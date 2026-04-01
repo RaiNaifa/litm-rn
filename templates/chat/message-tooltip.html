@@ -76,5 +76,16 @@
 		{{#if (not (eq data.might '0'))}}
 		{{> might value=data.might flavor="" flavorClass=""}}
 		{{/if}}
+		{{#if data.tradeMode}}
+			<section class="tooltip-part">
+				<header class="part-header flexrow">
+					<span class="part-formula">
+						{{#if (eq data.tradeMode 'caution')}}{{localize "Litm.ui.trade-caution"}}{{else}}{{localize "Litm.ui.trade-hedge"}}{{/if}}
+					</span>
+					<span class="part-flavor warning">{{localize "Litm.ui.trade"}}</span>
+					<span class="part-total">{{#if (eq data.tradeMode 'caution')}}-1{{else}}+1{{/if}}</span>
+				</header>
+			</section>
+		{{/if}}
 	</div>
 </div>

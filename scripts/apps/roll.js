@@ -39,19 +39,21 @@ export class LitmRoll extends Roll {
 	get power() {
 		const { label: outcome } = this.outcome;
 
-		// Quick outcomes don't need to track power
 		if (this.litm.type === "quick") return null;
 		if (outcome === "failure") return 0;
 
-		// Minimum of 1 power
-		let totalPower = Math.max(this.litm.totalPower, 1);
+		// spendPower already has trade adjustments and minimum applied
+		const basePower = this.litm.spendPower ?? Math.max(this.litm.totalPower, 1);
+		let totalPower = Math.max(basePower, 1);
 
-		// If it's not a strong success, return the total power
 		if (outcome === "consequence") return totalPower;
 
-		// Mitigate outcomes add 1 power on a strong success
 		if (this.litm.type === "mitigate") totalPower += 1;
 		return totalPower;
+	}
+
+	get tradeMode() {
+		return this.options.tradeMode || "";
 	}
 
 	get outcome() {
@@ -99,6 +101,8 @@ export class LitmRoll extends Roll {
 			effect: this.effect,
 			modifier: isPrivate ? "???" : this.modifier,
 			might: isPrivate ? "???" : this.might,
+			tradeMode: isPrivate ? "" : this.tradeMode,
+			spendPower: isPrivate ? "???" : (this.litm.spendPower ?? this.power),
 			user: game.user.id,
 			isOwner: game.user.isGM || this.actor.isOwner,
 		};
@@ -146,6 +150,7 @@ export class LitmRoll extends Roll {
 			negativeStatuses: this.litm.negativeStatuses,
 			modifier: this.modifier,
 			might: this.might,
+			tradeMode: this.tradeMode,
 		};
 	}
 }

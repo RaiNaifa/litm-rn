@@ -33,7 +33,7 @@ export class LitmRollDialog extends FormApplication {
 		});
 	}
 
-	static roll({ actorId, tags, title, type, speaker, modifier = 0, might = 0 }) {
+	static roll({ actorId, tags, title, type, speaker, modifier = 0, might = 0, tradeMode = "" }) {
 		// Separate tags
 		const {
 			burntTags,
@@ -65,6 +65,16 @@ export class LitmRollDialog extends FormApplication {
 			might: Number(might) || 0,
 		});
 
+		let spendPower = totalPower;
+		let rollPower = totalPower;
+		if (tradeMode === "caution") {
+			rollPower = totalPower - 1;
+			spendPower = Math.max(totalPower, 1) + 1;
+		} else if (tradeMode === "hedge") {
+			rollPower = totalPower + 1;
+			spendPower = Math.max(totalPower - 1, 1);
+		}
+
 		const formula =
 			typeof CONFIG.litm.roll.formula === "function"
 				? CONFIG.litm.roll.formula({
@@ -80,12 +90,13 @@ export class LitmRollDialog extends FormApplication {
 						weaknessValue,
 						positiveStatusValue,
 						negativeStatusValue,
-						totalPower,
+						totalPower: rollPower,
 						actorId,
 						type,
 						title,
 						modifier,
 						might,
+						tradeMode,
 					})
 				: CONFIG.litm.roll.formula ||
 					"2d6 + (@burntValue + @powerValue + @positiveStatusValue - @weaknessValue - @negativeStatusValue + @modifier + @might)";
@@ -101,6 +112,7 @@ export class LitmRollDialog extends FormApplication {
 				negativeStatusValue,
 				modifier: Number(modifier) || 0,
 				might: Number(might) || 0,
+				tradeMode,
 			},
 			{
 				actorId,
@@ -114,9 +126,11 @@ export class LitmRollDialog extends FormApplication {
 				crispyTags,
 				heroWeaknessTags,
 				speaker,
-				totalPower,
+				totalPower: rollPower,
+				spendPower,
 				modifier,
 				might,
+				tradeMode,
 			},
 		);
 
@@ -210,6 +224,7 @@ export class LitmRollDialog extends FormApplication {
 	#shouldRoll = () => false;
 	#modifier = 0;
 	#might = 0;
+	#tradeMode = ""; // "", "caution", "hedge"
 	#tooltipEl = null;
 
 	constructor(actorId, characterTags = [], options = {}) {
@@ -394,8 +409,11 @@ export class LitmRollDialog extends FormApplication {
 			})});
 	}
 
-	// TODO: добавить Might и Осторожные/Рискованные броски
 	get totalPower() {
+		return this.rollPower;
+	}
+
+	get basePower() {
 		const personalWithState = [...this.tags, ...this.statuses]
 			.filter(t => !!t.state);
 		const personalIds = new Set(personalWithState.map(t => t.id));
@@ -419,6 +437,28 @@ export class LitmRollDialog extends FormApplication {
 			might: this.#might,
 		});
 		return totalPower;
+	}
+
+	get rollPower() {
+		const base = this.basePower;
+		if (this.#tradeMode === "caution") return base - 1;
+		if (this.#tradeMode === "hedge") return base + 1;
+		return base;
+	}
+
+	get spendPower() {
+		const base = this.basePower;
+		if (this.#tradeMode === "caution") return Math.max(base, 1) + 1;
+		if (this.#tradeMode === "hedge") return Math.max(base - 1, 1);
+		return base;
+	}
+
+	get canThrowCaution() {
+		return this.basePower <= 2;
+	}
+
+	get canHedgeRisks() {
+		return this.basePower >= 2;
 	}
 
 	getData() {
@@ -446,6 +486,10 @@ export class LitmRollDialog extends FormApplication {
 			totalPower: this.totalPower,
 			modifier: this.#modifier,
 			might: this.#might,
+			tradeMode: this.#tradeMode,
+			spendPower: this.spendPower,
+			canThrowCaution: this.canThrowCaution,
+			canHedgeRisks: this.canHedgeRisks,
 		};
 	}
 
@@ -539,6 +583,9 @@ export class LitmRollDialog extends FormApplication {
 		html
 			.find('input[name="might"]')
 			.on("change", this.#handleMightChange.bind(this));
+		html
+			.find('input[name="type"]')
+			.on("change", this.#handleTypeChange.bind(this));
 
 		this.#cleanupTooltip();
 		const wrapper = html.find(".litm--might-name-wrapper");
@@ -660,6 +707,7 @@ export class LitmRollDialog extends FormApplication {
 		this.#tagState = [];
 		this.#modifier = 0;
 		this.#might = 0;
+		this.#tradeMode = "";
 		this.#shouldRoll = () => game.settings.get("litm-rn", "skip_roll_moderation");
 		if (this.actor.sheet.rendered) this.actor.sheet.render(true);
 	}
@@ -670,7 +718,7 @@ export class LitmRollDialog extends FormApplication {
 	 * @param {Object} formData - The form data
 	 */
 	async _updateObject(_event, formData) {
-		const { actorId, title, type, shouldRoll, modifier, might, ...rest } = formData;
+		const { actorId, title, type, shouldRoll, modifier, might, tradeMode, ...rest } = formData;
 		const tags = this.getFilteredArrayFromFormData(rest);
 
 		const data = {
@@ -681,6 +729,7 @@ export class LitmRollDialog extends FormApplication {
 			speaker: this.speaker,
 			modifier,
 			might,
+			tradeMode: tradeMode || "",
 		};
 
 		this.#shouldRoll = () => shouldRoll;
@@ -725,6 +774,18 @@ export class LitmRollDialog extends FormApplication {
 			case "cancel":
 				this.close();
 				break;
+			case "trade-caution": {
+				if (!this.canThrowCaution) return;
+				this.#tradeMode = this.#tradeMode === "caution" ? "" : "caution";
+				this.render();
+				break;
+			}
+			case "trade-hedge": {
+				if (!this.canHedgeRisks) return;
+				this.#tradeMode = this.#tradeMode === "hedge" ? "" : "hedge";
+				this.render();
+				break;
+			}
 		}
 	}
 
@@ -757,22 +818,67 @@ export class LitmRollDialog extends FormApplication {
 			}
 		}
 
-		this.element.find("[data-update='totalPower']").text(this.totalPower);
+		this.#updateTradeUI();
 		this.#dispatchUpdate();
 	}
 
 	#handleModifierChange(event) {
 		const input = event.currentTarget;
 		this.#modifier = Number(input.value) || 0;
-		this.element.find("[data-update='totalPower']").text(this.totalPower);
+		this.#updateTradeUI();
 		this.#dispatchUpdate();
 	}
 
 	#handleMightChange(event) {
 		const value = parseInt(event.currentTarget.value);
 		this.#might = value || 0;
-		this.element.find("[data-update='totalPower']").text(this.totalPower);
+		this.#updateTradeUI();
 		this.#dispatchUpdate();
+	}
+
+	#handleTypeChange(event) {
+		this.type = event.currentTarget.value;
+		if (this.type !== "tracked" && this.#tradeMode) {
+			this.#tradeMode = "";
+		}
+		this.render();
+	}
+
+	#updateTradeUI() {
+		const canCaution = this.canThrowCaution;
+		const canHedge = this.canHedgeRisks;
+
+		const cautionBtn = this.element.find(".litm--trade-caution");
+		const hedgeBtn = this.element.find(".litm--trade-hedge");
+
+		cautionBtn.prop("disabled", !canCaution);
+		hedgeBtn.prop("disabled", !canHedge);
+
+		// If current tradeMode is no longer valid, reset it
+		if (this.#tradeMode === "caution" && !canCaution) {
+			this.#tradeMode = "";
+			cautionBtn.removeClass("active");
+		}
+		if (this.#tradeMode === "hedge" && !canHedge) {
+			this.#tradeMode = "";
+			hedgeBtn.removeClass("active");
+		}
+
+		// Update totalPower display (which now accounts for tradeMode)
+		this.element.find("[data-update='totalPower']").text(this.totalPower);
+
+		// Update spendPower display and trade-info visibility
+		const tradeInfo = this.element.find(".litm--trade-info");
+		if (this.#tradeMode) {
+			this.element.find("[data-update='spendPower']").text(this.spendPower);
+			if (!tradeInfo.length) {
+				// Re-render to show trade-info block
+				this.render();
+				return;
+			}
+		} else if (tradeInfo.length) {
+			tradeInfo.remove();
+		}
 	}
 
 	async #createModerationRequest(data) {
@@ -801,8 +907,10 @@ export class LitmRollDialog extends FormApplication {
 						...tags,
 						modifier: data.modifier,
 						might: data.might,
+						tradeMode: data.tradeMode,
 					},
 					totalPower,
+					tradeMode: data.tradeMode,
 				},
 			),
 			whisper: recipients,
@@ -817,6 +925,7 @@ export class LitmRollDialog extends FormApplication {
 			tagState: this.#tagState,
 			modifier: this.#modifier,
 			might: this.#might,
+			tradeMode: this.#tradeMode,
 		});
 	}
 
@@ -827,13 +936,14 @@ export class LitmRollDialog extends FormApplication {
 		this.#tooltipEl = null;
 	}
 
-	async receiveUpdate({ characterTags, tagState, actorId, modifier, might }) {
+	async receiveUpdate({ characterTags, tagState, actorId, modifier, might, tradeMode }) {
 		if (actorId !== this.actorId) return;
 
 		if (characterTags) this.characterTags = characterTags;
 		if (tagState) this.#tagState = tagState;
 		if (modifier !== undefined) this.#modifier = modifier;
 		if (might !== undefined) this.#might = might;
+		if (tradeMode !== undefined) this.#tradeMode = tradeMode;
 
 		if (this.actor.sheet.rendered) this.actor.sheet.render();
 		if (this.rendered) this.render();
