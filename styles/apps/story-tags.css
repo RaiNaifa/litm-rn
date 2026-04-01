@@ -305,7 +305,6 @@
 					& input.litm--private-checkbox {
 						width: 20px;
 						height: 20px;
-						margin-right: var(--litm-space-1)
 					}
 					& input.litm--hindering-checkbox {
 						width: 20px;
@@ -315,6 +314,7 @@
 					& input.litm--crispy-checkbox {
 						width: 20px;
 						height: 20px;
+						margin-right: var(--litm-space-1)
 					}
 				}
 
@@ -324,6 +324,7 @@
 					display: flex;
 					align-items: center;
 					gap: 2px;
+					margin-right: var(--litm-space-1);
 
 					& [type="checkbox"] {
 						flex: none;

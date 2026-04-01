@@ -16,12 +16,6 @@
 				value="{{tag.type}}">
 		</div>
 		<div class="litm--tag-item-control">
-			{{#if (or isGM editable)}}
-				{{> toggle-private source=source tag=tag editable=editable}}
-			{{else}}
-				<input type="hidden" name="{{source}}.{{tag.id}}.isPrivate" value="{{tag.isPrivate}}" data-dtype="Boolean">
-			{{/if}}
-			{{> toggle-hindering source=source tag=tag editable=editable}}
 			{{#if (eq tag.type 'tag')}}
 				{{> toggle-crispy source=source tag=tag editable=editable}}
 			{{/if}}
@@ -52,7 +46,13 @@
 							{{checked (eq tag.value 6)}} />
 					</label>
 				</div>
-		{{/if}}
+			{{/if}}
+			{{> toggle-hindering source=source tag=tag editable=editable}}
+			{{#if (or isGM editable)}}
+				{{> toggle-private source=source tag=tag editable=editable}}
+			{{else}}
+				<input type="hidden" name="{{source}}.{{tag.id}}.isPrivate" value="{{tag.isPrivate}}" data-dtype="Boolean">
+			{{/if}}
 		</div>
 	</li>
 {{/inline}} {{#*inline 'limitStatusItem' tag source editable isLocked isGM actorId limitIndex}}
@@ -77,12 +77,6 @@
 				value="status">
 		</div>
 		<div class="litm--tag-item-control">
-			{{#if (or isGM editable)}}
-				{{> toggle-private source=source tag=tag editable=editable}}
-			{{else}}
-				<input type="hidden" name="{{source}}.{{tag.id}}.isPrivate" value="{{tag.isPrivate}}" data-dtype="Boolean">
-			{{/if}}
-			{{> toggle-hindering source=source tag=tag editable=editable}}
 			<div class="litm--tag-item-status">
 				{{#each tag.values as |status|}}
 					<input
@@ -91,6 +85,12 @@
 						{{checked status}} />
 				{{/each}}
 			</div>
+			{{> toggle-hindering source=source tag=tag editable=editable}}
+			{{#if (or isGM editable)}}
+				{{> toggle-private source=source tag=tag editable=editable}}
+			{{else}}
+				<input type="hidden" name="{{source}}.{{tag.id}}.isPrivate" value="{{tag.isPrivate}}" data-dtype="Boolean">
+			{{/if}}
 		</div>
 	</li>
 {{/inline}} {{#*inline 'add-tag-button' id}}

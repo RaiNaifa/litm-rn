@@ -56,8 +56,6 @@
 					{{ifThen editable "" "readonly"}} />
 			</div>
 			<div class="litm--tag-item-control">
-				{{> toggle-private source=source tag=tag editable=editable}}
-				{{> toggle-hindering source=source tag=tag editable=editable}}
 				{{#if (eq tag.flags.litm-rn.type 'tag')}}
 					{{> toggle-crispy source=source tag=tag editable=editable}}
 				{{/if}}
@@ -93,6 +91,8 @@
 						</label>
 					</div>
 				{{/if}}
+				{{> toggle-hindering source=source tag=tag editable=editable}}
+				{{> toggle-private source=source tag=tag editable=editable}}
 			</div>
 		</li>
 	{{/if}}
