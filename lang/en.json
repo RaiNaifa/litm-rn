@@ -343,6 +343,7 @@
 			"tags-fellowship": "Relationships / Fellowship",
 			"threats-consequences": "Threats & Consequences",
 			"toggle-burnt": "<span class='reference'>ALT/OPTION + Click</span> to burn/unburn tag.",
+			"toggle-collapse": "Toggle Collapse",
 			"toggle-roll": "<span class='reference'>Click</span> to add/remove from dice roll. <br /> <span class='reference'>SHIFT + Click</span> to burn tag on dice roll. <br /> <span class='reference'>ALT/OPTION + Click</span> to scratch/unscratch tag.",
 			"toggle-roll-full": "<span class='reference'>Click</span> to add/remove from dice roll. <br /> <span class='reference'>SHIFT + Click</span> to burn tag on dice roll. <br /> <span class='reference'>ALT/OPTION + Click</span> to scratch/unscratch tag. <br /> <span class='reference'>CTRL/⌘ + Click</span> to contribute/withdraw tag for another Hero's roll.",
 			"toggle-roll-select-scratch-help": "<span class='reference'>Click</span> to add/remove from dice roll. <br /> <span class='reference'>ALT/OPTION + Click</span> to scratch/unscratch tag. <br /> <span class='reference'>CTRL/⌘ + Click</span> to contribute/withdraw tag for another Hero's roll.",

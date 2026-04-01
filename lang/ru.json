@@ -352,6 +352,7 @@
 			"tags-fellowship": "Отношения / Содружество",
 			"threats-consequences": "Угрозы и Последствия",
 			"toggle-burnt": "<span class='reference'>ALT/OPTION + ЛКМ</span> — сжечь/потушить тег.",
+			"toggle-collapse": "Свернуть",
 			"toggle-roll": "<span class='reference'>ЛКМ</span> — добавить/удалить для броска. <br /> <span class='reference'>SHIFT + ЛКМ</span> — сжечь тег для броска. <br /> <span class='reference'>ALT/OPTION + ЛКМ</span> — зачеркнуть/восстановить тег.",
 			"toggle-roll-full": "<span class='reference'>ЛКМ</span> — добавить/удалить для броска. <br /> <span class='reference'>SHIFT + ЛКМ</span> — сжечь тег для броска. <br /> <span class='reference'>ALT/OPTION + ЛКМ</span> — зачеркнуть/восстановить тег. <br /> <span class='reference'>CTRL/⌘ + ЛКМ</span> — поделиться/забрать тег для броска другого Героя.",
 			"toggle-roll-select-scratch-help": "<span class='reference'>ЛКМ</span> — добавить/удалить для броска. <br /> <span class='reference'>ALT/OPTION + ЛКМ</span> — зачеркнуть/восстановить тег. <br /> <span class='reference'>CTRL/⌘ + ЛКМ</span> — поделиться/забрать тег для броска другого Героя.",
