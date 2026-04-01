@@ -74,8 +74,10 @@
 
 			& legend {
 				flex: 1 0 auto;
+				display: flex;
+				justify-content: space-between;
 				margin-inline-start: -2px;
-				padding: 0.4em 20px 0.4em 6px;
+				padding: 0.4em 10px 0.4em 6px;
 				background: url(../../assets/media/section-bg.webp) no-repeat center /
 					auto;
 				background-position: left;
@@ -89,6 +91,36 @@
 					aspect-ratio: 1 / 1;
 					max-width: 25px;
 					flex: none;
+				}
+
+				& button.litm--collapse-btn {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					border: none;
+					background: none;
+					color: var(--litm-color-primary-bg);
+					font-size: var(--font-size-16);
+					cursor: pointer;
+					padding: 0 4px;
+					margin: 0;
+					width: auto;
+					height: auto;
+					vertical-align: middle;
+					opacity: 0.9;
+					transition: filter 0.2s ease;
+
+					&:hover,
+					&:focus {
+						opacity: 1;
+						box-shadow: none;
+						text-shadow: 0 0 4px var(--litm-color-weakness);
+					}
+
+					& i {
+						pointer-events: none;
+						transition: transform 0.25s ease;
+					}
 				}
 			}
 
@@ -109,6 +141,34 @@
 					text-shadow: 0 0 4px var(--litm-color-weakness);
 				}
 			}
+		}
+
+		& .litm--collapsible-content {
+			display: grid;
+			grid-template-rows: 1fr;
+			transition: grid-template-rows 0.35s ease-in-out;
+
+			&.litm--collapsed {
+				grid-template-rows: 0fr;
+			}
+
+			&.litm--no-transition {
+				transition: none !important;
+			}
+			&.litm--no-transition > .litm--collapsible-inner {
+				transition: none !important;
+			}
+		}
+
+		& .litm--collapsible-inner {
+			overflow: hidden;
+			opacity: 1;
+			transition: opacity 0.25s ease;
+		}
+
+		& .litm--collapsed > .litm--collapsible-inner {
+			opacity: 0;
+			pointer-events: none;
 		}
 
 		& ul {

@@ -178,22 +178,29 @@
 <form class="{{cssClass}}" autocomplete="off" data-context='menu'>
 	<section>
 		<div class="litm--story-tags-main">
-			<fieldset style="display: contents">
-				<div class="litm--story-tags-section-header"
-					data-context="remove-all-tags"
-					data-tooltip="{{localize 'Litm.ui.context-remove-all-tags'}}">
-					<legend>
-						{{localize "Litm.other.story-tags"}}
-					</legend>
-					{{> add-tag-button id="story-tag"}}
-					{{> add-status-button id="story-status"}}
-					{{> add-might-button id="story-might"}}
+			<div class="litm--story-tags-section-header"
+				data-context="remove-all-tags"
+				data-tooltip="{{localize 'Litm.ui.context-remove-all-tags'}}">
+				<legend>
+					{{localize "Litm.other.story-tags"}}
+					<button type="button" class="litm--collapse-btn" data-click="toggle-collapse" data-collapse-id="story"
+						data-tooltip="{{localize 'Litm.ui.toggle-collapse'}}">
+						<i class="fas fa-chevron-right"></i>
+					</button>
+				</legend>
+				{{> add-tag-button id="story-tag"}}
+				{{> add-status-button id="story-status"}}
+				{{> add-might-button id="story-might"}}
+			</div>
+			<div class="litm--collapsible-content" data-collapse-target="story">
+				<div class="litm--collapsible-inner">
+					<ul>
+						{{#each tags as |tag|}}
+							{{> tagItem tag=tag source="story" editable=true isLocked=../isLocked isGM=../isGM}}
+						{{/each}}
+					</ul>
 				</div>
-				<ul>
-					{{#each tags as |tag|}}
-						{{> tagItem tag=tag source="story" editable=true isLocked=../isLocked isGM=../isGM}}
-					{{/each}}
-				</ul>
+			</div>
 			</fieldset>
 		</div>
 	</section>
@@ -207,6 +214,10 @@
 							data-context="remove-actor" data-id="{{actor.id}}"
 							data-tooltip="{{localize 'Litm.ui.click-once-open-context-remove'}}">
 							{{actor.name}}
+							<button type="button" class="litm--collapse-btn" data-click="toggle-collapse" data-collapse-id="{{actor.id}}"
+								data-tooltip="{{localize 'Litm.ui.toggle-collapse'}}">
+								<i class="fas fa-chevron-right"></i>
+							</button>
 						</legend>
 						{{#if actor.isOwner}}
 							{{> add-tag-button id=actor.id}}
@@ -216,18 +227,22 @@
 							{{/if}}
 						{{/if}}
 					</div>
-					{{#if actor.limits.length}}
-						<div class="litm--actor-limits">
-							{{#each actor.limits as |limit|}}
-								{{> limitItem limit=limit actor=actor source=../formKey isLocked=../../isLocked isGM=../../isGM}}
-							{{/each}}
+					<div class="litm--collapsible-content" data-collapse-target="{{actor.id}}">
+						<div class="litm--collapsible-inner">
+							{{#if actor.limits.length}}
+								<div class="litm--actor-limits">
+									{{#each actor.limits as |limit|}}
+										{{> limitItem limit=limit actor=actor source=../formKey isLocked=../../isLocked isGM=../../isGM}}
+									{{/each}}
+								</div>
+							{{/if}}
+							<ul>
+								{{#each actor.tags as |tag|}}
+									{{> tagItem tag=tag source=../formKey editable=actor.isOwner isLocked=../../isLocked isGM=../../isGM}}
+								{{/each}}
+							</ul>
 						</div>
-					{{/if}}
-					<ul>
-						{{#each actor.tags as |tag|}}
-							{{> tagItem tag=tag source=../formKey editable=actor.isOwner isLocked=../../isLocked isGM=../../isGM}}
-						{{/each}}
-					</ul>
+					</div>
 				</fieldset>
 			</div>
 		{{else}}

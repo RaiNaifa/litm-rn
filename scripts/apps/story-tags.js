@@ -33,6 +33,8 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 		await super._render(force, options);
 
+		this.#applyCollapseStates();
+
 		const newForm = this.element?.[0]?.querySelector("form");
 		if (newForm) newForm.scrollTop = savedScroll;
 	}
@@ -164,6 +166,10 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	get selectedTags() {
 		return this.config.selectedTags
 			.sort((a, b) => compareTagTypes(a, b));
+	}
+
+	get #collapseStorageKey() {
+		return `litm-story-tags-collapsed-${game.user.id}`;
 	}
 
 	async syncSelectedTagsFromActor(actorRef) {
@@ -357,6 +363,12 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			.on("dragleave", (e) => {
 				e.currentTarget.classList.remove("drag-over");
 			});
+
+		// Collapse buttons — stop propagation so legend click (open-sheet) doesn't fire
+		html.find(".litm--collapse-btn").on("click", (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+		});
 
 		// contenteditable=true
 		const contenteditable = html.find(".litm--tag-item-name[contenteditable='true']");
@@ -615,6 +627,9 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			case "toggle-limit-private":
 				this.#toggleLimitPrivate(event.currentTarget);
 				break;
+			case "toggle-collapse":
+				this.#toggleCollapse(event.currentTarget);
+				break;
 		}
 	}
 
@@ -649,13 +664,12 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	async #addTag(target) {
 		const tag = {
 			name: t("Litm.ui.name-tag"),
-			// values: Array(6)
-			// 	.fill()
-			// 	.map(() => null), // TODO - deprecated
 			type: "tag",
 			isScratched: false,
 			id: foundry.utils.randomID(),
 		};
+
+		this.#expandSection(this.#collapseIdForTarget(target));
 
 		if (target === "story-tag") {
 			if (game.user.isGM) return this.setTags([...this.tags, tag]);
@@ -676,6 +690,8 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			id: foundry.utils.randomID(),
 		};
 
+		this.#expandSection(this.#collapseIdForTarget(target));
+
 		if (target === "story-status") {
 			if (game.user.isGM) return this.setTags([...this.tags, status]);
 			return this.#broadcastUpdate("tags", [...this.tags, status]);
@@ -693,6 +709,8 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			isScratched: false,
 			id: foundry.utils.randomID(),
 		};
+
+		this.#expandSection(this.#collapseIdForTarget(target));
 
 		if (target === "story-might") {
 			if (game.user.isGM) return this.setTags([...this.tags, might]);
@@ -1195,6 +1213,108 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		});
 
 		return buttons;
+	}
+
+	#getCollapsedSet() {
+		try {
+			const raw = localStorage.getItem(this.#collapseStorageKey);
+			return raw ? new Set(JSON.parse(raw)) : new Set();
+		} catch {
+			return new Set();
+		}
+	}
+
+	#saveCollapsedSet(set) {
+		localStorage.setItem(this.#collapseStorageKey, JSON.stringify([...set]));
+	}
+
+	#setCollapsed(collapseId, collapsed) {
+		const set = this.#getCollapsedSet();
+		if (collapsed) set.add(collapseId);
+		else set.delete(collapseId);
+		this.#saveCollapsedSet(set);
+	}
+
+	#expandSection(collapseId) {
+		this.#setCollapsed(collapseId, false);
+		const el = this.element?.[0];
+		if (!el) return;
+		const target = el.querySelector(`[data-collapse-target="${collapseId}"]`);
+		const btn = el.querySelector(`[data-collapse-id="${collapseId}"]`);
+		if (target) target.classList.remove("litm--collapsed");
+		if (btn) {
+			const icon = btn.querySelector("i");
+			if (icon) {
+				icon.classList.remove("fa-chevron-down");
+				icon.classList.add("fa-chevron-up");
+			}
+		}
+	}
+
+	#applyCollapseStates() {
+		const el = this.element?.[0];
+		if (!el) return;
+		const collapsed = this.#getCollapsedSet();
+
+		const targets = el.querySelectorAll("[data-collapse-target]");
+
+		// Suppress transitions so re-render doesn't animate
+		for (const target of targets) {
+			target.classList.add("litm--no-transition");
+		}
+
+		for (const target of targets) {
+			const id = target.dataset.collapseTarget;
+			target.classList.toggle("litm--collapsed", collapsed.has(id));
+		}
+
+		for (const btn of el.querySelectorAll(".litm--collapse-btn")) {
+			const id = btn.dataset.collapseId;
+			const icon = btn.querySelector("i");
+			if (!icon) continue;
+			const isCol = collapsed.has(id);
+			icon.classList.toggle("fa-chevron-right", !isCol);
+			icon.classList.toggle("fa-chevron-down", isCol);
+		}
+
+		void el.offsetHeight;
+		for (const target of targets) {
+			target.classList.remove("litm--no-transition");
+		}
+	}
+
+	#toggleCollapse(button) {
+		const collapseId = button.dataset.collapseId;
+		if (!collapseId) return;
+
+		const el = this.element?.[0];
+		if (!el) return;
+
+		const target = el.querySelector(`[data-collapse-target="${collapseId}"]`);
+		if (!target) return;
+
+		const isCurrentlyCollapsed = target.classList.contains("litm--collapsed");
+
+		if (isCurrentlyCollapsed) {
+			target.classList.remove("litm--collapsed");
+			this.#setCollapsed(collapseId, false);
+		} else {
+			target.classList.add("litm--collapsed");
+			this.#setCollapsed(collapseId, true);
+		}
+
+		const icon = button.querySelector("i");
+		if (icon) {
+			icon.classList.toggle("fa-chevron-right", !target.classList.contains("litm--collapsed"));
+			icon.classList.toggle("fa-chevron-down", target.classList.contains("litm--collapsed"));
+		}
+	}
+
+	#collapseIdForTarget(target) {
+		if (target === "story-tag" || target === "story-status" || target === "story-might") {
+			return "story";
+		}
+		return target;
 	}
 
 	/**  Start Socket Methods  */
