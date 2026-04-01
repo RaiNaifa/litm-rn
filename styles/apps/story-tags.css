@@ -346,6 +346,7 @@
 
 				& .litm--tag-item-might {
 					margin-inline: auto 0;
+					margin-right: var(--litm-space-1);
 					display: flex;
 					align-items: center;
 					gap: 2px;
