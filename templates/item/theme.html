@@ -113,16 +113,24 @@
 			{{/if}}
 			{{#if data.system.backside}}
 				<div class="litm--add-tags-buttons">
-					<button type="button" data-click="add-special">{{localize "Litm.ui.add-special"}}</button>
+					<button type="button" data-click="add-special">
+						<span>{{localize "Litm.ui.add-special"}}</span>
+					</button>
 				</div>
 			{{else}}
 				<div class="litm--add-tags-buttons">
-					<button type="button" data-click="add-draft-tag">{{localize "Litm.ui.add-draft-tag"}}</button>
+					<button type="button" data-click="add-draft-tag">
+						<span>{{localize "Litm.ui.add-draft-tag"}}</span>
+					</button>
 				</div>
 				<div class="litm--add-tags-buttons">
-					<button type="button" data-click="add-power-tag">{{localize "Litm.ui.add-power-tag"}}</button>
+					<button type="button" data-click="add-power-tag">
+						<span>{{localize "Litm.ui.add-power-tag"}}</span>
+					</button>
 					<img src="systems/litm-rn/assets/media/separator-small.webp" alt="" class="litm--add-tags-separator">
-					<button type="button" data-click="add-weakness-tag">{{localize "Litm.ui.add-weakness-tag"}}</button>
+					<button type="button" data-click="add-weakness-tag">
+						<span>{{localize "Litm.ui.add-weakness-tag"}}</span>
+					</button>
 				</div>
 			{{/if}}
 			<div class="litm--theme-progression">

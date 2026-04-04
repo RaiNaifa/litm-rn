@@ -368,6 +368,8 @@
 			pointer-events: all;
 
 			& .litm--theme-back {
+				width: 100%;
+
 				& .taglist {
 					& li {
 						&:first-child {
@@ -1037,6 +1039,10 @@
 				&:nth-child(27) {
 					margin-top: -674px;
 				}
+
+				& span {
+					font-family: var(--litm-font-accent);
+				}
 			}
 		}
 
@@ -1210,6 +1216,11 @@
 			&.litm--special-active {
 				cursor: pointer;
 				opacity: 1;
+			}
+
+			& span {
+				font-family: var(--litm-font-text);
+				color: var(--litm-color-primary);
 			}
 
 			& .litm--special-inline {

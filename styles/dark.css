@@ -8,3 +8,12 @@ body.theme-dark {
 		}
 	}
 }
+
+.sheet.themed.theme-dark {
+	& .litm--tag,
+	& .litm--status,
+	& .litm--limit,
+	& .litm--might {
+		color: var(--color-text-primary);
+	}
+}

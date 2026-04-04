@@ -250,7 +250,8 @@
 	white-space: nowrap;
 	-webkit-box-decoration-break: clone;
 	box-decoration-break: clone;
-	color: var(--litm-color-primary);
+	color: var(--litm-color-primary-dark);
+	font-family: var(--litm-font-text);
 	font-style: italic;
 	font-weight: 400;
 	box-shadow: 1px 1px 1px var(--litm-color-weakness-bg);
@@ -275,13 +276,13 @@
 		background-color: transparent;
 
 		&.litm--origin {
-			background-color: color-mix(in srgb, rgba(70, 117, 85, 0.3), rgba(252, 245, 223, 0.05));
+			background-color: var(--litm-color-origin-light-bg);
 		}
 		&.litm--adventure {
-			background-color: color-mix(in srgb, rgba(124, 59, 60, 0.3), rgba(252, 245, 223, 0.05));
+			background-color: var(--litm-color-adventure-light-bg);
 		}
 		&.litm--greatness {
-			background-color: color-mix(in srgb, rgba(92, 91, 145, 0.3), rgba(252, 245, 223, 0.05));
+			background-color: var(--litm-color-greatness-light-bg);
 		}
 
 		& img {
@@ -386,6 +387,10 @@ litm-toggled-input {
 
 	& .window-content {
 		padding: var(--litm-space-3);
+
+		& .dialog-content {
+			font-family: var(--litm-font-text);
+		}
 
 		& .dialog-buttons {
 			margin-block-start: var(--litm-space-2);
@@ -514,11 +519,11 @@ li.litm--special {
 
 .litm--lock-btn {
 	& .fa-lock {
-		color: var(--litm-color-lock);
+		color: var(--litm-color-accent-3);
 	}
 
 	& .fa-lock-open {
-		color: var(--litm-color-open);
+		color: var(--litm-color-status-bg-overlap);
 	}
 }
 

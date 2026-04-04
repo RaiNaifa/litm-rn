@@ -426,6 +426,12 @@
 				box-shadow: none;
 				text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
 			}
+
+			& span {
+				color: var(--litm-color);
+				font-size: var(--font-size-20);
+				font-family: var(--litm-font-accent);
+			}
 		}
 
 		& button[data-click="add-special"] {

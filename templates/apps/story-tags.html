@@ -1,4 +1,4 @@
-{{#*inline 'tagItem' tag source editable isLocked}}
+{{#*inline 'tagItem' tag source editable isLocked isMain}}
 	<li
 		class="litm--tag-item litm--{{tag.type}}{{ifThen tag.isPrivate ' litm--private' ''}}"
 		{{#if (and (eq tag.type 'status') (not (eq source 'story')) isGM)}}draggable="true"{{/if}}
@@ -48,7 +48,7 @@
 				</div>
 			{{/if}}
 			{{> toggle-hindering source=source tag=tag editable=editable}}
-			{{#if (or isGM editable)}}
+			{{#if (or (and isMain isGM) (and (not isMain) (or isGM editable)))}}
 				{{> toggle-private source=source tag=tag editable=editable}}
 			{{else}}
 				<input type="hidden" name="{{source}}.{{tag.id}}.isPrivate" value="{{tag.isPrivate}}" data-dtype="Boolean">
@@ -185,7 +185,8 @@
 					{{localize "Litm.other.story-tags"}}
 					<button type="button" class="litm--collapse-btn" data-click="toggle-collapse" data-collapse-id="story"
 						data-tooltip="{{localize 'Litm.ui.toggle-collapse'}}">
-						<i class="fas fa-chevron-right"></i>
+						<img src="systems/litm-rn/assets/media/tab-collapse.svg"
+							class="litm--collapse-icon" aria-hidden="true" />
 					</button>
 				</legend>
 				{{> add-tag-button id="story-tag"}}
@@ -196,7 +197,7 @@
 				<div class="litm--collapsible-inner">
 					<ul>
 						{{#each tags as |tag|}}
-							{{> tagItem tag=tag source="story" editable=true isLocked=../isLocked isGM=../isGM}}
+							{{> tagItem tag=tag source="story" editable=true isLocked=../isLocked isGM=../isGM isMain=true}}
 						{{/each}}
 					</ul>
 				</div>
@@ -216,7 +217,8 @@
 							{{actor.name}}
 							<button type="button" class="litm--collapse-btn" data-click="toggle-collapse" data-collapse-id="{{actor.id}}"
 								data-tooltip="{{localize 'Litm.ui.toggle-collapse'}}">
-								<i class="fas fa-chevron-right"></i>
+								<img src="systems/litm-rn/assets/media/tab-collapse.svg"
+									class="litm--collapse-icon" aria-hidden="true" />
 							</button>
 						</legend>
 						{{#if actor.isOwner}}

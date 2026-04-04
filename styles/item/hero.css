@@ -185,6 +185,12 @@
 				box-shadow: none;
 				text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
 			}
+
+			& span {
+				color: var(--litm-color);
+				font-size: var(--font-size-20);
+				font-family: var(--litm-font-accent);
+			}
 		}
 
 		& .litm--theme-title,
@@ -209,6 +215,7 @@
 			& .litm--taglist-wrapper {
 				overflow-x: hidden;
 				margin-right: -5px;
+				width: 100%;
 
 				& .taglist {
 					scrollbar-gutter: stable;
@@ -373,7 +380,7 @@
 				& select {
 					width: 100%;
 					color: var(--litm-color);
-					font-family: var(--litm-font-primary);
+					font-family: var(--litm-font-primary) !important; // override module's styles
 					font-size: var(--font-size-16);
 				}
 

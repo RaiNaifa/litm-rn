@@ -68,12 +68,18 @@
 			</ul>
 		{{/if}}
 		{{#if backside}}
-			<button type="button" data-click="add-special">{{localize "Litm.ui.add-quintessence"}}</button>
+			<button type="button" data-click="add-special">
+				<span>{{localize "Litm.ui.add-quintessence"}}</span>
+			</button>
 		{{else}}
 		{{#if isCharacterEmbedded}}
-			<button type="button" data-click="add-story">{{localize "Litm.ui.add-story"}}</button>
+			<button type="button" data-click="add-story">
+				<span>{{localize "Litm.ui.add-story"}}</span>
+			</button>
 		{{/if}}
-			<button type="button" data-click="add-tag">{{localize "Litm.ui.add-tag"}}</button>
+			<button type="button" data-click="add-tag">
+				<span>{{localize "Litm.ui.add-tag"}}</span>
+			</button>
 		{{/if}}
 	</div>
 </form>

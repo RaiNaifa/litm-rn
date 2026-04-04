@@ -160,7 +160,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	get tags() {
 		return this.config.tags
 			.filter(tag => this.#isVisible(tag))
-			// .sort((a, b) => compareTagTypes(a, b));
+			.sort((a, b) => compareTagTypes(a, b));
 	}
 
 	get selectedTags() {
@@ -268,7 +268,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 	async getData() {
 		const allActors = this.actors
 			.sort((a, b) => a.name.localeCompare(b.name))
-			.sort((_a, b) => (b.type === "challenge" ? 1 : -1));
+			.sort((_a, b) => (b.type === "character" ? 1 : -1));
 
 		const visibleActors = game.user.isGM
 			? allActors
@@ -1243,10 +1243,9 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 		const btn = el.querySelector(`[data-collapse-id="${collapseId}"]`);
 		if (target) target.classList.remove("litm--collapsed");
 		if (btn) {
-			const icon = btn.querySelector("i");
+			const icon = btn.querySelector("img");
 			if (icon) {
-				icon.classList.remove("fa-chevron-down");
-				icon.classList.add("fa-chevron-up");
+				icon.classList.remove("litm--collapsed");
 			}
 		}
 	}
@@ -1270,11 +1269,10 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 
 		for (const btn of el.querySelectorAll(".litm--collapse-btn")) {
 			const id = btn.dataset.collapseId;
-			const icon = btn.querySelector("i");
+			const icon = btn.querySelector("img");
 			if (!icon) continue;
 			const isCol = collapsed.has(id);
-			icon.classList.toggle("fa-chevron-right", !isCol);
-			icon.classList.toggle("fa-chevron-down", isCol);
+			icon.classList.toggle("litm--collapsed", isCol);
 		}
 
 		void el.offsetHeight;
@@ -1303,10 +1301,10 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 			this.#setCollapsed(collapseId, true);
 		}
 
-		const icon = button.querySelector("i");
+		const icon = button.querySelector("img");
 		if (icon) {
-			icon.classList.toggle("fa-chevron-right", !target.classList.contains("litm--collapsed"));
-			icon.classList.toggle("fa-chevron-down", target.classList.contains("litm--collapsed"));
+			const isNowCollapsed = target.classList.contains("litm--collapsed");
+			icon.classList.toggle("litm--collapsed", isNowCollapsed);
 		}
 	}
 

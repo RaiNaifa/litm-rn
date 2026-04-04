@@ -230,12 +230,16 @@
 		{{/if}}
 	</div>
 	<input type="hidden" name="tradeMode" value="{{tradeMode}}" />
-	<button type="button" data-click="add-tag">{{localize "Litm.other.add"}} {{localize "Litm.other.tags"}}</button>
+	<button type="button" data-click="add-tag">
+		<span>{{localize "Litm.other.add"}} {{localize "Litm.other.tags"}}</span>
+	</button>
 	<div class="litm--roll-dialog-buttons">
 		<label class="litm--roll-dialog-skip-moderation">
 			<span>{{localize "Litm.ui.skip-moderation"}}</span>
 			<input class="litm--checkbox" type="checkbox" name="shouldRoll" {{checked skipModeration}} />
 		</label>
-		<button type="submit">{{localize "Litm.ui.roll"}}</button>
+		<button type="submit">
+			<span>{{localize "Litm.ui.roll"}}</span>
+		</button>
 	</div>
 </form>

@@ -1,4 +1,13 @@
+// For Mac devices
+@supports (font: -apple-system-body) {
+	.litm.litm--story-tags form {
+		padding: 0 var(--litm-border-padding) !important;
+	}
+}
+
 .litm.litm--story-tags {
+	--litm-border-padding: 0.715rem;
+	padding: var(--litm-border-padding) 0;
 	min-width: 320px;
 	max-width: 600px;
 	min-height: 250px;
@@ -8,10 +17,11 @@
 
 	&:not(.minimized) {
 		outline: 2px solid var(--litm-color);
-		outline-offset: -10px;
+		outline-offset: -11px;
 	}
 
 	& .window-header {
+		margin: 0 var(--litm-border-padding);
 		background: url(../../assets/media/base-theme-alt-bg-top.webp) no-repeat
 			bottom / cover;
 		padding-block-end: var(--litm-space-4);
@@ -26,12 +36,14 @@
 	}
 
 	& form {
+		padding: 0 0 0 var(--litm-border-padding);
 		position: relative;
-		margin-right: -6px;
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		width: 100%;
+		max-width: 100%;
 		scrollbar-gutter: stable;
 	}
 
@@ -42,6 +54,7 @@
 	}
 
 	& .window-content form section {
+		padding-right: var(--litm-space-1);
 		display: flex;
 		flex-direction: column;
 		margin-block-start: var(--litm-space-2);
@@ -117,9 +130,16 @@
 						text-shadow: 0 0 4px var(--litm-color-weakness);
 					}
 
-					& i {
+					& img.litm--collapse-icon {
 						pointer-events: none;
+						width: 10px;
+						height: 16px;
 						transition: transform 0.25s ease;
+						transform: scale(1.2) rotate(90deg);
+
+						&.litm--collapsed {
+							transform: scale(1.2) rotate(0deg);
+						}
 					}
 				}
 			}
@@ -139,6 +159,14 @@
 				&:active {
 					box-shadow: none;
 					text-shadow: 0 0 4px var(--litm-color-weakness);
+				}
+			}
+		}
+
+		&:has(.litm--no-transition) {
+			& button.litm--collapse-btn {
+				& img.litm--collapse-icon {
+					transition: none !important;
 				}
 			}
 		}
@@ -192,18 +220,27 @@
 					outline: 1px dashed #191970;
 					outline-offset: -1px;
 				}
+				&:has(.litm--crispy-checkbox:checked) {
+					clip-path: polygon(
+						/* ВЕРХ: Ровный край с тремя резкими сколами */
+						0% 0%, 20% 0%, 21% 3px, 22% 0%, 55% 0%, 56% 2px, 58% 0%, 85% 0%, 86% 3px, 88% 0%, 100% 0%,
+						/* ПРАВО: Один скол посередине */
+						100% 40%, calc(100% - 2px) 50%, 100% 60%, 100% 100%,
+						/* НИЗ: Два глубоких скола */
+						100% 100%, 75% 100%, 74% calc(100% - 3px), 72% 100%, 35% 100%, 34% calc(100% - 2px), 32% 100%, 0% 100%,
+						/* ЛЕВО: Один микро-скол */
+						0% 70%, 2px 55%, 0% 40%
+					);
+				}
 
 				&.litm--might:has(.litm--might-level.litm--might-origin input:checked) {
-					background-color: color-mix(in srgb, rgba(70, 117, 85, 0.65) 25%, rgba(252, 245, 223, 0.25));
-					background-color: color-mix(in srgb, rgba(70, 117, 85, 0.4), rgba(252, 245, 223, 0.35));
+					background-color: var(--litm-color-origin-light-bg);
 				}
 				&.litm--might:has(.litm--might-level.litm--might-adventure input:checked) {
-					background-color: color-mix(in srgb, rgba(124, 59, 60, 0.55) 25%, rgba(252, 245, 223, 0.25));
-					background-color: color-mix(in srgb, rgba(124, 59, 60, 0.4), rgba(252, 245, 223, 0.35));
+					background-color: var(--litm-color-adventure-light-bg);
 				}
 				&.litm--might:has(.litm--might-level.litm--might-greatness input:checked) {
-					background-color: color-mix(in srgb, rgba(92, 91, 145, 0.75) 25%, rgba(252, 245, 223, 0.25));
-					background-color: color-mix(in srgb, rgba(92, 91, 145, 0.45), rgba(252, 245, 223, 0.35));
+					background-color: var(--litm-color-greatness-light-bg);
 				}
 
 				& .litm--tag-item-container {
@@ -246,7 +283,7 @@
 					border: none;
 					font-family: var(--litm-font-text);
 					font-size: var(--font-size-15);
-					color: var(--litm-color-primary);
+					color: var(--litm-color-primary-dark);
 					min-width: 10px;
 					max-width: 100%;
 					width: 100%;
@@ -303,13 +340,13 @@
 					align-items: center;
 
 					& input.litm--private-checkbox {
+						margin-left: var(--litm-space-1);
 						width: 20px;
 						height: 20px;
 					}
 					& input.litm--hindering-checkbox {
 						width: 20px;
 						height: 20px;
-						margin-right: var(--litm-space-1)
 					}
 					& input.litm--crispy-checkbox {
 						width: 20px;
@@ -329,7 +366,7 @@
 					& [type="checkbox"] {
 						flex: none;
 						appearance: none;
-						background: white;
+						background: var(--litm-color-primary-bg);
 						cursor: pointer;
 						margin: 0;
 						padding: 0;
@@ -410,6 +447,8 @@
 		margin: var(--litm-space-3);
 		border-radius: 8px;
 		padding: var(--litm-space-3);
+		font-family: var(--font-primary);
+		font-size: var(--font-size-16);
 
 		& img {
 			aspect-ratio: 1 / 1;
