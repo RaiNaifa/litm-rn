@@ -197,7 +197,7 @@ export class LitmRollDialog extends FormApplication {
 			(t) => t.type !== "status" && t.type !== "might" && t.state === "negative",
 		);
 		const crispyTags = tags.filter(
-			(t) => t.type === "crispy" || t.type === "hero" || t.type === "powerCrispy" || t.type === "themeCrispy",
+			(t) => t.type === "crispy" || t.type === "hero" || t.type === "powerCrispy" || t.type === "themeCrispy" || t.isCrispy,
 		);
 		const heroWeaknessTags = tags.filter(
 			(t) => t.type === "hero" && t.state === "negative",
@@ -518,6 +518,7 @@ export class LitmRollDialog extends FormApplication {
 					values: flags.values,
 					isScratched: flags.isScratched,
 					isHindering: flags.isHindering || false,
+					isCrispy: flags.isCrispy || false,
 					value: type === "might"
 						? (flags.value ?? 3)
 						: (flags.values?.findLast((v) => !!v) || 0),

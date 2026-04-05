@@ -300,8 +300,15 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 			.on("change", this.#onSelectFellowship.bind(this));
 		html.find("[data-click='unlink-fellowship']")
 			.on("click", this.#onUnlinkFellowship.bind(this));
-		html.find("li.litm--story-tag input[type='checkbox']")
+		html.find("li.litm--story-tag input.litm--story-checkbox[type='checkbox']")
+			.on("mousedown click", (event) => event.stopPropagation())
 			.on("change", this.#onEffectValueChange.bind(this));
+		html.find("li.litm--story-tag input.litm--private-checkbox[type='checkbox']")
+			.on("mousedown click", (event) => event.stopPropagation())
+			.on("change", this.#onEffectPrivateChange.bind(this));
+		html.find("li.litm--story-tag input.litm--crispy-checkbox[type='checkbox']")
+			.on("mousedown click", (event) => event.stopPropagation())
+			.on("change", this.#onEffectCrispyChange.bind(this));
 
 		const contenteditable = html.find(".litm--story-label-name[contenteditable='true']");
 		contenteditable.on("keydown", this.#onContenteditableKeyDown.bind(this));
@@ -349,11 +356,11 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 		}
 
 		if (!this.#storyTagsHookId) {
-			this.#storyTagsHookId = Hooks.on("litmStoryTagsUpdated", () => {
+			this.#storyTagsHookId = Hooks.on("litmStoryTagsUpdated", (opts = {}) => {
+				if (opts.sourceAppId === this.appId) return;
 				if (this.rendered) this.render();
 			});
 		}
-
 	}
 
 	// Hack to allow updating the embedded items
@@ -742,22 +749,69 @@ export class CharacterSheet extends SheetMixin(foundry.appv1.sheets.ActorSheet) 
 	}
 
 	async #onEffectValueChange(event) {
+		event.stopPropagation();
 		const li = $(event.currentTarget).closest("li[data-id]");
 		const id = li.data("id");
 		if (!id) return;
 
-		const checkboxes = li.find("input[type='checkbox']");
+		const checkboxes = li.find("input.litm--story-checkbox[type='checkbox']");
 		const values = checkboxes.map((i, cb) => cb.checked ? i + 1 : false).get();
 
 		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
 			{ _id: id, "flags.litm-rn.values": values, "flags.litm-rn.type": "status" },
-		]);
+		], { render: false });
 
 		this.#roll.refreshTags();
 		if (this.#roll.rendered) this.#roll.render();
 
-		game.litm.storyTags.render();
+		if (game.litm?.storyTags) game.litm.storyTags.render();
 		dispatch({ app: "story-tags", type: "render" });
+
+		Hooks.callAll("litmStoryTagsUpdated", { sourceAppId: this.appId });
+	}
+
+	async #onEffectPrivateChange(event) {
+		event.stopPropagation();
+
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+		if (!id) return;
+
+		const isPrivate = event.currentTarget.checked;
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
+			{ _id: id, "flags.litm-rn.isPrivate": isPrivate },
+		], { render: false });
+
+		this.#roll.refreshTags();
+		if (this.#roll.rendered) this.#roll.render();
+
+		if (game.litm?.storyTags) game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+
+		Hooks.callAll("litmStoryTagsUpdated", { sourceAppId: this.appId });
+	}
+
+	async #onEffectCrispyChange(event) {
+		event.stopPropagation();
+
+		const li = $(event.currentTarget).closest("li[data-id]");
+		const id = li.data("id");
+		if (!id) return;
+
+		const isCrispy = event.currentTarget.checked;
+
+		await this.actor.updateEmbeddedDocuments("ActiveEffect", [
+			{ _id: id, "flags.litm-rn.isCrispy": isCrispy },
+		], { render: false });
+
+		this.#roll.refreshTags();
+		if (this.#roll.rendered) this.#roll.render();
+
+		if (game.litm?.storyTags) game.litm.storyTags.render();
+		dispatch({ app: "story-tags", type: "render" });
+
+		Hooks.callAll("litmStoryTagsUpdated", { sourceAppId: this.appId });
 	}
 
 	#onContenteditableKeyDown(event) {

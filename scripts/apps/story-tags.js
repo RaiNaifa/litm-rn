@@ -201,7 +201,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 				|| JSON.stringify(fresh.values) !== JSON.stringify(st.values)
 			) {
 				changed = true;
-				return fresh;
+				return { ...fresh, actorRef: st.actorRef };
 			}
 			return st;
 		});
@@ -909,7 +909,7 @@ export class StoryTagApp extends SheetMixin(FormApplication) {
 				|| JSON.stringify(fresh.values) !== JSON.stringify(st.values)
 			) {
 				changed = true;
-				return fresh;
+				return { ...fresh, actorRef: actor.id };
 			}
 			return st;
 		});

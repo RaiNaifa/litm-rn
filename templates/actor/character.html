@@ -7,6 +7,24 @@
 			src="systems/litm-rn/assets/media/{{ifThen (eq data.type 'status') 'yellow-leaf' 'yellow-leaf-2'}}.webp"
 			aria-hidden="true" width="220" />
 		<div class="{{data.type}}">
+			<div class="litm--story-leaf-controls">
+				{{#if (eq data.type 'tag')}}
+					<input class="litm--checkbox litm--checkbox-with-bg litm--crispy-checkbox"
+						type="checkbox"
+						name="{{data.id}}.isCrispy"
+						data-id="{{data.id}}"
+						data-toggle="crispy"
+						data-tooltip="{{localize (ifThen data.isCrispy 'Litm.tags.isCrispy' 'Litm.tags.toCrispy')}}"
+						{{checked data.isCrispy}} />
+				{{/if}}
+				<input class="litm--checkbox litm--checkbox-with-bg litm--private-checkbox"
+					type="checkbox"
+					name="{{data.id}}.isPrivate"
+					data-id="{{data.id}}"
+					data-toggle="private"
+					data-tooltip="{{localize (ifThen data.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}"
+					{{checked data.isPrivate}} />
+			</div>
 			<label><span class="litm--sro">{{localize "Name"}}</span>
 				<div class="litm--story-label-wrapper">
 					<div contenteditable="true" type="text" class="litm--story-label-name"
@@ -24,6 +42,7 @@
 									for="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}">{{add @index 1}}</label>
 							{{/if}}
 							<input id="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}"
+								class="litm--story-checkbox"
 								type="checkbox"
 								value="{{add @index 1}}" {{checked value}} />
 						</div>

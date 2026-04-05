@@ -1,5 +1,5 @@
 import { error, info } from "../logger.js";
-import { sleep, localize as t } from "../utils.js";
+import { dispatch, sleep, localize as t } from "../utils.js";
 import { Sockets } from "./sockets.js";
 import { TokenTooltip } from "../apps/token-tooltip.js";
 
@@ -284,25 +284,75 @@ export class LitmHooks {
 					switch (click) {
 						case "scratch-tags": {
 							const roll = app.rolls[0];
-							const rollingActorId = roll?.litm?.actorId;
-							if (!roll || !rollingActorId) return;
+							if (!roll) return;
+							const rollingActorId = roll?.litm?.actorId ?? null;
 
 							const processTag = async (tag) => {
-								const tagOwnerId = tag.actorId || rollingActorId;
-								const actor = game.actors.get(tagOwnerId);
+								const tagOwnerRef = tag.actorRef || tag.actorId || rollingActorId;
+								let actor = null;
+
+								if (tagOwnerRef) {
+									const id = typeof tagOwnerRef === "string"
+										? tagOwnerRef.replaceAll("___", ".")
+										: tagOwnerRef;
+
+									actor = game.actors.get(id);
+
+									if (!actor) {
+										try {
+											const doc = fromUuidSync(id);
+											if (doc instanceof TokenDocument) actor = doc.actor;
+											else if (doc instanceof Actor) actor = doc;
+										} catch (_) { /* no-op */ }
+									}
+								}
+
+								const config = game.settings.get("litm-rn", "storytags");
+								const isGlobalStoryTag = config?.tags?.some(t => t.id === tag.id);
+
+								if (isGlobalStoryTag) {
+									const newTags = config.tags.filter(t => t.id !== tag.id);
+									const newSelected = (config.selectedTags || []).filter(t => t.id !== tag.id);
+									if (game.user.isGM) {
+										await game.settings.set("litm-rn", "storytags", { ...config, tags: newTags, selectedTags: newSelected });
+									} else {
+										dispatch({ app: "story-tags", type: "update", component: "tags", data: newTags });
+										dispatch({ app: "story-tags", type: "update", component: "selectedTags", data: newSelected });
+									}
+									return;
+								}
+
 								if (actor) {
-									await actor.sheet.toggleScratchTag(tag);
+									const effect = actor.effects.get(tag.id);
+									if (effect) {
+										if (config?.selectedTags?.some(t => t.id === tag.id)) {
+											const newSelected = config.selectedTags.filter(t => t.id !== tag.id);
+											if (game.user.isGM) {
+												await game.settings.set("litm-rn", "storytags", { ...config, selectedTags: newSelected });
+											} else {
+												dispatch({ app: "story-tags", type: "update", component: "selectedTags", data: newSelected });
+											}
+										}
+										await effect.delete();
+									} else if (typeof actor.sheet.toggleScratchTag === "function") {
+										await actor.sheet.toggleScratchTag(tag);
+									} else {
+										console.warn(`Litm | Cannot scratch tag ${tag.name} - no valid handler found on actor ${actor.name}`);
+									}
 								} else {
 									console.warn(`Litm | Could not find actor ${tagOwnerId} for tag ${tag.name}`);
 								}
 							};
 
-							for (const tag of roll.litm.burntTags)
-								await processTag(tag);
-							for (const tag of roll.litm.crispyTags)
-								await processTag(tag);
+							for (const tag of roll.litm.burntTags || []) await processTag(tag);
+							for (const tag of roll.litm.crispyTags || []) await processTag(tag);
+
 							roll.options.isScratched = true;
 							app.update({ rolls: [roll] });
+
+							if (game.litm?.storyTags) game.litm.storyTags.render();
+							dispatch({ app: "story-tags", type: "render" });
+							Hooks.callAll("litmStoryTagsUpdated");
 							break;
 						}
 						case "gain-improve": {
