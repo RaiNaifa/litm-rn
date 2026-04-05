@@ -51,10 +51,14 @@
 			{{/if}}
 		{{/if}}
 		{{#if (and isOwner (or hasBurntTags hasCrispyTags))}}
-		<button class="litm--roll-burn-button" data-click="scratch-tags">{{localize 'Litm.ui.scratch-tags'}}</button>
+		<button class="litm--roll-burn-button" data-click="scratch-tags">
+			<span>{{localize 'Litm.ui.scratch-tags'}}</span>
+		</button>
 		{{/if}}
 		{{#if (and isOwner hasWeaknessTags)}}
-		<button class="litm--roll-gain-imp-button" data-click="gain-improve">{{localize 'Litm.ui.gain-imp'}}</button>
+		<button class="litm--roll-gain-imp-button" data-click="gain-improve">
+			<span>{{localize 'Litm.ui.gain-imp'}}</span>
+		</button>
 		{{/if}}
 	</div>
 </div>

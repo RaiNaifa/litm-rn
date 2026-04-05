@@ -166,6 +166,10 @@
 		&:hover {
 			text-shadow: 0px 0px 2px var(--litm-color-accent);
 		}
+
+		& span {
+			font-family: var(--litm-font-sc);
+		}
 	}
 }
 

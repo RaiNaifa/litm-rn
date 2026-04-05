@@ -17,11 +17,14 @@
 		{{> systems/litm-rn/templates/chat/message-tooltip.html data=tooltipData}}
 		<h4 class="dice-total">{{localize 'Litm.ui.total-power'}}: {{totalPower}}
 		</h4>
-		<button class="gmOnly litm--roll-approve-button" data-click="approve-moderation">{{localize
-			'Litm.ui.approve'}}</button>
-		<button class="gmOnly litm--roll-reject-button" data-click="reject-moderation">{{localize
-			'Litm.ui.reject'}}</button>
-		<button class="playerOnly litm--roll-skip-button" data-click="skip-moderation">{{localize
-			'Litm.ui.skip-moderation'}}</button>
+		<button class="gmOnly litm--roll-approve-button" data-click="approve-moderation">
+			<span>{{localize 'Litm.ui.approve'}}</span>
+		</button>
+		<button class="gmOnly litm--roll-reject-button" data-click="reject-moderation">
+			<span>{{localize 'Litm.ui.reject'}}</span>
+		</button>
+		<button class="playerOnly litm--roll-skip-button" data-click="skip-moderation">
+			<span>{{localize 'Litm.ui.skip-moderation'}}</span>
+		</button>
 	</div>
 </div>
