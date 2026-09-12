@@ -39,6 +39,17 @@
 			</div>
 		</section>
 		{{/each}}
+		{{#if data.sourceGroups}}
+		{{#each data.sourceGroups}}
+		<div class="source-group">
+			<header class="part-header flexrow">
+				<span class="part-formula">{{name}}</span>
+			</header>
+		{{#each tags}}{{> section name=name value=value flavor=flavor flavorClass=flavorClass
+			id=id isPrivate=isPrivate actorRef=actorRef actorId=actorId}}{{/each}}
+		</div>
+		{{/each}}
+		{{else}}
 		{{#each data.burntTags as |tag|}}
 		{{> section name=tag.name value=3 flavor=(localize 'Litm.tags.isBurnt') flavorClass="burned"
 			id=tag.id isPrivate=tag.isPrivate actorRef=tag.actorRef actorId=tag.actorId}}
@@ -48,8 +59,8 @@
 			flavorClass=(ifThen (eq tag.type "storyTag") "warning" "")
 			id=tag.id isPrivate=tag.isPrivate actorRef=tag.actorRef actorId=tag.actorId}}
 		{{/each}}
-		{{#if data.mitigate}}
-		{{> section name=(localize 'Litm.effects.mitigate.key') value=1}}
+		{{#if data.reaction}}
+		{{> section name=(localize 'Litm.ui.roll-reaction') value=1}}
 		{{/if}}
 		<!-- TODO: Добавить фильтр просто weaknessTags от heroWeaknessTags -->
 		<!-- TODO: Добавить crispyTags -->
@@ -70,10 +81,14 @@
 			flavorClass="positive"
 			id=tag.id isPrivate=tag.isPrivate actorRef=tag.actorRef actorId=tag.actorId}}
 		{{/each}}
+		{{/if}}
 		{{#if data.modifier}}
 		{{> section name=(localize 'Litm.ui.modifier') value=data.modifier flavor="" flavorClass=""}}
 		{{/if}}
-		{{#if (not (eq data.might '0'))}}
+		{{#if data.campBonus}}
+		{{> section name=data.campLabel value=data.campBonus flavor="" flavorClass=""}}
+		{{/if}}
+		{{#if data.might}}
 		{{> might value=data.might flavor="" flavorClass=""}}
 		{{/if}}
 		{{#if data.tradeMode}}

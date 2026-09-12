@@ -1,0 +1,99 @@
+.litm--theme-source-settings-content {
+	--theme-source-text: var(--litm-color-text-espresso);
+	--theme-source-accent: var(--litm-color-text-accent-crimson);
+	--theme-source-panel: rgb(255 255 255 / 28%);
+	padding: 12px;
+	color: var(--theme-source-text);
+
+	& .litm--theme-source-world,
+	& .litm--theme-source-pack-list label {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 9px;
+		border: 1px solid rgb(70 48 36 / 25%);
+		border-radius: 5px;
+		background: var(--theme-source-panel);
+		color: var(--theme-source-text);
+		cursor: pointer;
+		transition: border-color 0.12s ease, background 0.12s ease;
+
+		& input {
+			flex: 0 0 auto;
+			width: 18px;
+			height: 18px;
+			accent-color: var(--theme-source-accent);
+		}
+
+		&:hover {
+			border-color: color-mix(
+				in srgb,
+				var(--theme-source-accent) 65%,
+				transparent
+			);
+		}
+
+		&:has(input:checked) {
+			border-color: var(--theme-source-accent);
+			background: color-mix(
+				in srgb,
+				var(--theme-source-accent) 16%,
+				var(--theme-source-panel)
+			);
+		}
+
+		& span {
+			display: flex;
+			min-width: 0;
+			flex: 1;
+			flex-direction: column;
+		}
+
+		& .litm--theme-source-check {
+			margin-left: auto;
+			color: var(--theme-source-accent);
+			opacity: 0;
+			transform: scale(0.75);
+			transition: opacity 0.12s ease, transform 0.12s ease;
+		}
+
+		&:has(input:checked) .litm--theme-source-check {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		& small {
+			opacity: 0.7;
+		}
+	}
+
+	& h3 {
+		margin: 16px 0 8px;
+		border-bottom: 1px solid var(--litm-color-text-accent-walnut);
+		font-family: var(--litm-font-heading);
+	}
+
+	& .litm--theme-source-pack-list {
+		display: grid;
+		gap: 6px;
+		max-height: 360px;
+		overflow-y: auto;
+	}
+
+	& footer {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 14px;
+
+		& button {
+			width: auto;
+		}
+	}
+}
+
+:is(#interface.theme-dark, body.theme-dark)
+	.litm--theme-source-settings-content {
+	--theme-source-text: var(--litm-color-text-accent-creme);
+	--theme-source-accent: var(--litm-color-text-heading-ochre);
+	--theme-source-panel: rgb(255 255 255 / 7%);
+}

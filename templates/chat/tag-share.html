@@ -1,0 +1,20 @@
+<div class="litm--tag-share" data-tag-share>
+	<div class="litm--tag-share-title">{{localize "Litm.ui.tag-share-assists" sender=senderName target=targetName}}</div>
+	<div class="litm--tag-share-tag" data-tag-share-tag>{{{enrichedTag}}}</div>
+	<div class="litm--tag-share-actions" data-tag-share-actions>
+		<button type="button" data-click="accept-tag-share">
+			<i class="fa-solid fa-check" aria-hidden="true"></i>
+			<span>{{localize "Litm.ui.accept"}}</span>
+		</button>
+		<button type="button" data-click="decline-tag-share">
+			<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+			<span>{{localize "Litm.ui.decline"}}</span>
+		</button>
+	</div>
+	<div class="litm--tag-share-result" data-tag-share-result="accepted" hidden>
+		{{localize "Litm.ui.accepted"}}
+	</div>
+	<div class="litm--tag-share-result" data-tag-share-result="declined" hidden>
+		{{localize "Litm.ui.declined"}}
+	</div>
+</div>

@@ -1,0 +1,32 @@
+<div class="litm--theme-source-settings-content">
+	<p>{{localize "Litm.settings.theme-sources-description"}}</p>
+	<label class="litm--theme-source-world">
+		<input type="checkbox" name="includeWorld" {{checked includeWorld}} />
+		<span>
+			<strong>{{localize "Litm.settings.theme-source-world"}}</strong>
+			<small>{{localize "Litm.settings.theme-source-world-hint"}}</small>
+		</span>
+		<i class="fa-solid fa-check litm--theme-source-check" aria-hidden="true"></i>
+	</label>
+	<h3>{{localize "Litm.settings.theme-source-packs"}}</h3>
+	<div class="litm--theme-source-pack-list">
+		{{#each packs as |pack|}}
+		<label>
+			<input type="checkbox" name="packs" value="{{pack.collection}}" {{checked pack.selected}} />
+			<span>
+				<strong>{{pack.label}}</strong>
+				<small>{{pack.package}} · {{pack.collection}}</small>
+			</span>
+			<i class="fa-solid fa-check litm--theme-source-check" aria-hidden="true"></i>
+		</label>
+		{{else}}
+		<p class="notes">{{localize "Litm.settings.theme-source-no-packs"}}</p>
+		{{/each}}
+	</div>
+	<footer>
+		<button type="button" data-action="save">
+			<i class="fa-solid fa-floppy-disk"></i>
+			{{localize "Litm.settings.save-theme-sources"}}
+		</button>
+	</footer>
+</div>

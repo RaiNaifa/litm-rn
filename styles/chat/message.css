@@ -1,16 +1,43 @@
 .litm.dice-roll {
+	--litm-roll-formula-fill: var(--litm-color-consequences);
+	--litm-roll-formula-icon: url("../../assets/media/icons/litm_partial_icn.svg");
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	gap: var(--litm-space-1);
 	padding: var(--litm-space-3);
-	background: url(/ui/parchment.jpg) repeat;
-	background-color: var(--litm-color-accent-bg);
-	background-blend-mode: color-burn;
+	background: linear-gradient(rgb(255 248 235 / 5%), rgb(255 248 235 / 3%)),
+		url(../../assets/media/paper-dark.webp) repeat;
 	border: 1px solid color-mix(in hsl, var(--litm-color-accent) 70%, transparent);
 	border-radius: 6px;
 	transition: all 0.15s;
+
+	&:is([data-result="success"], [data-result="miracle"]) {
+		--litm-roll-formula-fill: var(--litm-color-success);
+		--litm-roll-formula-icon: url("../../assets/media/icons/litm_success_icn.svg");
+	}
+
+	&:is([data-result="failure"], [data-result="in-vain"]) {
+		--litm-roll-formula-fill: var(--litm-color-consequences);
+		--litm-roll-formula-icon: url("../../assets/media/icons/litm_fail_icn.svg");
+	}
+
+	&:is([data-result="consequence"], [data-result="fate"]) {
+		--litm-roll-formula-fill: linear-gradient(
+			to right,
+			var(--litm-color-success) 0%,
+			var(--litm-color-success) 40%,
+			color-mix(
+					in srgb,
+					var(--litm-color-success),
+					var(--litm-color-consequences)
+				)
+				50%,
+			var(--litm-color-consequences) 62%,
+			var(--litm-color-consequences) 100%
+		);
+	}
 
 	&:hover {
 		box-shadow: 0 0 3px var(--litm-color-primary-bg);
@@ -32,7 +59,10 @@
 	}
 
 	& .dice-effect {
+		order: 1;
+
 		& p:has(em) {
+			margin: var(--litm-space-1) 0 0 0;
 			color: var(--litm-color-alt-bg);
 			font-family: var(--litm-font-primary);
 			font-size: var(--font-size-16);
@@ -40,12 +70,37 @@
 		}
 	}
 
+	& .litm--reaction-effect-after {
+		order: 3;
+	}
+
 	& .dice-result {
+		order: 2;
 		width: 100%;
 		margin: 0px auto;
 
-		& .tooltip-part {
+		& .part-header {
+			justify-content: flex-end;
+			align-items: flex-end;
+
+			& .part-formula {
+				&.litm--multiline {
+					line-height: 1;
+				}
+			}
+
+			& .part-flavor,
+			& .part-total {
+				align-self: flex-end;
+			}
+		}
+
+		.tooltip-part {
 			margin-block: var(--litm-space-1);
+		}
+
+		.source-group > .part-header > .part-formula {
+			text-align: right;
 		}
 
 		.part-flavor {
@@ -59,14 +114,16 @@
 
 			&.positive {
 				color: color-mix(in hsl, var(--litm-color-status-bg), lightgreen);
+				color: var(--litm-color-tag-status-bg);
 			}
 
 			&.warning {
 				color: color-mix(in hsl, var(--litm-color-tag-bg), yellow);
+				color: var(--litm-color-tag-story-bg);
 			}
 
 			&.negative {
-				color: var(--litm-color-limit-bg);
+				color: var(--litm-color-tag-weakness-bg);
 			}
 		}
 	}
@@ -77,7 +134,6 @@
 		font-family: var(--litm-font-heading);
 		font-size: var(--font-size-20);
 		text-align: center;
-		padding: var(--litm-space-1);
 		text-shadow: 0 0 2px rgb(0, 0, 0, 0.3);
 
 		&:is(h4) {
@@ -85,12 +141,84 @@
 			flex-direction: column;
 		}
 
-		&.success {
-			color: var(--color-level-success);
+		&.success,
+		&.failure {
+			color: var(--litm-color-primary);
+		}
+	}
+
+	&:is(
+			[data-result="success"],
+			[data-result="consequence"],
+			[data-result="failure"],
+			[data-result="miracle"],
+			[data-result="fate"],
+			[data-result="in-vain"],
+			[data-result="safe-camp"]
+		)
+		.dice-formula.dice-total {
+		position: relative;
+		isolation: isolate;
+		height: 34px;
+		margin: 4px 5px 8px 5px;
+		padding: 4px 20px 4px 35px;
+		border: 0;
+		background: transparent;
+		box-shadow: none;
+		color: #fffaf0;
+		font-size: var(--font-size-20);
+		line-height: 26px;
+		text-shadow: 0 1px 2px rgb(0 0 0 / 85%), 0 0 4px rgb(0 0 0 / 75%);
+		filter: drop-shadow(0 5px 3px rgb(0 0 0 / 15%))
+			drop-shadow(0 -1px 5px rgb(0 0 0 / 20%));
+
+		&::before {
+			content: "";
+			margin: 2px 0;
+			height: 28px;
+			position: absolute;
+			z-index: -1;
+			inset: 2px 0 2px 12px;
+			background: var(--litm-roll-formula-fill);
+			-webkit-mask: url("../../assets/media/ribbon.svg") center / 100% 100%
+				no-repeat;
+			mask: url("../../assets/media/ribbon.svg") center / 100% 100% no-repeat;
 		}
 
-		&.failure {
-			color: var(--color-level-error);
+		&::after {
+			content: "";
+			position: absolute;
+			z-index: 1;
+			left: 0;
+			top: 50%;
+			width: 34px;
+			height: 34px;
+			background: var(--litm-roll-formula-icon) center / contain no-repeat;
+			filter: drop-shadow(0 1px 1px rgb(0 0 0 / 35%));
+			transform: translateY(-50%);
+		}
+	}
+
+	&[data-result="safe-camp"] {
+		--litm-roll-formula-fill: var(--litm-color-success);
+		--litm-roll-formula-icon: url("../../assets/media/icons/litm_success_icn.svg");
+	}
+
+	& .dice-total.litm--safe-camp-result {
+		display: grid;
+		grid-template-columns: 34px minmax(0, 1fr);
+		align-items: center;
+		padding: var(--litm-space-2);
+
+		& > i {
+			grid-row: 1;
+			grid-column: 1;
+			color: var(--litm-color-primary);
+			font-size: var(--font-size-22);
+		}
+
+		& > span {
+			grid-column: 2;
 		}
 	}
 
@@ -127,12 +255,12 @@
 		&.litm--roll-approve-button {
 			color: color-mix(
 				in hsl,
-				var(--litm-color-status-bg) 70%,
+				var(--litm-color-tag-status-bg) 70%,
 				var(--litm-color-accent)
 			);
 			border-color: color-mix(
 				in hsl,
-				var(--litm-color-status-bg) 70%,
+				var(--litm-color-tag-status-bg) 70%,
 				var(--litm-color-accent)
 			);
 		}
@@ -140,26 +268,13 @@
 		&.litm--roll-reject-button {
 			color: color-mix(
 				in hsl,
-				var(--litm-color-limit-bg) 70%,
-				var(--litm-color-accent)
+				var(--litm-color-tag-weakness-bg) 70%,
+				var(--litm-color-text-accent-crimson)
 			);
 			border-color: color-mix(
 				in hsl,
-				var(--litm-color-limit-bg) 70%,
-				var(--litm-color-accent)
-			);
-		}
-
-		&.litm--roll-burn-button {
-			color: color-mix(
-				in hsl,
-				var(--litm-color-weakness) 60%,
-				var(--litm-color-accent)
-			);
-			border-color: color-mix(
-				in hsl,
-				var(--litm-color-weakness) 60%,
-				var(--litm-color-accent)
+				var(--litm-color-tag-weakness-bg) 70%,
+				var(--litm-color-text-accent-crimson)
 			);
 		}
 
@@ -187,5 +302,37 @@
 		& .playerOnly {
 			display: none;
 		}
+	}
+}
+
+.litm--tag-share {
+	display: flex;
+	flex-direction: column;
+	gap: var(--litm-space-2);
+	padding: var(--litm-space-2);
+
+	& .litm--tag-share-title {
+		font-family: var(--litm-font-primary);
+		text-align: center;
+	}
+
+	& .litm--tag-share-tag {
+		text-align: center;
+	}
+
+	& .litm--tag-share-actions {
+		display: flex;
+		gap: var(--litm-space-2);
+
+		& button {
+			flex: 1;
+			min-height: 30px;
+		}
+	}
+
+	& .litm--tag-share-result {
+		font-family: var(--litm-font-primary);
+		font-weight: bold;
+		text-align: center;
 	}
 }

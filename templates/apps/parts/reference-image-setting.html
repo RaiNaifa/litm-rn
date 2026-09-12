@@ -1,0 +1,9 @@
+<div class="form-group litm--reference-appearance-row">
+	<label for="reference-appearance-{{name}}">{{label}}</label>
+	<div class="form-fields litm--reference-image-field">
+		{{#if value}}<img src="{{value}}" alt="" class="litm--reference-image-preview">{{/if}}
+		<input id="reference-appearance-{{name}}" type="text" name="{{name}}" value="{{value}}" readonly>
+		<button type="button" data-appearance-image="{{name}}" data-tooltip="{{localize 'FILES.BrowseTooltip'}}"><i class="fas fa-folder-open"></i></button>
+		<button type="button" data-clear-image="{{name}}" data-tooltip="{{localize 'Litm.reference.appearance-clear-image'}}"><i class="fas fa-times"></i></button>
+	</div>
+</div>

@@ -1,11 +1,8 @@
-<div class="litm dice-roll" data-type="{{type}}" data-result="{{outcome.label}}" data-action="expandRoll">
-	<div class="dice-flavor">{{flavor}}</div>
-	{{#if effect}}
-	<div class="dice-effect">
+<div class="litm dice-roll{{#if safeCamp}} litm--safe-camp-roll{{/if}}" data-type="{{type}}" data-result="{{#if safeCamp}}safe-camp{{else}}{{outcome.label}}{{/if}}" data-action="expandRoll">
+	{{#if safeCamp}}
+	{{else if effect}}
+	<div class="dice-effect litm--reaction-effect-before">
 		<p><em>{{localize effect.description}}</em></p>
-		<p>{{localize effect.action}}</p>
-		<p><strong>{{localize 'Litm.other.cost'}}:
-			</strong>{{localize effect.cost}}</p>
 	</div>
 	{{else}}
 	<div class="dice-effect">
@@ -14,14 +11,33 @@
 	{{/if}}
 	<div class="dice-result">
 		<div class="dice-formula dice-total">
-			{{total}}
+			{{#if safeCamp}}{{localize "Litm.camp.without-roll"}}{{else}}{{total}}{{/if}}
 		</div>
 		{{{tooltip}}}
-		<h4 class="dice-total {{outcome.label}}">
-			{{#unless (eq type 'mitigate')}}<span>{{localize outcome.label}}</span>{{/unless}}
-			{{#unless (eq type 'quick')}}<span>{{power}}
+		<h4 class="dice-total {{#if safeCamp}}success litm--safe-camp-result{{else}}{{outcome.label}}{{/if}}">
+			{{#if safeCamp}}
+			<i class="fas fa-shield-heart"></i>
+			<span>{{power}} {{localize 'Litm.tags.power'}}</span>
+			{{else}}
+			{{#unless (eq type 'reaction')}}<span>{{#if (eq type "sacrifice")}}
+				{{localize (concat "Litm.ui.sacrifice-outcome-" outcome.label)}}
+				{{else}}{{localize outcome.label}}{{/if}}</span>{{/unless}}
+			{{#unless (or (eq type 'quick') (eq type 'sacrifice'))}}<span>{{power}}
 				{{localize 'Litm.tags.power'}}</span>{{/unless}}
+			{{/if}}
 		</h4>
+		{{#if (eq type "sacrifice")}}
+		<div class="litm--sacrifice-chat">
+			<p><strong>{{localize "Litm.ui.sacrifice-level"}}:</strong> {{sacrifice.levelLabel}}</p>
+			<p><strong>{{localize "Litm.ui.sacrifice-theme"}}:</strong> {{sacrifice.themeName}}</p>
+			{{#if sacrifice.statusName}}<p><strong>{{localize "Litm.ui.sacrifice-status-name"}}:</strong>
+				{{sacrifice.statusName}}-6</p>{{/if}}
+			{{#if sacrifice.achievement}}<p><strong>{{localize "Litm.ui.sacrifice-achievement"}}:</strong>
+				{{sacrifice.achievement}}</p>{{/if}}
+			<p><strong>{{localize "Litm.other.consequence"}}:</strong>
+				{{localize (concat "Litm.ui.sacrifice-consequence-" sacrifice.consequence)}}</p>
+		</div>
+		{{/if}}
 		{{#if (eq type 'quick')}}
 			{{#if (eq outcome.label 'success')}}
 				<p class="litm--dice-roll-subtle">
@@ -39,26 +55,23 @@
 			</p>
 		{{/if}}
 		{{#if (eq type 'tracked')}}
-			{{#if (eq outcome.label 'consequence')}}
-				<p class="litm--dice-roll-subtle">
-					{{{localize "Litm.ui.roll-tracked-hint"}}}
-				</p>
-			{{/if}}
 			{{#if (eq outcome.label 'success')}}
 				<p class="litm--dice-roll-subtle">
 					{{{localize 'Litm.ui.roll-tracked-success'}}}
 				</p>
 			{{/if}}
-		{{/if}}
-		{{#if (and isOwner (or hasBurntTags hasCrispyTags))}}
-		<button class="litm--roll-burn-button" data-click="scratch-tags">
-			<span>{{localize 'Litm.ui.scratch-tags'}}</span>
-		</button>
-		{{/if}}
-		{{#if (and isOwner hasWeaknessTags)}}
-		<button class="litm--roll-gain-imp-button" data-click="gain-improve">
-			<span>{{localize 'Litm.ui.gain-imp'}}</span>
-		</button>
+			{{#unless (eq outcome.label 'failure')}}
+				<button type="button" class="litm--reference-chat-button" data-litm-reference-role="spendingPower">
+					<i class="fas fa-bolt"></i> {{localize "Litm.reference.spending-power-button"}}
+				</button>
+			{{/unless}}
 		{{/if}}
 	</div>
+	{{#if effect}}
+	<div class="dice-effect litm--reaction-effect-after">
+		<p>{{localize effect.action}}</p>
+		<p><strong>{{localize 'Litm.other.cost'}}:
+			</strong>{{localize effect.cost}}</p>
+	</div>
+	{{/if}}
 </div>

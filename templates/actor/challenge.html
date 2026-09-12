@@ -1,16 +1,17 @@
-{{#*inline 'divider' title add move}}
+{{#*inline 'divider' title add move active}}
 	<div class="litm--challenge-divider {{ifThen move 'grid-5' ''}}{{ifThen (and add (not move)) 'grid-4' ''}}">
 		{{#if move}}
-			<button class="litm--challenge-move" type="button"
+			<button class="litm--challenge-move{{#if active}} active{{/if}}" type="button"
 				data-click="{{concat 'move-to-' move}}"
-				aria-label="{{localize (concat 'Litm.ui.move-to-' move)}}"
-				data-tooltip="{{localize (concat 'Litm.ui.move-to-' move) }}">
-				<i class="far fa-tags"></i>
+				aria-pressed="{{ifThen active 'true' 'false'}}"
+				aria-label="{{localize (ifThen active 'Litm.ui.remove-from-story' (concat 'Litm.ui.move-to-' move))}}"
+				data-tooltip="{{localize (ifThen active 'Litm.ui.remove-from-story' (concat 'Litm.ui.move-to-' move))}}">
+				<i class="{{ifThen active 'fas' 'far'}} fa-tags"></i>
 			</button>
 		{{/if}}
-		<img src="systems/litm-rn/assets/media/left-div.webp" aria-hidden="true" />
+		<span class="litm--challenge-divider-line" aria-hidden="true"></span>
 		<label for="limits">{{localize title}}</label>
-		<img src="systems/litm-rn/assets/media/right-div.webp" aria-hidden="true" />
+		<span class="litm--challenge-divider-line" aria-hidden="true"></span>
 		{{#if add}}
 			<button class="litm--challenge-add" type="button"
 				data-click="{{concat 'add-' add}}"
@@ -43,125 +44,222 @@
 		{{/if}}
 	</div>
 {{/inline}}
-{{#*inline 'tagItem' tag source editable}}
+{{#*inline 'tagItem' tag source editingId}}
 	{{#if tag.flags.litm-rn.type}}
 		<li
-			class="litm--tag-item litm--{{tag.flags.litm-rn.type}}{{ifThen tag.flags.litm-rn.isPrivate ' litm--private' ''}}"
-			data-context="remove-effect" data-id="{{tag._id}}"
-			data-tooltip="{{localize (concat 'Litm.other.' tag.flags.litm-rn.type)}}: {{tag.name}}">
-			<div class="litm--tag-item-container">
-				<input class="litm--tag-item-name {{tag.flags.litm-rn.type}}" data-focus="select"
-					name="{{source}}.{{tag._id}}.name" value="{{tag.name}}" type="text"
-					{{#if (includes @root.selectedTags tag.id 'id' )}}data-selected{{/if}}
-					{{ifThen editable "" "readonly"}} />
-			</div>
-			<div class="litm--tag-item-control">
+			class="litm--tag-item litm--tm-tag-{{tag.flags.litm-rn.type}}{{#if (eq tag.flags.litm-rn.type 'might')}} litm--tm-might-val-{{#if (eq tag.flags.litm-rn.value 0)}}origin{{else if (eq tag.flags.litm-rn.value 6)}}greatness{{else}}adventure{{/if}}{{/if}}{{#if tag.flags.litm-rn.isPrivate}} litm--tm-private{{/if}}{{#if tag.flags.litm-rn.isHindering}} litm--tm-hindering{{/if}}{{#if tag.flags.litm-rn.isCrispy}} litm--tm-crispy{{/if}}{{#if (and @root.isGM (lookup @root.rollSelMap tag._id))}} litm--tag-roll-selected{{/if}}"
+			data-tag-id="{{tag._id}}" data-id="{{tag._id}}"
+			data-ref="{{source}}" data-context-entity="{{tag.flags.litm-rn.type}}">
+			<div class="litm--tm-tag-visual">
+			<div class="litm--tm-tag-inner">
+				<div class="litm--tm-tag-name{{#if (eq tag._id editingId)}}{{else}} litm--tm-tag-name-display{{/if}}"
+					{{#if (eq tag._id editingId)}}
+						contenteditable="true"
+					{{else if @root.isGM}}
+						data-click="select"
+					{{/if}}
+					{{#unless (eq tag._id editingId)}}draggable="true" data-drag-effect="{{tag._id}}"{{/unless}}
+					data-id="{{tag._id}}" data-ref="{{source}}"
+					role="textbox" aria-multiline="false"
+					data-placeholder="{{localize 'Litm.other.name'}}"><span class="litm--tm-tag-text">{{tag.name}}</span></div>
+				<div class="litm--tm-tag-indicators">
+					{{#if (and @root.isGM (lookup @root.rollSelMap tag._id))}}
+						<div class="litm--roll-selected-indicators">
+							{{#each (lookup @root.rollSelMap tag._id) as |sel|}}
+								<img class="litm--roll-selected-portrait" src="{{sel.portrait}}"
+									alt="" draggable="false" data-tooltip="{{sel.actorName}}" />
+							{{/each}}
+						</div>
+					{{/if}}
+					{{#if (eq tag.flags.litm-rn.type 'tag')}}
+						{{#if tag.flags.litm-rn.isCrispy}}<i class="litm--tm-tag-icon fas fa-hourglass-half"></i>{{/if}}
+						{{#if tag.flags.litm-rn.isPrivate}}<i class="litm--tm-tag-icon fa-solid fa-mask"></i>{{/if}}
+					{{/if}}
+					{{#if (eq tag.flags.litm-rn.type 'status')}}
+						{{#if tag.flags.litm-rn.isPrivate}}<i class="litm--tm-tag-icon fa-solid fa-mask"></i>{{/if}}
+						<div class="litm--tm-status-values">
+							{{#each tag.flags.litm-rn.values}}
+							<span class="litm--tm-status-dot{{ifThen this ' litm--tm-filled' ''}}"></span>
+							{{/each}}
+						</div>
+					{{/if}}
+					{{#if (eq tag.flags.litm-rn.type 'might')}}
+						{{#if tag.flags.litm-rn.isPrivate}}<i class="litm--tm-tag-icon fa-solid fa-mask"></i>{{/if}}
+						<span class="litm--tm-might-indicator litm--tm-might-{{#if (eq tag.flags.litm-rn.value 0)}}origin{{else if (eq tag.flags.litm-rn.value 6)}}greatness{{else}}adventure{{/if}}"></span>
+					{{/if}}
+				</div>
+			</div></div>
+			{{#if false}}<div class="litm--challenge-tag-popup" >
 				{{#if (eq tag.flags.litm-rn.type 'tag')}}
-					{{> toggle-crispy source=source tag=tag editable=editable}}
+					<div class="litm--tm-popup-group" data-tooltip-direction="UP">
+						<button type="button" class="litm--tm-popup-btn"
+							data-action="edit-tag" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.ui.edit'}}">
+							<i class="fas fa-pencil"></i>
+						</button>
+						<!-- <button type="button" class="litm--tm-popup-btn"
+							data-action="toggle-hindering" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize (ifThen tag.flags.litm-rn.isHindering 'Litm.ui.make-helping' 'Litm.tags.toHindering')}}">
+							<img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_{{ifThen tag.flags.litm-rn.isHindering 'active' 'inactive'}}.svg" alt="" />
+						</button> -->
+						<button type="button" class="litm--tm-popup-btn"
+							data-action="toggle-private" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize (ifThen tag.flags.litm-rn.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+							<i class="fa-solid fa-mask"></i>
+						</button>
+						<button type="button" class="litm--tm-popup-btn"
+							data-action="toggle-crispy" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize (ifThen tag.flags.litm-rn.isCrispy 'Litm.tags.isCrispy' 'Litm.tags.toCrispy')}}">
+							<i class="fas {{ifThen tag.flags.litm-rn.isCrispy 'fa-hourglass-half' 'fa-hourglass'}}"></i>
+						</button>
+					</div>
+					<div class="litm--tm-popup-end">
+						<button type="button" class="litm--tm-popup-btn litm--tm-popup-remove"
+							data-action="remove-tag" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.ui.remove'}}">
+							<i class="fas fa-times"></i>
+						</button>
+					</div>
 				{{/if}}
 				{{#if (eq tag.flags.litm-rn.type 'status')}}
-					<div class="litm--tag-item-status">
-						{{#each tag.flags.litm-rn.values as |status|}} <input
-							class="litm--tag-item-tier"
-							name="{{../source}}.{{../tag._id}}.values" type="checkbox"
-							value="{{add @index 1}}" {{disabled (not ../editable)}}
-							{{checked status}} />
+					<div class="litm--tm-popup-group">
+						<button type="button" class="litm--tm-popup-btn"
+							data-action="edit-tag" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.ui.edit'}}">
+							<i class="fas fa-pencil"></i>
+						</button>
+						<!-- <button type="button" class="litm--tm-popup-btn"
+							data-action="toggle-hindering" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize (ifThen tag.flags.litm-rn.isHindering 'Litm.ui.make-helping' 'Litm.tags.toHindering')}}">
+							<img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_{{ifThen tag.flags.litm-rn.isHindering 'active' 'inactive'}}.svg" alt="" />
+						</button> -->
+						<button type="button" class="litm--tm-popup-btn"
+							data-action="toggle-private" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize (ifThen tag.flags.litm-rn.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+							<i class="fa-solid fa-mask"></i>
+						</button>
+					</div>
+					<div class="litm--tm-popup-status">
+						{{#each tag.flags.litm-rn.values as |st|}}
+						<button type="button" class="litm--tm-popup-status-btn{{ifThen st ' filled' ''}}"
+							data-action="toggle-status-value" data-value="{{@index}}"
+							data-id="{{../tag._id}}" data-ref="{{../source}}"
+							data-tooltip="{{add @index 1}}"></button>
 						{{/each}}
+					</div>
+					<div class="litm--tm-popup-end">
+						<button type="button" class="litm--tm-popup-btn litm--tm-popup-remove"
+							data-action="remove-tag" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.ui.remove'}}">
+							<i class="fas fa-times"></i>
+						</button>
 					</div>
 				{{/if}}
 				{{#if (eq tag.flags.litm-rn.type 'might')}}
-					<div class="litm--tag-item-might">
-						<label class="litm--might-level litm--might-origin" data-tooltip="{{localize 'Litm.tags.origin-0'}}">
-							<input class="litm--tag-item-might-radio"
-								name="{{source}}.{{tag._id}}.value" type="radio"
-								value="0" {{disabled (not editable)}}
-								{{checked (eq tag.flags.litm-rn.value 0)}} />
-						</label>
-						<label class="litm--might-level litm--might-adventure" data-tooltip="{{localize 'Litm.tags.adventure-3'}}">
-							<input class="litm--tag-item-might-radio"
-								name="{{source}}.{{tag._id}}.value" type="radio"
-								value="3" {{disabled (not editable)}}
-								{{checked (eq tag.flags.litm-rn.value 3)}} />
-						</label>
-						<label class="litm--might-level litm--might-greatness" data-tooltip="{{localize 'Litm.tags.greatness-6'}}">
-							<input class="litm--tag-item-might-radio"
-								name="{{source}}.{{tag._id}}.value" type="radio"
-								value="6" {{disabled (not editable)}}
-								{{checked (eq tag.flags.litm-rn.value 6)}} />
-						</label>
+					<div class="litm--tm-popup-group">
+						<button type="button" class="litm--tm-popup-btn"
+							data-action="edit-tag" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.ui.edit'}}">
+							<i class="fas fa-pencil"></i>
+						</button>
+						<!-- <button type="button" class="litm--tm-popup-btn"
+							data-action="toggle-hindering" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize (ifThen tag.flags.litm-rn.isHindering 'Litm.ui.make-helping' 'Litm.tags.toHindering')}}">
+							<img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_{{ifThen tag.flags.litm-rn.isHindering 'active' 'inactive'}}.svg" alt="" />
+						</button> -->
+						<button type="button" class="litm--tm-popup-btn"
+							data-action="toggle-private" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize (ifThen tag.flags.litm-rn.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+							<i class="fa-solid fa-mask"></i>
+						</button>
+					</div>
+					<div class="litm--tm-popup-might">
+						<button type="button" class="litm--tm-popup-might-btn litm--might-origin{{ifThen (eq tag.flags.litm-rn.value 0) ' active' ''}}"
+							data-action="set-might-value" data-value="0"
+							data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.tags.origin-0'}}"></button>
+						<button type="button" class="litm--tm-popup-might-btn litm--might-adventure{{ifThen (eq tag.flags.litm-rn.value 3) ' active' ''}}"
+							data-action="set-might-value" data-value="3"
+							data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.tags.adventure-3'}}"></button>
+						<button type="button" class="litm--tm-popup-might-btn litm--might-greatness{{ifThen (eq tag.flags.litm-rn.value 6) ' active' ''}}"
+							data-action="set-might-value" data-value="6"
+							data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.tags.greatness-6'}}"></button>
+					</div>
+					<div class="litm--tm-popup-end">
+						<button type="button" class="litm--tm-popup-btn litm--tm-popup-remove"
+							data-action="remove-tag" data-id="{{tag._id}}" data-ref="{{source}}"
+							data-tooltip="{{localize 'Litm.ui.remove'}}">
+							<i class="fas fa-times"></i>
+						</button>
 					</div>
 				{{/if}}
-				{{> toggle-hindering source=source tag=tag editable=editable}}
-				{{> toggle-private source=source tag=tag editable=editable}}
-			</div>
+			</div>{{/if}}
 		</li>
 	{{/if}}
-{{/inline}} {{#*inline 'toggle-hindering' source tag editable}}
-	<input class="litm--checkbox litm--checkbox-with-bg litm--hindering-checkbox" type="checkbox"
-		name="{{source}}.{{tag._id}}.isHindering"
-		data-tooltip="{{localize (ifThen tag.flags.litm-rn.isHindering 'Litm.tags.isHindering' 'Litm.tags.toHindering')}}" 
-		{{disabled (not editable)}} {{checked tag.flags.litm-rn.isHindering}} />
-{{/inline}} {{#*inline 'toggle-crispy' source tag editable}}
-	<input class="litm--checkbox litm--checkbox-with-bg litm--crispy-checkbox" type="checkbox"
-		name="{{source}}.{{tag._id}}.isCrispy"
-		data-tooltip="{{localize (ifThen tag.flags.litm-rn.isCrispy 'Litm.tags.isCrispy' 'Litm.tags.toCrispy')}}" 
-		{{disabled (not editable)}} {{checked tag.flags.litm-rn.isCrispy}} />
-{{/inline}} {{#*inline 'toggle-private' source tag editable}}
-	<input class="litm--checkbox litm--checkbox-with-bg litm--private-checkbox" type="checkbox"
-		name="{{source}}.{{tag._id}}.isPrivate"
-		data-tooltip="{{localize (ifThen tag.flags.litm-rn.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}" 
-		{{disabled (not editable)}} {{checked tag.flags.litm-rn.isPrivate}} />
 {{/inline}}
 
-<datalist id="litm--challenge-types">
-	{{#each data.system.challenges as |challenge|}}
-		<option>{{localize (concat "Litm.challenges." challenge)}}</option>
-	{{/each}}
-</datalist>
-<img class="litm--challenge-border"
-	src="systems/litm-rn/assets/media/challenge-border.webp" aria-hidden="true">
-<form class="{{cssClass}}" autocomplete="off">
-	<div class="litm--challenge-meta">
-		{{#if (gte data.permissionLevel 2)}}
-			<label class="litm--sro"
-				for="category">{{localize "Litm.other.category"}}</label>
-			<input list="litm--challenge-types" type="text" data-size-input
-				id="category" name="system.category" value="{{data.system.category}}" />
-			<img src="systems/litm-rn/assets/media/separator.webp" alt="">
-			<label class="litm--sro"
-				for="rating">{{localize "Litm.other.rating"}}</label>
-			<div role="button" class="litm--challenge-rating" data-click="increase"
-				data-context="decrease" data-name="system.rating">
-				{{#progress-buttons data.system.rating 5}}
-					<span aria-hidden="true" class="{{ifThen @checked 'checked' ''}}"><img
-							src="systems/litm-rn/assets/media/skull.webp" /></span>
-				{{/progress-buttons}}
-			</div>
-			<input type="hidden" id="rating" name="system.rating"
-				value="{{data.system.rating}}" />
-		{{/if}}
-	</div>
-	<img class="litm--challenge-avatar" src="{{data.img}}" data-edit="img"
-		alt="{{data.name}}">
-	<div class="litm--challenge-bg"></div>
+<div class="litm--challenge-layout">
+	<datalist id="litm--challenge-types">
+		{{#each system.challenges as |challenge|}}
+			<option>{{localize (concat "Litm.challenges." challenge)}}</option>
+		{{/each}}
+	</datalist>
 	<div class="litm--challenge-wrapper">
+		<img class="litm--challenge-avatar" src="{{document.img}}" data-action="editImage"
+			data-edit="img" alt="{{document.name}}">
+		<div class="litm--challenge-intro">
 		<label for="name" class="litm--sro">{{localize "Name"}}</label>
-		<input type="hidden" name="name" id="name" value="{{data.name}}" required />
-		<span class="litm--challenge-name" role="textbox" contenteditable
-			data-input="name">{{data.name}}</span>
+		<input type="hidden" name="name" id="name" value="{{document.name}}" required />
+		<div class="litm--challenge-title">
+			<span class="litm--challenge-name" role="textbox" contenteditable
+				data-input="name">{{document.name}}</span>
+			{{#if @root.editable}}
+				<label class="litm--sro" for="rating">{{localize "Litm.other.rating"}}</label>
+				<span role="button" class="litm--challenge-rating" data-click="increase"
+					data-context="decrease" data-name="system.rating"
+					data-tooltip="{{localize 'Litm.ui.challenge-rating-hint'}}">
+					{{#progress-buttons system.rating 5}}
+						<span aria-hidden="true" class="{{ifThen @checked 'checked' ''}}">
+							<i class="litm--challenge-rating-icon"></i>
+						</span>
+					{{/progress-buttons}}
+				</span>
+				<input type="hidden" id="rating" name="system.rating"
+					value="{{system.rating}}" />
+			{{/if}}
+		</div>
+		{{#if @root.editable}}
+			<div class="litm--challenge-types">
+				<label class="litm--sro" for="category">{{localize "Litm.other.category"}}</label>
+				<input list="litm--challenge-types" type="text" data-size-input
+					id="category" name="system.category" value="{{system.category}}" />
+			</div>
+		{{/if}}
 		<label class="litm--sro" for="note">{{localize "Notes"}}</label>
-		{{editor data.system.note target="system.note" owner=owner button=true editable=true engine="prosemirror"}}
-		{{#if (gte data.permissionLevel 2)}}
+		<prose-mirror name="system.note" button="true" toggled="false" editable="{{isEditable}}" value="{{system.noteRaw}}">
+			{{{system.note}}}
+		</prose-mirror>
+		</div>
+		{{#if @root.editable}}
+			<div class="litm--challenge-body">
+				<div class="litm--challenge-primary">
 			{{> divider title="Litm.other.limits" add="limit"}}
-			<ul class="litm--challenge-limits">
-				{{#each data.system.enrichedLimits as |limit|}}
-					<li class="litm--challenge-limit{{ifThen limit.isPrivate ' litm--private' ''}}">
+			<ul class="litm--challenge-limits"
+				data-tooltip="{{localize 'Litm.ui.challenge-context-limit'}}">
+				{{#each system.enrichedLimits as |limit|}}
+					<li class="litm--challenge-limit{{ifThen limit.isPrivate ' litm--private' ''}}{{ifThen limit.consequence ' litm--challenge-limit--with-consequence' ''}}"
+						data-context-entity="limit" data-id="{{limit.index}}">
 						<div class="litm--limit-top-row">
+							<div class="litm--limit-bar">
 							<label class="litm--sro" for="limit-{{limit.index}}-name">{{localize "Name"}}</label>
 							<input class="litm--limit-name" type="text" data-size-input
 								id="limit-{{limit.index}}-name"
 								name="system.limits.{{limit.index}}.name"
-								data-context="remove-limit" data-id="{{limit.index}}"
+								data-id="{{limit.index}}"
+								{{#unless (eq limit.index @root.editingLimitIndex)}}readonly{{/unless}}
+								{{#unless (eq limit.index @root.editingLimitIndex)}}draggable="true" data-drag-limit="{{limit.index}}"{{/unless}}
 								value="{{limit.name}}" />
 							<div class="litm--limit-value-wrap">
 								<img src="systems/litm-rn/assets/media/icons/limit.svg"
@@ -171,29 +269,26 @@
 									id="limit-{{limit.index}}-value"
 									name="system.limits.{{limit.index}}.value"
 									min="0" max="6"
-									placeholder="—" value="{{limit.value}}" />
+									placeholder="~" value="{{limit.value}}" />
 							</div>
-							<button type="button"
-								class="litm--limit-arrow-btn{{ifThen limit.consequence ' flipped' ''}}"
-								data-click="{{ifThen limit.consequence '' 'add-consequence'}}"
-								data-id="{{limit.index}}"
-								{{#if limit.consequence}}disabled{{/if}}
-								data-tooltip="{{localize 'Litm.ui.add-consequence'}}">
-								<img src="systems/litm-rn/assets/media/icons/limit-arrow.svg" alt="" />
-							</button>
-							<input class="litm--checkbox litm--checkbox-with-bg litm--private-checkbox"
-								type="checkbox"
-								name="system.limits.{{limit.index}}.isPrivate"
-								data-dtype="Boolean"
-								data-tooltip="{{localize (ifThen limit.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}"
-								{{checked limit.isPrivate}} />
+							<input type="hidden" name="system.limits.{{limit.index}}.isPrivate"
+								data-dtype="Boolean" value="{{limit.isPrivate}}" />
+							{{#if limit.isPrivate}}
+								<i class="litm--limit-private-indicator fa-solid fa-mask"
+									data-tooltip="{{localize 'Litm.tags.isPrivate'}}" aria-hidden="true"></i>
+							{{/if}}
+							{{#if limit.consequence}}
+								<span class="litm--limit-arrow-btn" aria-hidden="true">
+									<img src="systems/litm-rn/assets/media/icons/limit-arrow.svg" alt="" />
+								</span>
+							{{/if}}
+							</div>
 							<input type="hidden" name="system.limits.{{limit.index}}.consequence"
 								id="consequence-{{limit.index}}" value="{{limit.consequence}}" />
 						</div>
 						{{#if limit.consequence}}
-							<div class="litm--limit-consequence-row"
-								data-context="remove-consequence" data-id="{{limit.index}}"
-								data-tooltip="{{localize 'Litm.ui.context-remove-consequence'}}">
+							<div class="litm--limit-consequence-row" data-id="{{limit.index}}"
+				data-tooltip="{{localize 'Litm.ui.remove-consequence'}}">
 								<span class="litm--limit-consequence-wrapper"
 									data-limit-index="{{limit.index}}">
 									<span class="litm--limit-consequence-edit"
@@ -209,58 +304,47 @@
 					</li>
 				{{/each}}
 			</ul>
-			{{> divider title="Litm.ui.tags-statuses"}}
-			<label class="litm--sro" for="tags"
-				id="tags-label">{{localize 'Litm.other.tags'}}</label>
-			<div class="litm--challenge-tags">
-				{{#if isEditing}}
-					<span role="textbox" contenteditable data-input="tags"
-						aria-labelledby="tags-label">{{data.system.tags}}</span><input
-						type="hidden" id="tags" name="system.tags"
-						value="{{data.system.tags}}" required />
-				{{else}}
-					<div id="tags" data-click="toggle-edit">
-						{{{data.system.renderedTags}}}
-					</div>
-				{{/if}}
-			</div>
-			<!-- Active Effects -->
-			{{> divider title="Litm.ui.active-effects" move="story"}}
-			<div class="litm--story-effects">
+			{{> divider title="Litm.ui.tags-statuses" move="story" active=@root.isStoryActor}}
+			<div class="litm--story-effects"
+				data-tooltip="{{localize 'Litm.ui.challenge-context-effects'}}">
 				<ul>
-					{{#each data.effects as |tag|}}
-						{{> tagItem tag=tag source=../data._id editable=true}}
+					{{#each effects as |tag|}}
+						{{> tagItem tag=tag source=../document._id editingId=@root.editingTagId}}
 					{{/each}}
 				</ul>
 			</div>
 			{{> divider title="Litm.ui.special-features" add="special"}}
-			<ul class="litm--challenge-specials">
-				{{#each data.system.enrichedSpecials as |special|}}
-					<li class="litm--special-item" data-context="remove-special" data-id="{{special.index}}">
+			<ul class="litm--challenge-specials"
+				data-tooltip="{{localize 'Litm.ui.challenge-context-special'}}">
+				{{#each system.enrichedSpecials as |special|}}
+					<li class="litm--special-item" data-id="{{special.id}}" data-context-entity="special"
+						draggable="true" data-drag-special="{{special.id}}" data-drag-special-path="system.specials">
 						<span class="litm--special-field litm--special-name"
 							role="textbox" contenteditable
-							data-special-index="{{special.index}}"
+							data-special-id="{{special.id}}"
 							data-special-field="name"
 							data-placeholder="{{localize 'Litm.other.special'}}">{{special.name}}</span><span
 							class="litm--special-separator">:</span>
 						<span class="litm--special-description-wrapper"
-							data-special-index="{{special.index}}">
+							data-special-id="{{special.id}}">
 							<span class="litm--special-field litm--special-description-edit"
 								role="textbox" contenteditable
-								data-special-index="{{special.index}}"
+								data-special-id="{{special.id}}"
 								data-special-field="description"
 								data-placeholder="{{localize 'Litm.ui.new-special-description'}}"
 								style="display:none;">{{special.description}}</span>
 							<span class="litm--special-description-display"
-								data-special-index="{{special.index}}">{{{special.enrichedDescription}}}</span>
+								data-special-id="{{special.id}}">{{{special.enrichedDescription}}}</span>
 						</span>
 					</li>
 				{{/each}}
 			</ul>
 			{{> divider title="Litm.ui.secrets" add="secret"}}
-			<ul class="litm--challenge-secrets">
-				{{#each data.system.enrichedSecrets as |secret|}}
-					<li class="litm--secret-item{{ifThen secret.isRevealed ' litm--revealed' ''}}" data-context="remove-secret" data-id="{{secret.index}}">
+			<ul class="litm--challenge-secrets"
+				data-tooltip="{{localize 'Litm.ui.challenge-context-secret'}}">
+				{{#each system.enrichedSecrets as |secret|}}
+					<li class="litm--secret-item{{ifThen secret.isRevealed ' litm--revealed' ''}}"
+						data-id="{{secret.index}}" data-context-entity="secret">
 						<img src="systems/litm-rn/assets/media/icons/torch.svg"
 							class="litm--secret-torch{{ifThen secret.isRevealed ' litm--torch-active' ''}}"
 							data-secret-index="{{secret.index}}"
@@ -292,17 +376,19 @@
 					</li>
 				{{/each}}
 			</ul>
+				</div>
+				<div class="litm--challenge-secondary">
 			{{> divider title="Litm.ui.threats-consequences" add="threat"}}
 			<ul class="litm--challenge-threats item-list">
-				{{#each data.items as |item|}}
-					<li class="item" data-dblclick="edit-item" data-context="remove-threat"
-						data-id="{{item.data._id}}" data-item-id="{{item.data._id}}"
-						data-tooltip="{{localize 'Litm.ui.dblclick-open'}}">
+				{{#each items as |item|}}
+					<li class="item" data-id="{{item._id}}" data-item-id="{{item._id}}"
+						data-context-entity="threat">
 						<div>
-							<span class="litm--threat-name">{{item.data.name}}</span>
-							<span class="litm--threat-desc">{{item.data.system.threat}}</span>
+							<span class="litm--threat-name" draggable="true"
+								data-drag-threat="{{item._id}}">{{item.name}}</span>
+							<span class="litm--threat-desc">{{item.system.threat}}</span>
 						</div>
-						{{#each item.data.system.consequences as |consequence|}}
+						{{#each item.system.enrichedConsequences as |consequence|}}
 							<div>
 								<img class="litm--consequences-icon" src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt="Consequences" />
 								<div>{{{consequence}}}</div>
@@ -311,6 +397,8 @@
 					</li>
 				{{/each}}
 			</ul>
+				</div>
+			</div>
 		{{/if}}
 	</div>
-</form>
+</div>

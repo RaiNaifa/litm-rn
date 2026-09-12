@@ -1,0 +1,865 @@
+.litm.litm--trope {
+	--trope-paper: #efe6df;
+	--trope-ink: var(--litm-color-text-espresso);
+	--trope-muted: #735f51;
+	--trope-accent: var(--litm-color-text-accent-crimson);
+	--trope-border: rgb(70 48 36 / 30%);
+	--trope-field: rgb(255 255 255 / 38%);
+	--trope-button: rgb(224 210 197 / 90%);
+	--trope-button-hover: rgb(207 188 171 / 98%);
+	--trope-readonly-hover: color-mix(in srgb, var(--trope-ink) 78%, black);
+	min-width: 560px;
+	max-height: calc(100vh - 32px);
+	overflow: hidden;
+	color: var(--trope-ink);
+	font-family: var(--litm-font-text);
+	background: var(--trope-paper) url("../../assets/media/paper.webp") left top
+		repeat;
+
+	& .window-content {
+		padding: 0;
+		overflow: hidden;
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		background: transparent;
+	}
+
+	&.litm--trope
+		.litm--trope-sheet
+		:is(button, input, select, textarea, option) {
+		font-family: var(--litm-font-text) !important;
+	}
+
+	&:not(.minimized, .minimizing, .maximizing) .window-header {
+		position: absolute;
+		z-index: 3;
+		width: 100%;
+		margin: 0;
+		background: rgb(0 0 0 / 20%);
+	}
+
+	& .litm--trope-sheet {
+		position: relative;
+		display: grid;
+		grid-template-rows: auto minmax(0, 1fr);
+		height: auto;
+		max-height: calc(100vh - 32px);
+		min-height: 0;
+		padding-top: 28px;
+		background: transparent;
+	}
+
+	& .litm--trope-header {
+		padding: 22px 34px 14px;
+		border-bottom: 2px solid var(--trope-accent);
+	}
+
+	& .litm--trope-title {
+		width: 100%;
+		height: auto;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		color: var(--trope-ink);
+		font-family: var(--litm-font-primary);
+		font-size: 2rem;
+		font-weight: 400;
+		line-height: 1.1;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	& input.litm--trope-title:focus {
+		border-bottom: 1px solid var(--trope-accent);
+	}
+
+	& .litm--trope-scroll {
+		min-height: 0;
+		padding: 20px 34px 34px;
+		overflow: auto;
+	}
+
+	& .litm--trope-description {
+		margin-bottom: 22px;
+		font-size: 1rem;
+		line-height: 1.35;
+	}
+
+	& .litm--trope-description prose-mirror {
+		display: flex;
+		min-height: 100px;
+		padding: 10px 12px;
+		border: 1px solid var(--trope-border);
+		border-radius: 3px;
+		background: var(--trope-field);
+	}
+
+	& .litm--trope-description-readonly > :first-child {
+		margin-top: 0;
+	}
+
+	& .litm--trope-body {
+		min-width: 0;
+	}
+
+	& .litm--trope-body.has-art {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(180px, 230px);
+		align-items: start;
+		gap: 26px;
+	}
+
+	& .litm--trope-body.has-art.art-left {
+		grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+	}
+
+	& .litm--trope-body.has-art.art-left .litm--trope-body-content {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	& .litm--trope-body.has-art.art-left .litm--trope-art {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	& .litm--trope-body-content {
+		min-width: 0;
+	}
+
+	& .litm--trope-art {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		align-self: stretch;
+		min-width: 0;
+		min-height: 260px;
+		padding: 6px 0 10px;
+	}
+
+	& .litm--trope-body.art-align-center .litm--trope-art {
+		align-items: center;
+	}
+
+	& .litm--trope-body.art-align-bottom .litm--trope-art {
+		align-items: flex-end;
+	}
+
+	& .litm--trope-art img {
+		display: block;
+		width: 100%;
+		max-width: 230px;
+		max-height: 430px;
+		border: 0;
+		object-fit: contain;
+		filter: drop-shadow(0 8px 8px rgb(0 0 0 / 34%));
+	}
+
+	& .litm--trope-section {
+		margin-top: 20px;
+	}
+
+	& .litm--trope-section-heading {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 10px;
+	}
+
+	& .litm--trope-section-heading::after {
+		content: "";
+		flex: 1;
+		height: 1px;
+		background: var(--trope-border);
+	}
+
+	& .litm--trope-section-heading h2 {
+		margin: 0;
+		color: var(--trope-muted);
+		font-family: var(--litm-font-primary);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+	& .litm--trope-section-heading button {
+		order: 3;
+		flex: 0 0 26px;
+		width: 26px;
+		height: 26px;
+		min-height: 0;
+		padding: 0;
+		border: 1px solid var(--trope-border);
+		border-radius: 50%;
+		color: var(--trope-ink);
+		background: var(--trope-button);
+	}
+
+	& .litm--trope-slots {
+		display: grid;
+		gap: 9px;
+	}
+
+	& .litm--trope-slot {
+		position: relative;
+		padding: 3px 0;
+	}
+
+	& .litm--trope-slot:not(.is-empty) {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+	}
+
+	& .litm--trope-slot-content {
+		min-width: 0;
+	}
+
+	& .litm--trope-slot.is-empty {
+		padding: 8px 10px;
+		border: 1px dashed var(--trope-border);
+		background: transparent;
+	}
+
+	& .litm--trope-slot-tools {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+
+	& .litm--trope-slot-tools > span {
+		flex: 0 0 auto;
+		color: var(--trope-muted);
+		font-family: var(--litm-font-primary);
+		font-size: 0.72rem;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	& .litm--trope-slot-tools > div {
+		display: flex;
+		gap: 6px;
+	}
+
+	& .litm--trope-slot-tools button {
+		width: auto;
+		min-height: 28px;
+		padding: 3px 9px;
+		border: 1px solid var(--trope-border);
+		color: var(--trope-ink);
+		font-family: var(--litm-font-primary) !important;
+		font-size: 0.74rem;
+		background: var(--trope-button);
+	}
+
+	& .litm--trope-slot-tools button:hover,
+	& .litm--trope-section-heading button:hover {
+		background: var(--trope-button-hover);
+	}
+
+	& .litm--trope-slot:not(.is-empty) .litm--trope-slot-tools {
+		margin-bottom: 8px;
+	}
+
+	& .litm--trope-choice-label {
+		margin-bottom: 4px;
+		color: var(--trope-muted);
+		font-weight: 700;
+	}
+
+	& .litm--trope-kit-list {
+		display: grid;
+		gap: 3px;
+	}
+
+	& .litm--trope-kit {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		min-width: 0;
+		line-height: 1.25;
+	}
+
+	& .litm--trope-radio {
+		flex: 0 0 11px;
+		width: 11px;
+		height: 11px;
+		border: 1px solid var(--trope-muted);
+		border-radius: 50%;
+		background: var(--trope-paper);
+	}
+
+	& .litm--trope-kit-link {
+		margin: 0;
+		padding: 0;
+		color: var(--trope-ink);
+		font-family: var(--litm-font-primary);
+		font-size: 1rem;
+		font-style: italic;
+		font-weight: 700;
+		line-height: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	& .litm--trope-kit-link:hover {
+		color: var(--trope-accent);
+		text-decoration: underline;
+	}
+
+	& .litm--trope-sheet.is-readonly .litm--trope-kit-link {
+		font-weight: 400;
+
+		&:hover {
+			color: var(--trope-readonly-hover);
+			text-decoration: underline;
+			filter: brightness(1.12);
+		}
+	}
+
+	& .litm--trope-kit-source {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		color: var(--trope-muted);
+		font-size: 0.88rem;
+	}
+
+	& .litm--trope-kit-source img {
+		width: 15px;
+		height: 15px;
+		border: 0;
+	}
+
+	& .litm--trope-remove-slot {
+		position: static;
+		flex: 0 0 24px;
+		width: 24px;
+		height: 24px;
+		min-height: 0;
+		padding: 0;
+		border: 0;
+		color: var(--trope-muted);
+		background: transparent;
+	}
+
+	& .litm--trope-choice-limit {
+		order: 2;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		color: var(--trope-muted);
+		font-family: var(--litm-font-primary);
+		font-size: 0.75rem;
+	}
+
+	& .litm--trope-choice-limit input {
+		width: 48px;
+		height: 26px;
+		border: 1px solid var(--trope-border);
+		color: var(--trope-ink);
+		text-align: center;
+		background: var(--trope-field);
+	}
+
+	& .litm--trope-backpack-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 7px;
+	}
+
+	& .litm--trope-backpack-tag {
+		display: flex;
+		align-items: center;
+		width: fit-content;
+		min-width: 180px;
+		max-width: 100%;
+		border: 1px solid var(--trope-border);
+		border-radius: 3px;
+		background: var(--trope-field);
+	}
+
+	& .litm--trope-backpack-tag input {
+		flex: 0 1 auto;
+		width: auto;
+		min-width: 150px;
+		max-width: calc(100% - 28px);
+		height: 30px;
+		border: 0;
+		color: var(--trope-ink);
+		font-style: italic;
+		field-sizing: content;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	& .litm--trope-backpack-tag button {
+		width: 28px;
+		height: 28px;
+		min-height: 0;
+		padding: 0;
+		border: 0;
+		color: var(--trope-muted);
+		background: transparent;
+	}
+
+	& .litm--trope-backpack-tag-readonly {
+		display: inline;
+	}
+
+	& .litm--trope-backpack-tag-readonly:not(:last-child)::after {
+		content: ",";
+		color: var(--trope-ink);
+	}
+
+	& .litm--trope-picker-backdrop {
+		position: absolute;
+		inset: 0;
+		z-index: 20;
+		background: rgb(20 15 12 / 44%);
+	}
+
+	& .litm--trope-picker {
+		position: absolute;
+		inset: 60px 50px 45px;
+		z-index: 21;
+		display: grid;
+		grid-template-rows: auto auto minmax(0, 1fr) auto;
+		gap: 10px;
+		padding: 15px;
+		border: 1px solid color-mix(in srgb, var(--trope-accent) 60%, transparent);
+		border-radius: 5px;
+		background: var(--trope-paper) url("../../assets/media/paper.webp") left top
+			repeat;
+		box-shadow: 0 10px 35px rgb(0 0 0 / 55%);
+		color: var(--trope-ink);
+	}
+
+	& .litm--trope-picker header,
+	& .litm--trope-picker footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+
+	& .litm--trope-picker h2 {
+		margin: 0;
+		color: var(--trope-ink);
+		font-family: var(--litm-font-primary);
+	}
+
+	& .litm--trope-picker header button {
+		width: 28px;
+		height: 28px;
+		min-height: 0;
+		padding: 0;
+		border: 0;
+		color: var(--trope-ink);
+		background: transparent;
+	}
+
+	& .litm--trope-picker > input {
+		height: 34px;
+		border: 1px solid color-mix(in srgb, var(--trope-accent) 55%, transparent);
+		color: var(--trope-ink);
+		background: var(--trope-field);
+
+		&:focus {
+			border-color: var(--trope-accent);
+			box-shadow: none;
+			outline: 1px solid var(--trope-accent);
+		}
+	}
+
+	& .litm--trope-picker-list {
+		min-height: 0;
+		overflow: auto;
+	}
+
+	& .litm--trope-picker-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 20px 30px;
+		align-items: center;
+		gap: 4px;
+		width: 100%;
+		min-height: 38px;
+		margin: 0 0 5px;
+		padding: 2px 5px;
+		border: 0;
+		border-radius: 3px;
+		background: transparent;
+	}
+
+	& .litm--trope-picker-row:hover,
+	& .litm--trope-picker-row.is-selected {
+		background: color-mix(in srgb, var(--trope-accent) 14%, transparent);
+	}
+
+	& .litm--trope-picker-select {
+		display: grid;
+		grid-template-columns: 18px 30px minmax(0, 1fr);
+		align-items: center;
+		gap: 8px;
+		width: 100%;
+		height: auto;
+		min-height: 34px;
+		margin: 0;
+		padding: 2px 3px;
+		border: 0;
+		color: var(--trope-ink);
+		font-family: var(--litm-font-text) !important;
+		text-align: left;
+		background: transparent;
+	}
+
+	& .litm--trope-picker-select:hover {
+		background: transparent;
+	}
+
+	& .litm--trope-picker-select > img {
+		width: 28px;
+		height: 28px;
+		border: 0;
+	}
+
+	& .litm--trope-picker-select > span {
+		display: grid;
+		min-width: 0;
+	}
+
+	& .litm--trope-picker-row strong,
+	& .litm--trope-picker-row small {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	& .litm--trope-picker-row small {
+		color: var(--trope-muted);
+	}
+
+	& .litm--trope-picker-check {
+		color: var(--trope-accent);
+		opacity: 0;
+	}
+
+	& .litm--trope-picker-row.is-selected .litm--trope-picker-check {
+		opacity: 1;
+	}
+
+	& .litm--trope-picker-preview {
+		display: inline-grid;
+		width: 28px;
+		height: 28px;
+		min-height: 0;
+		padding: 0;
+		place-items: center;
+		border: 0;
+		background: transparent;
+		color: var(--trope-muted);
+
+		&:hover {
+			background: transparent;
+			color: var(--trope-accent);
+		}
+	}
+
+	& .litm--trope-picker footer {
+		justify-content: flex-end;
+	}
+
+	& .litm--trope-picker footer button {
+		width: auto;
+		padding: 4px 14px;
+		color: var(--trope-ink);
+		border-color: var(--trope-border);
+		background: var(--trope-button);
+		font-family: var(--litm-font-text) !important;
+	}
+
+	& .litm--trope-picker footer button.litm--trope-picker-confirm {
+		border-color: var(--trope-accent);
+		background: color-mix(in srgb, var(--trope-accent) 16%, var(--trope-button));
+	}
+}
+
+.litm--trope-fixed-choice {
+	color: var(--trope-accent);
+}
+
+.litm--trope-choice-toggle {
+	display: inline-grid;
+	flex: 0 0 16px;
+	width: 16px;
+	height: 18px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	place-items: center;
+	border: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.litm--trope-choice-toggle:hover {
+	background: transparent !important;
+}
+
+.litm--trope-choice-control {
+	display: inline-grid;
+	flex: 0 0 14px;
+	width: 14px;
+	height: 14px;
+	place-items: center;
+	border: 1px solid var(--trope-muted);
+	border-radius: 50%;
+	background: var(--trope-paper);
+}
+
+.litm--trope-choice-control i {
+	color: var(--trope-paper);
+	font-size: 8px;
+	opacity: 0;
+}
+
+.litm--trope-choice-toggle[aria-checked="true"] .litm--trope-choice-control {
+	border-color: var(--trope-accent);
+	background: var(--trope-accent);
+}
+
+.litm--trope-choice-toggle[aria-checked="true"] .litm--trope-choice-control i {
+	opacity: 1;
+}
+
+.litm--trope-backpack-choice {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+}
+
+.litm--trope-backpack-choice:not(:last-child)::after {
+	content: ",";
+	color: var(--trope-ink);
+}
+
+.litm--trope-backpack-choice .litm--trope-backpack-tag-readonly::after {
+	content: none;
+}
+
+.litm--trope-selection-footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+	padding: 10px 18px;
+	border-top: 1px solid var(--trope-border);
+}
+
+.litm--trope-selection-footer button {
+	width: auto;
+}
+
+.theme-dark .litm.litm--trope,
+.litm.litm--trope.theme-dark {
+	--trope-paper: #292522;
+	--trope-ink: #e7d9c4;
+	--trope-muted: #b3a48d;
+	--trope-border: rgb(231 217 196 / 20%);
+	--trope-field: rgb(0 0 0 / 20%);
+	--trope-button: rgb(65 57 51 / 90%);
+	--trope-button-hover: rgb(87 74 65 / 96%);
+	--trope-accent: var(--litm-color-text-heading-ochre, #e8b776);
+	--trope-readonly-hover: color-mix(in srgb, var(--trope-ink) 72%, white);
+	background: var(--trope-paper) url("../../assets/media/paper-dark.webp") left
+		top repeat;
+
+	& .litm--trope-picker {
+		background: var(--trope-paper) url("../../assets/media/paper-dark.webp")
+			left top repeat;
+	}
+}
+
+@media (max-width: 640px) {
+	.litm.litm--trope {
+		& .litm--trope-body.has-art {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		& .litm--trope-art {
+			position: static;
+			min-height: 0;
+		}
+
+		& .litm--trope-body.has-art.art-left .litm--trope-body-content {
+			grid-column: 1;
+			grid-row: auto;
+			order: 2;
+		}
+
+		& .litm--trope-body.has-art.art-left .litm--trope-art {
+			grid-column: 1;
+			grid-row: auto;
+			order: 1;
+		}
+
+		& .litm--trope-art img {
+			max-width: 260px;
+			max-height: 320px;
+		}
+	}
+}
+
+.litm.litm--trope-art-settings {
+	--trope-settings-paper: #efe6df;
+	--trope-settings-ink: var(--litm-color-text-espresso);
+	--trope-settings-muted: #735f51;
+	--trope-settings-border: rgb(70 48 36 / 30%);
+	--trope-settings-field: rgb(255 255 255 / 32%);
+	--trope-settings-accent: var(--litm-color-text-heading-ochre, #e8b776);
+	color: var(--trope-settings-ink);
+	font-family: var(--litm-font-text);
+	background: var(--trope-settings-paper) url("../../assets/media/paper.webp")
+		left top repeat;
+
+	& .window-content {
+		padding: 0;
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		background: transparent;
+	}
+
+	& .litm--trope-art-settings-body {
+		display: grid;
+		gap: 14px;
+		padding: 18px;
+	}
+
+	& .litm--trope-art-preview {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 280px;
+		padding: 12px;
+		border-bottom: 1px solid var(--trope-settings-border);
+	}
+
+	& .litm--trope-art-preview img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border: 0;
+		object-fit: contain;
+		filter: drop-shadow(0 8px 8px rgb(0 0 0 / 30%));
+	}
+
+	& .litm--trope-art-empty {
+		display: grid;
+		justify-items: center;
+		gap: 8px;
+		color: var(--trope-settings-muted);
+		font-family: var(--litm-font-primary);
+	}
+
+	& .litm--trope-art-empty i {
+		font-size: 3rem;
+		opacity: 0.6;
+	}
+
+	& .litm--trope-art-actions {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+
+	& button {
+		color: var(--trope-settings-ink);
+		border-color: var(--trope-settings-border);
+		background: var(--trope-settings-field);
+	}
+
+	& .litm--trope-art-side {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin: 0;
+		padding: 10px;
+		border: 1px solid var(--trope-settings-border);
+	}
+
+	& .litm--trope-art-side legend {
+		padding: 0 6px;
+		color: var(--trope-settings-muted);
+		font-family: var(--litm-font-primary);
+		font-size: 0.78rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	& .litm--trope-art-side label {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		padding: 8px;
+		border: 1px solid transparent;
+		border-radius: 3px;
+		background: var(--trope-settings-field);
+		cursor: pointer;
+	}
+
+	& .litm--trope-art-side label:has(input:checked) {
+		border-color: var(--trope-settings-accent);
+		background: color-mix(
+			in srgb,
+			var(--trope-settings-accent) 18%,
+			var(--trope-settings-field)
+		);
+		box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+	}
+
+	&
+		.litm--trope-art-side
+		label:has(input:checked)
+		> i:not(.litm--trope-art-selected) {
+		color: var(--trope-settings-accent);
+	}
+
+	& .litm--trope-art-selected {
+		display: none;
+		margin-left: auto;
+		color: var(--trope-settings-accent);
+	}
+
+	& .litm--trope-art-side label:has(input:checked) .litm--trope-art-selected {
+		display: inline-block;
+	}
+
+	& .litm--trope-art-align {
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	& .litm--trope-art-settings-body footer {
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	& .litm--trope-art-settings-body footer button {
+		width: auto;
+		padding-inline: 18px;
+		border-color: var(--trope-settings-accent);
+	}
+}
+
+.theme-dark .litm.litm--trope-art-settings,
+.litm.litm--trope-art-settings.theme-dark {
+	--trope-settings-paper: #292522;
+	--trope-settings-ink: #e7d9c4;
+	--trope-settings-muted: #b3a48d;
+	--trope-settings-border: rgb(231 217 196 / 20%);
+	--trope-settings-field: rgb(0 0 0 / 20%);
+	background: var(--trope-settings-paper)
+		url("../../assets/media/paper-dark.webp") left top repeat;
+}

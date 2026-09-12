@@ -1,0 +1,231 @@
+<div class="litm--builder-shell">
+	<header>
+		<div>
+			<span>{{localize "Litm.theme-builder.eyebrow"}}</span>
+			<h1>{{localize "Litm.theme-builder.title"}}</h1>
+		</div>
+		<div class="litm--builder-progress">
+			{{#each (loop stepCount) as |number index|}}
+			<span class="{{#if (eq index @root.displayStep)}}active{{/if}}">
+				{{number}}
+			</span>
+			{{/each}}
+		</div>
+	</header>
+
+	<main>
+		{{#if (eq step 0)}}
+		<section class="litm--builder-methods">
+			<h2>{{localize "Litm.theme-builder.choose-method"}}</h2>
+			<button type="button" data-builder-action="choose-mode" data-mode="custom">
+				<i class="fa-solid fa-feather-pointed"></i>
+				<strong>{{localize "Litm.theme-builder.just-write"}}</strong>
+				<small>{{localize "Litm.theme-builder.just-write-hint"}}</small>
+			</button>
+			<button type="button" data-builder-action="choose-mode" data-mode="themebook">
+				<i class="fa-solid fa-book-open"></i>
+				<strong>{{localize "Litm.theme-builder.use-themebook"}}</strong>
+				<small>{{localize "Litm.theme-builder.use-themebook-hint"}}</small>
+			</button>
+			<button type="button" data-builder-action="choose-mode" data-mode="themekit">
+				<i class="fa-solid fa-scroll"></i>
+				<strong>{{localize "Litm.theme-builder.use-themekit"}}</strong>
+				<small>{{localize "Litm.theme-builder.use-themekit-hint"}}</small>
+			</button>
+		</section>
+		{{/if}}
+
+		{{#if (eq step 1)}}
+		<section>
+			<h2>{{localize (ifThen isThemebookMode "Litm.theme-builder.choose-themebook" "Litm.theme-builder.choose-themekit")}}</h2>
+			<div class="litm--builder-sources">
+				{{#if isThemebookMode}}
+					{{#each themebookGroups as |group|}}
+					<section class="litm--builder-source-group">
+						<h3>{{group.label}}</h3>
+						<div>
+							{{#each group.sources as |source|}}
+							<article class="litm--builder-source-card">
+								<label>
+									<input type="radio" name="sourceUuid" value="{{source.uuid}}" data-might="{{source.might}}"
+										{{checked (eq source.uuid @root.draft.sourceUuid)}} />
+									<span><strong>{{source.name}}</strong></span>
+									<i class="fa-solid fa-check" aria-hidden="true"></i>
+								</label>
+								<button type="button" data-builder-action="preview-source" data-uuid="{{source.uuid}}"
+									data-tooltip="{{localize 'Litm.themebook-picker.preview'}}">
+									<i class="fa-solid fa-arrow-up-right-from-square"></i>
+								</button>
+							</article>
+							{{/each}}
+						</div>
+					</section>
+					{{else}}
+					<p>{{localize "Litm.theme-builder.no-themebooks"}}</p>
+					{{/each}}
+				{{else}}
+					{{#each kitGroups as |group|}}
+					<section class="litm--builder-source-group">
+						<h3>{{group.label}}</h3>
+						<div>
+							{{#each group.sources as |source|}}
+							<article class="litm--builder-source-card">
+								<label>
+									<input type="radio" name="sourceUuid" value="{{source.uuid}}" data-might="{{source.might}}"
+										{{checked (eq source.uuid @root.draft.sourceUuid)}} />
+									<span><strong>{{source.name}}</strong><small>{{source.themebookName}}</small></span>
+									<i class="fa-solid fa-check" aria-hidden="true"></i>
+								</label>
+								<button type="button" data-builder-action="preview-source" data-uuid="{{source.uuid}}"
+									data-tooltip="{{localize 'Litm.themebook-picker.preview'}}">
+									<i class="fa-solid fa-arrow-up-right-from-square"></i>
+								</button>
+							</article>
+							{{/each}}
+						</div>
+					</section>
+					{{else}}
+					<p>{{localize "Litm.theme-builder.no-themekits"}}</p>
+					{{/each}}
+				{{/if}}
+			</div>
+			<label class="litm--builder-might">
+				<span>{{localize "Litm.theme-builder.theme-might"}}</span>
+				<select name="level">
+					<option value="">{{localize "Litm.theme-builder.choose-might"}}</option>
+					{{#each mightOptions as |might|}}
+					<option value="{{might}}" {{#if (eq might @root.draft.level)}}selected{{/if}}>
+						{{localize (concat "Litm.theme-content.might-" might)}}
+					</option>
+					{{/each}}
+				</select>
+				<small>{{localize (ifThen isThemebookMode "Litm.theme-builder.might-hint-themebook" "Litm.theme-builder.might-hint-themekit")}}</small>
+			</label>
+		</section>
+		{{/if}}
+
+		{{#if (eq step 2)}}
+		<section class="litm--builder-answers">
+			<h2>{{selected.name}}</h2>
+			<label class="litm--builder-primary" {{#if isThemebookMode}}hidden{{/if}}>
+				<span>{{localize "Litm.theme-content.theme-tag"}}</span>
+				<input type="text" name="themeTag" value="{{draft.themeTag}}" />
+			</label>
+
+			{{#if isThemebookMode}}
+				<p class="litm--builder-selection-hint">
+					<i class="fa-solid fa-circle-info"></i>
+					{{localize "Litm.theme-builder.themebook-answers-hint"}}
+				</p>
+				<h3>{{localize "Litm.theme-content.power-questions"}}</h3>
+				{{#each selected.system.powerQuestions as |question|}}
+				<label class="litm--builder-question">
+					<span>{{question.text}}</span>
+					<input type="text" data-answer-kind="power" data-id="{{question.id}}"
+						placeholder="{{localize (ifThen @first 'Litm.theme-builder.title-answer-placeholder' 'Litm.theme-builder.power-answer-placeholder')}}"
+						value="{{lookup @root.draft.powerAnswers question.id}}" />
+				</label>
+				{{else}}<p class="notes">{{localize "Litm.theme-builder.no-questions"}}</p>{{/each}}
+
+				<h3>{{localize "Litm.theme-content.weakness-questions"}}</h3>
+				{{#each selected.system.weaknessQuestions as |question|}}
+				<label class="litm--builder-question">
+					<span>{{question.text}}</span>
+					<input type="text" data-answer-kind="weakness" data-id="{{question.id}}"
+						placeholder="{{localize 'Litm.theme-builder.weakness-answer-placeholder'}}"
+						value="{{lookup @root.draft.weaknessAnswers question.id}}" />
+				</label>
+				{{else}}<p class="notes">{{localize "Litm.theme-builder.no-questions"}}</p>{{/each}}
+			{{else}}
+				<p class="litm--builder-selection-hint">
+					<i class="fa-solid fa-circle-info"></i>
+					{{localize "Litm.theme-builder.tag-selection-hint"}}
+				</p>
+				<h3>{{localize "Litm.theme-content.power-tags"}}</h3>
+				<div class="litm--builder-tag-options">
+					{{#each selected.system.powerTags as |tag|}}
+					<label><input type="checkbox" name="selectedPower" value="{{tag.id}}"
+						{{checked (includes @root.draft.selectedPower tag.id)}} /><span>{{tag.name}}</span></label>
+					{{else}}<p class="notes">{{localize "Litm.theme-builder.no-tags"}}</p>{{/each}}
+				</div>
+				<h3>{{localize "Litm.theme-content.weakness-tags"}}</h3>
+				<div class="litm--builder-tag-options weakness">
+					{{#each selected.system.weaknessTags as |tag|}}
+					<label><input type="checkbox" name="selectedWeakness" value="{{tag.id}}"
+						{{checked (includes @root.draft.selectedWeakness tag.id)}} /><span>{{tag.name}}</span></label>
+					{{else}}<p class="notes">{{localize "Litm.theme-builder.no-tags"}}</p>{{/each}}
+				</div>
+			{{/if}}
+
+			<label class="litm--builder-primary">
+				<span>{{localize "Litm.theme-content.quest"}}</span>
+				<textarea name="quest">{{draft.quest}}</textarea>
+			</label>
+			{{#if selectedThemebook.system.questIdeas.length}}
+			<div class="litm--builder-quest-ideas">
+				<strong>{{localize "Litm.theme-content.quest-ideas"}}</strong>
+				{{#each selectedThemebook.system.questIdeas as |idea|}}
+				<button type="button" data-builder-action="use-quest" data-text="{{idea.text}}">{{idea.text}}</button>
+				{{/each}}
+			</div>
+			{{/if}}
+
+			{{#if specials.length}}
+			<h3>{{localize "Litm.other.specials"}}</h3>
+			<p class="litm--builder-selection-hint">
+				<i class="fa-solid fa-circle-info"></i>
+				{{localize (ifThen isThemebookMode "Litm.theme-builder.themebook-specials-improvement-hint" "Litm.theme-builder.specials-improvement-hint")}}
+			</p>
+			<div class="litm--builder-specials">
+				{{#each specials as |special|}}
+				<label>
+					<span>
+						<strong>{{special.name}}</strong>
+						<small>{{special.source}}</small>
+						<div class="litm--builder-special-description">{{{special.enrichedDescription}}}</div>
+					</span>
+				</label>
+				{{/each}}
+			</div>
+			{{/if}}
+		</section>
+		{{/if}}
+
+		{{#if (eq step 3)}}
+		<section class="litm--builder-preview">
+			<h2>{{localize "Litm.theme-builder.preview"}}</h2>
+			<div class="litm--builder-preview-card litm--{{preview.level}}">
+				<small>{{preview.themebook}}{{#if preview.themekitName}} · {{preview.themekitName}}{{/if}}</small>
+				<h3>{{preview.themeTag.name}}</h3>
+				<div>
+					{{#each preview.powerTags}}<span>{{name}}</span>{{/each}}
+				</div>
+				<div class="weakness">
+					{{#each preview.weaknessTags}}<span>{{name}}</span>{{/each}}
+				</div>
+				<p>{{preview.motivation}}</p>
+				{{#if preview.specials.length}}<small>{{localize "Litm.other.specials"}}: {{preview.specials.length}}</small>{{/if}}
+			</div>
+		</section>
+		{{/if}}
+	</main>
+
+	{{#unless (eq step 0)}}
+	<footer class="{{#unless showBack}}single-action{{/unless}}">
+		{{#if showBack}}
+		<button type="button" data-builder-action="back">
+			<i class="fa-solid fa-arrow-left"></i> {{localize "Litm.theme-builder.back"}}
+		</button>
+		{{/if}}
+		{{#if (eq step 3)}}
+		<button type="button" data-builder-action="save">
+			{{localize "Litm.theme-builder.create-theme"}} <i class="fa-solid fa-check"></i>
+		</button>
+		{{else}}
+		<button type="button" data-builder-action="next">
+			{{localize "Litm.theme-builder.next"}} <i class="fa-solid fa-arrow-right"></i>
+		</button>
+		{{/if}}
+	</footer>
+	{{/unless}}
+</div>

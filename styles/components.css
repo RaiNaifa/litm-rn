@@ -51,73 +51,15 @@
 	}
 }
 
-:where(.litm--checkbox-with-bg),
-.app.litm.litm :where(.litm--checkbox-with-bg) {
-	background: url("../assets/media/checkbox.svg") no-repeat;
-	height: 1rem;
-	width: 1rem;
-	background-size: contain;
-	background-position: center;
-	border: none;
-	rotate: 0deg;
-	position: relative;
-
-	&.checked,
-	&:checked {
-		background-image: url("../assets/media/checkbox-c.svg");
-	}
-
-	&::after {
-		display: none;
-	}
-
-	&:disabled {
-		cursor: auto;
-	}
+:where(.litm),
+.app.litm.litm {
+	--litm-scratch-image: url("../assets/media/scratch.svg");
 }
 
-:where(.litm--checkbox-with-bg.litm--special-checkbox),
-.app.litm.litm :where(.litm--checkbox-with-bg.litm--special-checkbox) {
-	background: url("../assets/media/special-checkbox.svg") no-repeat;
-
-	&.checked,
-	&:checked {
-		background-image: url("../assets/media/special-checkbox-c.svg");
-	}
-}
-
-:where(.litm--checkbox-with-bg.litm--hindering-checkbox),
-.app.litm.litm :where(.litm--checkbox-with-bg.litm--hindering-checkbox),
-:where(.litm--checkbox-with-bg.litm--weakness-toggle),
-.app.litm.litm :where(.litm--checkbox-with-bg.litm--weakness-toggle) {
-	background: url("../assets/media/icons/weakness-marker-litm_inactive.svg") no-repeat;
-
-	&.checked,
-	&:checked {
-		background-image: url("../assets/media/icons/weakness-marker-litm_active.svg");
-	}
-}
-
-:where(.litm--checkbox-with-bg.litm--crispy-checkbox),
-.app.litm.litm :where(.litm--checkbox-with-bg.litm--crispy-checkbox) {
-	background: url("../assets/media/icons/sands-of-time_inactive.svg") no-repeat;
-
-	&.checked,
-	&:checked {
-		background-image: url("../assets/media/icons/sands-of-time_active.svg");
-	}
-}
-
-:where(.litm--checkbox-with-bg.litm--private-checkbox),
-:where(.litm--limit-private-icon),
-.app.litm.litm :where(.litm--limit-private-icon),
-.app.litm.litm :where(.litm--checkbox-with-bg.litm--private-checkbox) {
-	background: url("../assets/media/icons/sight-disabled_inactive.svg") no-repeat;
-
-	&.checked,
-	&:checked {
-		background-image: url("../assets/media/icons/sight-disabled_active.svg");
-	}
+:is(#interface.theme-dark, body.theme-dark) :where(.litm),
+:where(.litm.theme-dark),
+.app.litm.litm.theme-dark {
+	--litm-scratch-image: url("../assets/media/scratch-inverted.svg");
 }
 
 :where(.litm--scratch),
@@ -132,54 +74,20 @@
 	aspect-ratio: 5 / 6;
 	height: 1.8em;
 	width: unset;
-	background: url("../assets/media/scratch-empty.svg") no-repeat;
+	background: var(--litm-scratch-image) no-repeat;
 	background-color: inherit;
 	background-size: contain;
 	background-position: center;
-
+	opacity: 0.35;
 
 	&:checked,
 	&.checked {
-		background-image: url("../assets/media/scratch.svg");
+		opacity: 1;
 	}
 
 	&.burnt {
-		background-image: url("../assets/media/burn-c.svg");
-	}
-
-	&:is([type="checkbox"]) {
-		cursor: pointer;
-	}
-
-	&:disabled {
-		cursor: auto;
-	}
-}
-
-:where(.litm--burn),
-.app.litm.litm :where(.litm--burn) {
-	-webkit-appearance: none;
-	flex: none;
-	appearance: none;
-	margin: 0;
-	font: inherit;
-	color: currentColor;
-	aspect-ratio: 5 / 6;
-	height: 1.8em;
-	width: unset;
-	background: url("../assets/media/burn.svg") no-repeat;
-	background-color: inherit;
-	background-size: contain;
-	background-position: center;
-
-	&.transparent {
-		background-image: url("../assets/media/burn-t.svg");
-		filter: none;
-	}
-
-	&:checked,
-	&.checked {
-		background-image: url("../assets/media/burn-c.svg");
+		background-image: url("../assets/media/burn.svg");
+		opacity: 1;
 	}
 
 	&:is([type="checkbox"]) {
@@ -227,7 +135,7 @@
 }
 
 .litm--accent-bg {
-	background: url("/ui/parchment.jpg") repeat;
+	background: url("../assets/media/paper.webp") repeat;
 	background-color: var(--litm-color-accent-bg);
 	background-blend-mode: color-burn;
 	color: var(--litm-color-accent);
@@ -245,51 +153,18 @@
 :where(.litm--themeCrispy),
 :where(.litm--hero),
 :where(.litm--backpack) {
-	padding: 0px 0.4em;
-	border-radius: 0.2em;
-	white-space: nowrap;
-	-webkit-box-decoration-break: clone;
-	box-decoration-break: clone;
-	color: var(--litm-color-primary-dark);
-	font-family: var(--litm-font-text);
-	font-style: italic;
-	font-weight: 400;
-	box-shadow: 1px 1px 1px var(--litm-color-weakness-bg);
-
-	&.litm--tag {
-		background: var(--litm-color-tag-bg);
-	}
-
-	&.litm--status {
-		background: var(--litm-color-status-bg);
-	}
-
-	&.litm--limit,
-	&.litm--weaknessTag,
-	&.litm--weaknessStoryTag {
-		background: var(--litm-color-limit-bg);
-	}
-
 	&.litm--might {
-		display: inline-flex;
-		align-items: baseline;
+		display: inline;
 		background-color: transparent;
 
-		&.litm--origin {
-			background-color: var(--litm-color-origin-light-bg);
-		}
-		&.litm--adventure {
-			background-color: var(--litm-color-adventure-light-bg);
-		}
-		&.litm--greatness {
-			background-color: var(--litm-color-greatness-light-bg);
-		}
-
 		& img {
-			align-self: center;
+			display: inline-block;
 			width: 18px;
 			height: 18px !important;
-			margin-right: var(--litm-space-1);
+			margin-right: 0;
+			margin-left: var(--litm-space-1);
+			border: 0;
+			vertical-align: -0.22em;
 		}
 	}
 
@@ -300,6 +175,111 @@
 	&.litm--hero,
 	&.litm--backpack {
 		background: color-mix(in hsl, var(--litm-color-accent-bg) 60%, transparent);
+	}
+}
+
+/* Enriched tags resemble a marker stroke rather than a UI badge. */
+mark:where(.litm--tag, .litm--status, .litm--limit, .litm--might) {
+	--litm-enriched-highlight: var(--litm-color-tag-story-enricher);
+
+	padding: 0 0.12em;
+	border-radius: 0;
+	background: linear-gradient(
+		to bottom,
+		transparent 26%,
+		var(--litm-enriched-highlight) 26% 88%,
+		transparent 88%
+	);
+	box-shadow: none;
+	color: var(--litm-color-text-black);
+	font-family: var(--litm-font-text);
+	font-style: italic;
+
+	&.litm--weakness-enriched {
+		display: inline;
+
+		& img {
+			display: inline-block;
+			width: 0.9em;
+			height: 0.9em;
+			margin-right: 0.18em;
+			border: 0;
+			vertical-align: -0.08em;
+		}
+	}
+
+	&.litm--status {
+		--litm-enriched-highlight: var(--litm-color-tag-status-enricher);
+	}
+
+	&.litm--limit {
+		--litm-enriched-highlight: var(--litm-color-tag-limit-bg);
+
+		padding-right: 0;
+		background-repeat: no-repeat;
+		background-size: calc(100% - 0.55em) 100%;
+
+		&.litm--limit-no-value {
+			padding-right: 0.12em;
+			background-size: 100% 100%;
+		}
+	}
+
+	& .litm--enriched-limit-value {
+		position: relative;
+		z-index: 1;
+		display: inline-grid;
+		place-items: center;
+		width: 1.4em;
+		height: 1.4em;
+		margin-left: 0.15em;
+		color: var(--litm-color-text-white);
+		font-family: var(--litm-font-secondary);
+		font-size: 1em;
+		font-style: normal;
+		line-height: 1;
+		overflow: visible;
+
+		& .litm--enriched-limit-icon {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			display: block;
+			width: 20px;
+			height: 19px;
+			max-width: none;
+			border: 0;
+			object-fit: contain;
+		}
+
+		& .litm--enriched-limit-label {
+			position: relative;
+			z-index: 1;
+		}
+	}
+
+	&.litm--might.litm--origin {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-origin-light-bg) 80%,
+			transparent
+		);
+	}
+
+	&.litm--might.litm--adventure {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-adventure-light-bg) 80%,
+			transparent
+		);
+	}
+
+	&.litm--might.litm--greatness {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-greatness-light-bg) 80%,
+			transparent
+		);
 	}
 }
 
@@ -314,24 +294,16 @@
 	text-align: center;
 }
 
-:where(.litm--red-leaf) {
-	filter: hue-rotate(-25deg);
-}
+.litm--special-link {
+	font-family: var(--litm-font-text);
+	white-space: normal;
 
-:where(.litm--greeny-leaf) {
-	filter: hue-rotate(25deg);
-}
-
-:where(.litm--green-leaf) {
-	filter: hue-rotate(45deg);
-
-	/* For some reason filters bug out inputs */
-	& + * input {
-		filter: hue-rotate(0deg);
+	& b {
+		font-weight: 700;
 	}
 }
 
-:where(div[contenteditable="true"]) {
+:where(div[contenteditable="true"]):not(prose-mirror div, .prosemirror div) {
 	cursor: text;
 }
 
@@ -351,7 +323,7 @@ litm-toggled-input {
 
 .litm.litm--new-tag {
 	& .window-header {
-		background: url(/ui/parchment.jpg) repeat;
+		background: url(../assets/media/paper.webp) repeat;
 		background-color: var(--litm-color-accent-bg);
 		background-blend-mode: color-burn;
 		color: var(--litm-color-accent);
@@ -364,55 +336,6 @@ litm-toggled-input {
 
 .litm--import-actor {
 	width: -webkit-fill-available;
-}
-
-.litm.litm--confirm-delete {
-	outline: 2px solid var(--litm-color);
-	outline-offset: -10px;
-	padding: 10px;
-	border-radius: 0px;
-
-	& .window-header {
-		background: url("../assets/media/origin-theme-alt-bg-top.webp") no-repeat
-			bottom / cover;
-		color: var(--litm-color-accent);
-		flex: 0 0 32px;
-
-		& h4 {
-			display: inline;
-			text-transform: uppercase;
-			font-size: var(--font-size-12);
-		}
-	}
-
-	& .window-content {
-		padding: var(--litm-space-3);
-
-		& .dialog-content {
-			font-family: var(--litm-font-text);
-		}
-
-		& .dialog-buttons {
-			margin-block-start: var(--litm-space-2);
-			display: flex;
-			justify-content: space-between;
-			gap: var(--litm-space-2);
-		}
-
-		& button {
-			background: var(--litm-color-accent);
-			color: var(--litm-color-primary);
-			border: 2px solid transparent;
-			border-image: url(../assets/media/button-border.webp) 13 / 4;
-			border-image-outset: 2px;
-			text-transform: uppercase;
-
-			&.yes {
-				color: var(--litm-color-accent);
-				background-color: var(--litm-color-accent-bg);
-			}
-		}
-	}
 }
 
 .litm--specials-button {
@@ -428,17 +351,8 @@ litm-toggled-input {
 	}
 }
 
-.litm--story-tags-section-header {
-	& button {
-		transition: transform 0.2s ease, filter 0.2s ease;
-		&:hover {
-			transform: scale(1.1);
-			filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
-		}
-	}
-}
 .litm--tag-item-control {
-	&>input {
+	& > input {
 		transition: filter 0.2s ease;
 		&:hover {
 			filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
@@ -447,29 +361,14 @@ litm-toggled-input {
 }
 
 li.litm--special {
-	display: grid;
-	grid-template-columns: auto 1fr;
-	grid-template-rows: auto auto;
-	gap: 0;
-	align-items: start;
+	display: block;
 	margin-right: 4px;
 
-	& .litm--special--sro {
-		grid-column: 1;
-		grid-row: 1;
-		/* align-self: start; */
-	}
-	& label:has(.litm--special-sro) {
-		margin-right: var(--litm-space-3);
-	}
 	& .litm--special-name {
-		grid-column: 2;
-		grid-row: 1;
-		/* align-self: start; */
+		display: inline-block;
 	}
 	& .litm--special-description {
-		grid-column: 1 / -1; /* занимает всю ширину */
-		grid-row: 2;
+		display: block;
 		height: auto;
 		width: 100%;
 
@@ -523,7 +422,7 @@ li.litm--special {
 	}
 
 	& .fa-lock-open {
-		color: var(--litm-color-status-bg-overlap);
+		color: var(--litm-color-tag-status-bg);
 	}
 }
 
@@ -534,4 +433,190 @@ li.litm--special {
 		min-inline-size: 7ch;
 		width: unset !important;
 	}
+}
+
+/* ── Roll Selection Popup ── */
+
+.litm--roll-target-popup {
+	--litm-roll-target-hover-bg: rgb(70 45 28 / 14%);
+	--litm-roll-target-toggle-bg: rgb(70 70 70 / 14%);
+	--litm-roll-target-toggle-hover-bg: rgb(70 70 70 / 24%);
+
+	position: fixed;
+	z-index: 10000;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 220px;
+	max-width: 300px;
+	padding: 8px;
+	border: 1px solid var(--litm-color-text-secondary);
+	border-radius: 6px;
+	background: url("../assets/media/paper.webp") left top repeat;
+	box-shadow: 0 3px 10px rgb(0 0 0 / 45%);
+	color: var(--litm-color-text-primary);
+	font-family: var(--litm-font-text);
+	font-weight: normal !important;
+	outline: none;
+
+	& * {
+		font-weight: normal !important;
+	}
+}
+
+.litm--roll-target-popup:focus {
+	outline: none;
+}
+
+/* Warning — shows when actor is not in tag manager */
+.litm--roll-target-warning {
+	font-style: italic;
+	font-size: var(--font-size-12);
+	color: inherit;
+	margin: 2px 8px 6px;
+	line-height: 1.3;
+}
+
+/* Label: "Add (remove) «{tag}» to roll for:" — allow wrapping */
+.litm--roll-target-label {
+	margin: 2px 8px 4px;
+	font-size: var(--font-size-12);
+	color: inherit;
+	white-space: normal;
+	overflow: visible;
+	word-wrap: break-word;
+}
+
+.litm--roll-target-toggle {
+	padding-bottom: 4px;
+	border-bottom: 1px solid var(--litm-color-text-secondary);
+}
+
+.litm--roll-target-state-btn {
+	width: 100%;
+	min-height: 30px;
+	padding: 4px 8px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	justify-content: center;
+	background: var(--litm-roll-target-toggle-bg);
+	color: inherit;
+	border: 0;
+	cursor: pointer;
+	font-family: var(--litm-font-text) !important;
+	font-size: var(--font-size-12);
+	text-transform: none;
+	transition: background 0.15s ease;
+}
+
+.litm--roll-target-state-btn:hover {
+	background: var(--litm-roll-target-toggle-hover-bg);
+	color: inherit;
+}
+
+.litm--roll-target-state-icon {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+
+.litm--roll-target-state-btn[data-state="positive"]
+	.litm--roll-target-state-icon {
+	filter: brightness(2.2) saturate(1.15) drop-shadow(0 0 1px rgb(0 0 0 / 80%));
+}
+
+.litm--roll-target-state-btn[data-state="negative"]
+	.litm--roll-target-state-icon {
+	filter: brightness(1.45) saturate(1.2) drop-shadow(0 0 1px rgb(0 0 0 / 80%));
+}
+
+.litm--roll-target-portraits {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 2px 8px 4px;
+}
+
+.litm--roll-target-actor {
+	width: 40px;
+	height: 40px;
+	min-width: 40px;
+	min-height: 40px;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	border: 1px solid var(--litm-color-text-secondary);
+	border-radius: 5px;
+	background: none;
+	cursor: pointer;
+	box-shadow: none;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.litm--roll-target-actor.selected {
+	border-color: var(--litm-color-text-heading-gold);
+	box-shadow: 0 0 0 1px var(--litm-color-text-heading-gold), 0 0 6px
+		rgb(219 145 39 / 60%);
+}
+
+.litm--roll-target-actor img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: top;
+	transform: scale(1.5);
+	transform-origin: top;
+	border: none;
+	filter: drop-shadow(0 2px 4px rgb(36 36 36 / 25%));
+	transition: filter 0.2s ease;
+}
+
+.litm--roll-target-actor:hover img {
+	filter: drop-shadow(0 2px 4px rgb(204 204 204 / 35%));
+}
+
+:is(#interface.theme-dark, body.theme-dark) .litm--roll-target-popup {
+	--litm-roll-target-hover-bg: rgb(0 0 0 / 26%);
+	--litm-roll-target-toggle-bg: rgb(200 200 200 / 12%);
+	--litm-roll-target-toggle-hover-bg: rgb(200 200 200 / 20%);
+
+	background: url("../assets/media/paper-dark.webp") left top repeat;
+}
+
+/* ── Roll Selected Portrait Indicator ── */
+
+.litm--roll-selected-indicators {
+	display: inline-flex;
+	gap: 2px;
+	align-items: center;
+	margin-right: 4px;
+}
+
+.litm--roll-selected-portrait {
+	width: auto;
+	height: 100%;
+	max-height: 20px;
+	aspect-ratio: 1;
+	object-fit: cover;
+	object-position: top;
+	border-radius: 0;
+	opacity: 0.6;
+	transition: opacity 0.15s;
+	flex: none;
+}
+
+.litm--roll-selected-portrait:hover {
+	opacity: 1;
+}
+
+/* ── Tag roll-selected highlight ── */
+
+.litm--tag-roll-selected {
+	outline: 1px solid var(--litm-color-accent);
+	outline-offset: -1px;
+}
+
+.litm--tag-item.litm--tag-roll-selected {
+	border-color: var(--litm-color-accent);
 }

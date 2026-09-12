@@ -4,40 +4,102 @@ on:
     types:
       - published
 
+permissions:
+  contents: write
 
 jobs:
   publish:
-    name: Publish
+    name: Package and publish
     runs-on: ubuntu-latest
     steps:
-      - name: Get Version Number
-        id: tag
+      - name: Checkout release
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate source
+        shell: bash
         run: |
-          TAG_NAME=${{ github.event.release.tag_name }}
-          echo "version=${TAG_NAME//v/}" >> "$GITHUB_OUTPUT"
-      - name: Push to Foundry
+          npx -y @biomejs/biome@1.9.4 ci .
+          while IFS= read -r file; do
+            jq empty "$file"
+          done < <(git ls-files '*.json')
+          while IFS= read -r file; do
+            node --input-type=module --check < "$file"
+          done < <(git ls-files '*.js')
+
+      - name: Validate release version
+        id: tag
+        shell: bash
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          VERSION="$(jq -r '.version' system.json)"
+          if [[ "$TAG_NAME" != "v$VERSION" ]]; then
+            echo "Release tag $TAG_NAME does not match system.json version $VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create system archive
+        shell: bash
+        run: |
+          zip -r "$RUNNER_TEMP/litm-rn.zip" . \
+            -x '.git/*' '.github/*' '.gitignore' '.gitattributes' '.editorconfig' \
+               'AGENTS.md' 'biome.json' 'jsconfig.json' 'version.sh' \
+               '*.lock'
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ runner.temp }}/litm-rn.zip
+            system.json
+
+      - name: Check Foundry publishing configuration
+        id: foundry-config
+        env:
+          FOUNDRY_API_KEY: ${{ secrets.FOUNDRY_API_KEY }}
+        run: |
+          if [[ -n "$FOUNDRY_API_KEY" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to Foundry
         id: foundry
+        if: ${{ steps.foundry-config.outputs.enabled == 'true' }}
         uses: fjogeleit/http-request-action@v1
         with:
-          url: 'https://api.foundryvtt.com/_api/packages/release_version/'
+          url: "https://api.foundryvtt.com/_api/packages/release_version/"
           customHeaders: '{ "Content-Type": "application/json", "Authorization": "${{ secrets.FOUNDRY_API_KEY }}" }'
-          data:
-            '{
+          data: >-
+            {
               "id": "litm-rn",
               "release": {
                 "version": "${{ steps.tag.outputs.version }}",
-                "manifest": "https://raw.githubusercontent.com/aMediocreDad/litm/${{ github.event.release.tag_name }}/system.json",
-                "notes": "https://github.com/aMediocreDad/litm/releases/tag/${{ github.event.release.tag_name }}",
+                "manifest": "https://github.com/RaiNaifa/litm-rn/releases/download/${{ github.event.release.tag_name }}/system.json",
+                "download": "https://github.com/RaiNaifa/litm-rn/releases/download/${{ github.event.release.tag_name }}/litm-rn.zip",
+                "notes": "${{ github.event.release.html_url }}",
                 "compatibility": {
-                  "minimum": "12",
-                  "verified": "12",
-                  "maximum": "12"
+                  "minimum": "13",
+                  "verified": "14",
+                  "maximum": "14"
                 }
               }
-            }'
+            }
+
       - name: Summary
+        shell: bash
         run: |
-          echo "**Version:** ${{ steps.tag.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Release Notes:** ${{ github.event.release.html_url }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Published:** ${{ steps.foundry.outputs.response.status }}" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** ${{ steps.foundry.outputs.response.page }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.tag.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Release notes:** ${{ github.event.release.html_url }}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "${{ steps.foundry-config.outputs.enabled }}" == "true" ]]; then
+            echo "**Foundry status:** ${{ steps.foundry.outputs.response.status }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Foundry URL:** ${{ steps.foundry.outputs.response.page }}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**Foundry status:** skipped (package is not registered yet)" >> "$GITHUB_STEP_SUMMARY"
+          fi

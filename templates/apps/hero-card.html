@@ -1,0 +1,143 @@
+<div class="litm--tc-card litm--hc-card">
+	<div class="litm--tc-bg litm--hc-bg"
+		style="--tc-transition-src:url('/systems/litm-rn/assets/media/transition-left-brown-dark.webp');"
+		aria-hidden="true"></div>
+
+	<div class="litm--tc-left litm--hc-left">
+		<div class="litm--hc-header">
+			<input class="litm--hc-title" type="text" name="system.heroTitle" value="{{hero.name}}"
+				placeholder="{{localize 'Litm.other.hero'}}" />
+			<img class="litm--hc-avatar" src="{{portrait}}" alt="{{actor.name}}" />
+		</div>
+
+		<div class="litm--hc-relationships">
+			<div class="litm--tc-section-label">{{localize "Litm.other.fellowship-relationships"}}</div>
+			{{#if noFellowship}}
+				<div class="litm--hc-empty">{{localize "Litm.ui.no-fellowship-relationships"}}</div>
+			{{else if hero.relationships.length}}
+				<ul class="litm--hc-relationship-list">
+					{{#each hero.relationships as |tag idx|}}
+						<li class="litm--hc-relationship-row">
+							<button type="button" class="litm--secret-toggle{{#if tag.isPrivate}} active{{/if}}"
+								data-click="toggle-secret" data-id="{{tag.id}}"
+								data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+								<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+							</button>
+							<span class="litm--hc-fellow-name">{{tag.fellowName}}:</span>
+							<span class="litm--hc-relationship-name{{#if tag.isScratched}} scratched{{/if}}"
+								contenteditable="true" data-input="relationship-{{idx}}"
+								data-placeholder="{{localize 'Litm.tags.relationship'}}">{{tag.name}}</span>
+							<input type="hidden" id="relationship-{{idx}}"
+								name="system.relationships.{{idx}}.name" value="{{tag.name}}" />
+							<label class="litm--tc-scratch-label">
+								<input class="litm--scratch litm--tc-scratch" type="checkbox"
+									name="system.relationships.{{idx}}.isScratched"
+									data-dtype="Boolean" {{checked tag.isScratched}} />
+							</label>
+						</li>
+					{{/each}}
+				</ul>
+			{{else}}
+				<div class="litm--hc-empty">{{localize "Litm.ui.no-relationships-yet"}}</div>
+			{{/if}}
+		</div>
+
+		<div class="litm--hc-footer">
+			<div class="litm--hc-fulfillment">
+				<div class="litm--tc-section-label">{{localize "Litm.ui.moments-of-fulfillment"}}</div>
+				<ul>
+					{{#each hero.fulfillment}}
+						<li>{{localize (concat "Litm.fulfillment." this)}}</li>
+					{{/each}}
+				</ul>
+			</div>
+			<div class="litm--tc-progression litm--hc-progression">
+				<div class="litm--tc-progress" data-click="increase" data-context="decrease"
+					data-id="system.promise" data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+					<div class="litm--tc-pips">
+						{{#progress-buttons hero.promise 5}}
+							<span class="litm--tc-pip {{#if @checked}}checked{{/if}}"></span>
+						{{/progress-buttons}}
+					</div>
+					<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
+					<label for="promise">{{localize "Litm.progress.promise"}}</label>
+					{{#if hero.availableFulfillments}}
+					<button type="button" class="litm--advancement-tab litm--promise-tab"
+						data-click="open-promise-fulfillment"
+						data-tooltip="{{localize 'Litm.promise-fulfillment.title'}}">
+						<i class="fa-solid fa-star"></i><span>{{hero.availableFulfillments}}</span>
+					</button>
+					{{/if}}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="litm--tc-right litm--hc-right">
+		<div class="litm--tc-description litm--hc-bio">
+			<div class="litm--hc-short-description">
+				<label class="litm--tc-section-label" for="litm-hero-short-description">
+					{{localize "Litm.other.short-description"}}
+				</label>
+				<textarea id="litm-hero-short-description" name="system.shortDescription"
+					rows="1">{{hero.shortDescription}}</textarea>
+			</div>
+			<div class="litm--tc-section-label">{{localize "Litm.other.biography"}}</div>
+			<div class="litm--tc-note">
+				<prose-mirror name="system.bio" button="true" toggled="false" editable="true" value="{{hero.bio}}">
+					{{{hero.enrichedBio}}}
+				</prose-mirror>
+			</div>
+		</div>
+
+		<div class="litm--tc-specials litm--hc-quintessences">
+			<div class="litm--tc-section-label">{{localize "Litm.other.quintessences"}}</div>
+			<ul class="litm--tc-specials-list">
+				{{#each quintessences as |special idx|}}
+					<li class="litm--tc-special-row{{#if special.isEditing}} is-editing{{/if}}"
+						data-special-id="{{special.id}}">
+						<img class="litm--tc-special-icon" src="systems/litm-rn/assets/media/icons/special_icn.svg"
+							alt="" data-click="send-special-to-chat" data-special-id="{{special.id}}" />
+						<div class="litm--tc-special-body">
+							{{#if special.isEditing}}
+								<span class="litm--tc-special-name" contenteditable="true"
+									data-input="quint-name-{{idx}}">{{special.name}}</span>
+							{{else}}
+								<span class="litm--tc-special-name" draggable="true" data-drag-special="{{special.id}}"
+									data-drag-special-path="system.quintessences">{{special.name}}</span>
+							{{/if}}
+							<input type="hidden" id="quint-name-{{idx}}"
+								name="system.quintessences.{{idx}}.name" value="{{special.name}}" />
+							<span class="litm--tc-special-separator">:</span>
+							{{#if special.isEditing}}
+								<span class="litm--tc-special-description-edit" contenteditable="true"
+									data-input="quint-desc-{{idx}}"
+									data-placeholder="{{localize 'Litm.ui.name-quintessence-description'}}">{{special.description}}</span>
+							{{else}}
+								<span class="litm--tc-special-description-enriched">{{{special.enrichedDescription}}}</span>
+							{{/if}}
+							<input type="hidden" id="quint-desc-{{idx}}"
+								name="system.quintessences.{{idx}}.description" value="{{special.description}}" />
+						</div>
+						<div class="litm--tc-special-actions">
+							<button type="button" class="litm--tc-special-toggle-edit" data-click="toggle-edit-special"
+								data-id="{{special.id}}" data-tooltip="{{localize 'Litm.ui.edit'}}">
+								<i class="{{#if special.isEditing}}fas fa-floppy-disk{{else}}fa-regular fa-pen-to-square{{/if}}"></i>
+							</button>
+							<button type="button" class="litm--tc-remove" data-click="remove-special"
+								data-id="{{special.id}}" data-tooltip="{{localize 'Litm.ui.remove'}}">
+								<i class="fas fa-times"></i>
+							</button>
+						</div>
+					</li>
+				{{/each}}
+				{{#unless quintessences.length}}
+					<li class="litm--tc-empty">{{localize "Litm.ui.no-specials"}}</li>
+				{{/unless}}
+			</ul>
+			<div class="litm--tc-special-add">
+				<button type="button" data-click="add-special">{{localize "Litm.ui.add-quintessence"}}</button>
+			</div>
+		</div>
+	</div>
+</div>

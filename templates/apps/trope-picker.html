@@ -1,0 +1,30 @@
+<section class="litm--trope-select-shell">
+	<input type="search" data-trope-filter autofocus placeholder="{{localize 'Litm.trope-picker.search'}}" />
+	<main>
+		{{#each groups as |group|}}
+		<section data-trope-group>
+			<h2>{{group.name}}</h2>
+			{{#each group.items as |trope|}}
+			<article class="litm--trope-select-row{{#if trope.selected}} is-selected{{/if}}"
+				data-trope-row data-search="{{trope.search}}">
+				<button type="button" class="litm--trope-select-option"
+					data-picker-action="select" data-uuid="{{trope.uuid}}">
+					<input type="radio" tabindex="-1" {{checked trope.selected}} />
+					<img src="{{trope.img}}" alt="" />
+					<strong>{{trope.name}}</strong>
+				</button>
+				<i class="fa-solid fa-check litm--trope-select-check" aria-hidden="true"></i>
+				<button type="button" class="litm--trope-select-preview" data-picker-action="preview" data-uuid="{{trope.uuid}}"
+					data-tooltip="{{localize 'Litm.trope-picker.preview'}}">
+					<i class="fa-solid fa-arrow-up-right-from-square"></i>
+				</button>
+			</article>
+			{{/each}}
+		</section>
+		{{else}}<p>{{localize "Litm.trope-picker.empty"}}</p>{{/each}}
+	</main>
+	<footer>
+		<button type="button" data-picker-action="cancel">{{localize "Cancel"}}</button>
+		<button type="button" data-picker-action="confirm" {{#unless hasSelection}}disabled{{/unless}}>{{localize "Confirm"}}</button>
+	</footer>
+</section>

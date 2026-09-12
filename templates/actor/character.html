@@ -1,34 +1,30 @@
 {{#*inline 'leaf' data}}
-	<li class="litm--story-tag" data-context="remove-effect"
-		data-id="{{data.id}}">
+	<li class="litm--story-tag"
+		data-id="{{data.id}}" data-context="tag-menu"
+		{{#if (includes @root.rollTags data.id)}}data-selected{{/if}}
+		{{#if (includes @root.burntTags data.id 'id')}}data-burned{{/if}}>
 		<img
-			class="draggable {{#if (eq data.type 'status')}}litm--green-leaf{{/if}}"
-			data-drag="#story-tags"
+			class="{{#if (eq data.type 'status')}}litm--green-leaf{{/if}}"
 			src="systems/litm-rn/assets/media/{{ifThen (eq data.type 'status') 'yellow-leaf' 'yellow-leaf-2'}}.webp"
 			aria-hidden="true" width="220" />
 		<div class="{{data.type}}">
 			<div class="litm--story-leaf-controls">
-				{{#if (eq data.type 'tag')}}
-					<input class="litm--checkbox litm--checkbox-with-bg litm--crispy-checkbox"
-						type="checkbox"
-						name="{{data.id}}.isCrispy"
-						data-id="{{data.id}}"
-						data-toggle="crispy"
-						data-tooltip="{{localize (ifThen data.isCrispy 'Litm.tags.isCrispy' 'Litm.tags.toCrispy')}}"
-						{{checked data.isCrispy}} />
+				{{#if (and (eq data.type 'tag') data.isCrispy)}}
+					<i class="litm--story-leaf-indicator fas fa-hourglass-half"
+						data-tooltip="{{localize 'Litm.tags.isCrispy'}}"></i>
 				{{/if}}
-				<input class="litm--checkbox litm--checkbox-with-bg litm--private-checkbox"
-					type="checkbox"
-					name="{{data.id}}.isPrivate"
-					data-id="{{data.id}}"
-					data-toggle="private"
-					data-tooltip="{{localize (ifThen data.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}"
-					{{checked data.isPrivate}} />
+				{{#if data.isPrivate}}
+					<i class="litm--story-leaf-indicator fa-solid fa-mask"
+						data-tooltip="{{localize 'Litm.tags.isPrivate'}}"></i>
+				{{/if}}
 			</div>
 			<label><span class="litm--sro">{{localize "Name"}}</span>
 				<div class="litm--story-label-wrapper">
-					<div contenteditable="true" type="text" class="litm--story-label-name"
-						data-original-name="{{data.id}}.name">{{data.name}}</div>
+					<div contenteditable="{{ifThen (eq @root.editingEffectId data.id) 'true' 'false'}}"
+						role="button" tabindex="0" type="text"
+						class="litm--story-label-name"
+						data-click="select" data-id="{{data.id}}"
+						data-original-name="{{data.id}}.name">{{#unless (eq @root.blankEditingEffectId data.id)}}{{data.name}}{{/unless}}</div>
 				</div>
 				<input type="hidden" name="{{data.id}}.name"
 					value="{{data.name}}" id="hidden-{{data.id}}-name"/>
@@ -53,96 +49,683 @@
 	</li>
 {{/inline}}
 
-<form autocomplete="off">
-	<img class="avatar draggable" data-drag=".window-app" src="{{img}}"
-		data-edit="img" alt="{{name}}" />
+<div>
 	<label class="litm--sro" for="name">{{localize "Name"}}</label>
 	<input type="text" id="name" name="name" value="{{name}}" autocomplete="off"
 		required />
-	<div class="nav">
-		<div>
-			<span
-				id="dice-roll-button--{{data._id}}">{{localize "Litm.ui.roll-title"}}</span>
-			<button type="button" data-click="open" data-id="roll"
-				data-tooltip="{{localize 'Litm.ui.roll'}}"
-				aria-labelledby="dice-roll-button--{{_id}}">
-				<img src="systems/litm-rn/assets/media/dice.webp" alt="Dice"
-					width="100px" />
-			</button>
-		</div>
-		<div>
-			<span id="note-button--{{_id}}">{{localize "Notes"}}</span>
-			<button type=" button" data-click="open" data-id="note"
-				data-tooltip="{{localize 'Notes'}}"
-				aria-labelledby="note-button--{{_id}}">
-				<img src="systems/litm-rn/assets/media/note.webp" alt="Note"
-					width="80px" />
-			</button>
-		</div>
+	<div class="litm--tracking-cards-clip{{#if trackingCardsExpanded}} active{{/if}}"
+		aria-hidden="true">
+		<i class="fa-solid fa-paperclip"></i>
 	</div>
-	<div id="note" style="{{notesEditorStyle}}">
-		<div class="draggable litm--character-note-wrapper" data-drag="#note">
-			<span>{{localize 'Notes'}}</span>
-			<button type="button" data-click="close" data-id="note"
-				data-tooltip="{{localize 'Close'}}">
-				<i class="far fa-xmark"></i>
-			</button>
+	<div class="litm--character-portrait-panel">
+		<div class="litm--character-portrait">
+			<img class="litm--character-avatar-layer litm--character-avatar-layer--back"
+				src="{{avatarPosition.backImage}}" alt=""
+				style="height: {{avatarPosition.backHeight}}px; --litm-layer-scale: {{avatarPosition.backScale}}; --litm-layer-offset-x: {{avatarPosition.backOffsetX}}px; --litm-layer-offset-y: {{avatarPosition.backOffsetY}}px; --litm-layer-opacity: {{avatarPosition.backOpacity}};" />
+			<img class="litm--character-avatar" src="{{img}}" alt="{{name}}" role="button" tabindex="0" draggable="false"
+				data-action="editImage" data-edit="img" data-drag=".application"
+				data-tooltip="{{localize 'Litm.ui.edit'}}"
+				style="--litm-avatar-scale: {{avatarPosition.scale}}; --litm-avatar-offset-x: {{avatarPosition.offsetX}}px; --litm-avatar-offset-y: {{avatarPosition.offsetY}}px;" />
+			<img class="litm--character-avatar-layer litm--character-avatar-layer--front"
+				src="{{avatarPosition.frontImage}}" alt=""
+				style="height: {{avatarPosition.frontHeight}}px; --litm-layer-scale: {{avatarPosition.frontScale}}; --litm-layer-offset-x: {{avatarPosition.frontOffsetX}}px; --litm-layer-offset-y: {{avatarPosition.frontOffsetY}}px; --litm-layer-opacity: {{avatarPosition.frontOpacity}};" />
 		</div>
-		{{editor note target="system.note" owner=owner button=true editable=true engine="prosemirror"}}
+		<div class="litm--character-roll-shadow">
+			<button type="button" class="litm--notes-card-tab{{#if notesCard.expanded}} active{{/if}}"
+				data-click="toggle-notes-card" data-tooltip="{{localize 'Litm.other.notes'}}"
+				aria-label="{{localize 'Litm.other.notes'}}">
+				<span class="litm--notes-card-tab-chevron" aria-hidden="true"></span>
+			</button>
+			<div class="litm--character-roll-panel">
+				<div>
+					<span
+						id="dice-roll-button--{{data._id}}">{{localize "Litm.ui.roll-title"}}</span>
+					<button type="button" data-click="open" data-id="roll"
+						data-tooltip="{{localize 'Litm.ui.roll'}}"
+						aria-labelledby="dice-roll-button--{{_id}}">
+						<img src="systems/litm-rn/assets/media/dice.webp" alt="Dice"
+							width="100px" />
+					</button>
+				</div>
+			</div>
+		</div>
 	</div>
 	{{#if hero.id}}
 	<div class="item-list litm--character-hero {{#if heroHovered}}hovered{{/if}}"
 		data-tooltip="{{localize 'Litm.ui.context-edit'}}"
 		data-tooltip-direction="LEFT" data-id="{{hero.id}}">
-		{{> systems/litm-rn/templates/item/hero-ro.html hero=hero
-			hasAssignedUser=hasAssignedUser availableFellowships=availableFellowships
-			fellowship=fellowship.data}}
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--hero-card">
+			<div class="litm--hero-meta">
+				<span class="litm--hero-meta-name">{{hero.name}}</span>
+				<div class="litm--hero-meta-right">
+					<button class="litm--hero-icon-btn" type="button"
+						data-click="open-item" data-id="{{hero.id}}"
+						data-tooltip="{{localize 'Litm.ui.open-card'}}" data-tooltip-direction="UP">
+						<i class="fa far fa-pen-to-square"></i>
+					</button>
+					<button class="litm--flip-card-btn" type="button"
+						data-click="toggle-backside" data-type="hero" data-id="{{hero.id}}"
+						data-tooltip="{{localize 'Litm.ui.flip-card'}}" data-tooltip-direction="UP">
+					</button>
+				</div>
+			</div>
+			{{#if hero.backside}}
+				<div class="litm--hero-top">
+					<div class="litm--tc-section-label litm--hero-bio-label">
+						{{localize "Litm.other.biography"}}
+					</div>
+					<div class="litm--hero-bio">
+						{{{hero.enrichedBio}}}
+					</div>
+				</div>
+			{{else}}
+				<div class="litm--hero-top">
+					<div class="litm--hero-relationships" data-tooltip="{{localize 'Litm.ui.tag-context-hint'}}"
+						data-tooltip-direction="LEFT">
+						{{#if hero.noFellowship}}
+							<div class="litm--hero-hint">
+								{{localize "Litm.ui.no-fellowship-relationships"}}
+							</div>
+						{{else if hero.relationships.length}}
+							<div class="litm--hero-rel-hint">{{localize "Litm.other.fellowship-relationships"}}</div>
+							<ul class="taglist">
+								{{#each hero.relationships as |tag|}}
+									{{> systems/litm-rn/templates/partials/relationship.html tag=tag key=@key path="system.relationships" embedded=true remove=false}}
+								{{/each}}
+							</ul>
+						{{else}}
+							<div class="litm--hero-hint">
+								{{localize "Litm.ui.no-relationships-yet"}}
+							</div>
+						{{/if}}
+					</div>
+					{{#if hero.quintessences.length}}
+					<div class="litm--hero-quintessences">
+						{{#each hero.quintessences}}
+						<div class="litm--hero-quint-row">
+							<button type="button" class="litm--hero-quint-btn" data-action="sendQuintessence"
+								data-special-id="{{this.id}}"
+								data-tooltip="{{localize 'Litm.ui.send-to-chat'}}" data-tooltip-direction="DOWN">
+								<img src="systems/litm-rn/assets/media/icons/special_icn.svg" alt="" />
+							</button>
+							<span class="litm--hero-quint-name" data-tooltip-direction="UP"
+								data-tooltip="&lt;strong&gt;{{this.name}}&lt;/strong&gt;: {{this.enrichedDescription}}">{{this.name}}</span>
+						</div>
+						{{/each}}
+					</div>
+					{{/if}}
+				</div>
+			{{/if}}
+			<div class="litm--hero-bottom">
+				<div class="litm--hero-fulfillment" data-tooltip="{{#each hero.fulfillment}}{{localize (concat 'Litm.fulfillment.' this)}}{{#unless @last}}<br>{{/unless}}{{/each}}">
+					<i class="fa far fa-info-circle"></i>
+					<span>{{localize "Litm.ui.moments-of-fulfillment"}}</span>
+				</div>
+				<div class="litm--hero-progression">
+					<div class="litm--hero-promise-progress">
+						<button data-click="increase" data-context="decrease" data-id="system.promise"
+							data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+							<div>
+								{{#progress-buttons hero.promise 5}}
+									<span class="litm--checkbox litm--checkbox-with-bg hero {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+								<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
+							</div>
+							<label for="promise">{{localize "Litm.progress.promise"}}</label>
+						</button>
+						{{#if hero.availableFulfillments}}
+						<button type="button" class="litm--advancement-tab litm--promise-tab"
+							data-click="open-promise-fulfillment"
+							data-tooltip="{{localize 'Litm.promise-fulfillment.title'}}">
+							<i class="fa-solid fa-star"></i><span>{{hero.availableFulfillments}}</span>
+						</button>
+						{{/if}}
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 	{{/if}}
-	{{#if backpack.id}}
-		<div class="litm--character-backpack item-list {{#if backpackHovered}}hovered{{/if}}"
-			data-tooltip="{{localize 'Litm.ui.context-edit'}}"
-			data-tooltip-direction="LEFT" data-id="{{backpack.id}}">
-			{{> systems/litm-rn/templates/item/backpack-ro.html backpack=backpack}}
+	{{#if fellowship}}
+	<div class="litm--character-theme litm--character-fellowship item {{fellowship.data.system.level}}{{#if (eq fellowship.data._id themeHovered)}} hovered{{/if}}"
+		data-id="{{fellowship.data._id}}" data-item-id="{{fellowship.data._id}}">
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--theme-background {{fellowship.data.system.level}}">
+			<div class="litm--theme-meta">
+				<span class="litm--theme-meta-part litm--theme-meta-themebook">{{fellowship.data.system.themebook}}</span>
+				<div class="litm--theme-meta-right">
+					<button class="litm--theme-icon-btn" type="button"
+						data-click="open-item" data-id="{{fellowship.data._id}}"
+						data-tooltip="{{localize 'Litm.ui.open-card'}}" data-tooltip-direction="UP">
+						<img src="systems/litm-rn/assets/media/icons/{{fellowship.data.system.level}}_litm_icn.svg" aria-hidden="true" />
+						<i class="fa far fa-pen-to-square"></i>
+					</button>
+					<button class="litm--flip-card-btn" type="button"
+						data-click="toggle-backside" data-type="fellowship" data-id="{{fellowship.data._id}}"
+						data-tooltip="{{localize 'Litm.ui.flip-card'}}" data-tooltip-direction="UP">
+					</button>
+				</div>
+			</div>
+			<div class="litm--theme-top">
+				{{#if fellowship.data.system.backside}}
+					<button type="button" class="litm--theme-title"
+						data-id="{{fellowship.data._id}}">
+						<span class="litm--theme-name">{{fellowship.data.system.themeTag.name}}</span>
+					</button>
+					<div class="litm--theme-back">
+						<div class="litm--theme-back-description">{{{fellowship.data.system.enrichedNote}}}</div>
+					</div>
+				{{else}}
+					<button type="button"
+						class="litm--theme-title {{#if (includes @root.helpingTags fellowship.data.system.themeTag.id 'id')}}litm--theme-helping-tag{{/if}}"
+						data-id="{{fellowship.data.system.themeTag.id}}"
+						{{#if (includes @root.rollTags fellowship.data.system.themeTag.id)}}data-selected{{/if}}
+						>
+						<span class="litm--theme-name {{#if fellowship.data.system.themeTag.isScratched}}scratched{{/if}}"
+							data-click="select" data-id="{{fellowship.data.system.themeTag.id}}">{{fellowship.data.system.themeTag.name}}</span>
+						<span class="litm--sro">{{localize (ifThen fellowship.data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+						<span class="litm--scratch {{checked (or fellowship.data.system.themeTag.isScratched (includes @root.scratchedTags fellowship.data.system.themeTag.id 'id'))}}"
+							data-click="toggle-tag-scratch" data-id="{{fellowship.data.system.themeTag.id}}" aria-hidden="true"></span>
+					</button>
+					<div class="litm--theme-front">
+						<ul class="litm--theme-tags">
+							{{#each fellowship.data.system.powerTags as |tag idx|}}
+								{{> systems/litm-rn/templates/partials/tag.html tag=tag key=idx path=(concat 'system.fellowship.powerTags') embedded=true}}
+							{{/each}}
+							{{#if @root.showDraftTags}}
+								{{#each fellowship.data.system.draftTags as |draft|}}
+									{{#unless draft.isWeakness}}
+									<li class="litm--theme-tag embedded litm--draft-display"><div class="litm--theme-tag-button"><span class="tag--name">{{draft.name}}</span></div></li>
+									{{/unless}}
+								{{/each}}
+							{{/if}}
+						</ul>
+						<div class="litm--theme-weaknesses">
+						{{#each fellowship.data.system.weaknessTags as |tag|}}
+							<button type="button"
+								class="litm--weakness {{#if (includes @root.helpingTags tag.id 'id')}}litm--theme-helping-tag{{/if}}"
+								data-id="{{tag.id}}"
+								{{#if (includes @root.rollTags tag.id)}}data-selected{{/if}}>
+								<span class="litm--weakness-part" data-click="select" data-id="{{tag.id}}">{{tag.name}}</span>
+							</button>
+						{{/each}}
+						{{#if @root.showDraftTags}}
+							{{#each fellowship.data.system.draftTags as |draft|}}
+								{{#if draft.isWeakness}}
+								<div class="litm--weakness litm--draft-display"><span class="litm--weakness-part">{{draft.name}}</span></div>
+								{{/if}}
+							{{/each}}
+						{{/if}}
+						</div>
+					</div>
+				{{/if}}
+				{{#unless fellowship.data.system.backside}}
+				{{#if fellowship.data.system.specials}}
+				<div class="litm--theme-specials">
+					{{#each fellowship.data.system.specials as |special idx|}}
+					<div class="litm--theme-special-row">
+						<button type="button" class="litm--theme-special-btn" data-click="send-special-to-chat"
+							data-tooltip="{{localize 'Litm.ui.send-to-chat'}}" data-tooltip-direction="DOWN"
+							data-special-id="{{special.id}}">
+							<img class="litm--theme-special-icon" src="systems/litm-rn/assets/media/icons/special_icn.svg" alt="" />
+						</button>
+						<span class="litm--theme-special-name" data-tooltip-direction="UP"
+							data-tooltip="&lt;strong&gt;{{special.name}}&lt;/strong&gt;: {{special.enrichedDescription}}">{{special.name}}</span>
+					</div>
+					{{/each}}
+				</div>
+				{{/if}}
+				{{/unless}}
+			</div>
+			<div class="litm--theme-bottom">
+				<div class="litm--theme-motivation">
+						<span role="textbox"><span class="litm--theme-quote">❞</span>{{fellowship.data.system.motivation}}<span class="litm--theme-quote">❞</span></span>
+					</div>
+					<div class="litm--theme-progression" data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+						<div class="litm--theme-progress" data-click="increase" data-context="decrease" data-id="system.fellowship.abandon">
+							<div class="litm--theme-pips">
+								{{#progress-buttons fellowship.data.system.abandon 3}}
+								<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+							</div>
+							<label>{{localize "Litm.progress.abandon"}}</label>
+						</div>
+						<div class="litm--theme-progress litm--theme-progress--reverse" data-click="increase" data-context="decrease" data-id="system.fellowship.improve">
+							<div class="litm--theme-pips">
+								{{#progress-buttons fellowship.data.system.improve fellowship.data.system.improveTrackLength}}
+								<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+							</div>
+							<label>{{localize "Litm.progress.improve"}}</label>
+							{{#if fellowship.data.system.availableImprovements}}<button type="button" class="litm--advancement-tab litm--fc-improvement-bank" data-click="open-fellowship-advancement" data-tooltip="{{localize 'Litm.advancement.improve'}}"><i class="fa-solid fa-sparkles"></i><span>{{fellowship.data.system.availableImprovements}}</span></button>{{/if}}
+						</div>
+						<div class="litm--theme-progress" data-click="increase" data-context="decrease" data-id="system.fellowship.milestone">
+							<div class="litm--theme-pips">
+								{{#progress-buttons fellowship.data.system.milestone 3}}
+								<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+							</div>
+							<label>{{localize "Litm.progress.milestone"}}</label>
+						</div>
+					</div>
+			</div>
 		</div>
+	</div>
 	{{else}}
-		<div class="litm--character-backpack">
-			<img width="380px" class="litm--backpack-img"
-				src="systems/litm-rn/assets/media/backpack.webp"
-				alt="Soft illustration of a rustic backpack" />
+	<div class="litm--character-theme litm--character-fellowship litm--character-fellowship-empty">
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--theme-background">
+			<div class="litm--theme-meta">
+				<span class="litm--theme-meta-part litm--theme-meta-themebook">{{localize "Litm.other.fellowship"}}</span>
+				<div class="litm--theme-meta-right">
+					<span class="litm--fellowship-empty-icon" aria-hidden="true"></span>
+				</div>
+			</div>
+			<div class="litm--theme-top">
+				<div class="litm--fellowship-empty-hint">{{localize "Litm.ui.no-fellowship-chosen"}}</div>
+			</div>
+			<div class="litm--theme-bottom"></div>
+		</div>
+	</div>
+	{{/if}}
+	{{#if backpack}}
+		<div class="litm--character-backpack-card {{#if (eq backpack.id backpackHovered)}}hovered{{/if}}"
+			data-id="{{backpack.id}}" data-item-id="{{backpack.id}}">
+			<div class="litm--character-card-transition" aria-hidden="true"></div>
+			<div class="litm--theme-background">
+				<div class="litm--theme-meta">
+					<span class="litm--theme-meta-part">{{localize (ifThen backpack.backside "Litm.other.archive" "Litm.other.backpack")}}</span>
+					<div class="litm--theme-meta-right">
+						<button class="litm--theme-icon-btn" type="button"
+							data-click="open-item" data-id="{{backpack.id}}"
+							data-tooltip="{{localize 'Litm.ui.open-card'}}" data-tooltip-direction="UP">
+							<i class="fa far fa-pen-to-square"></i>
+						</button>
+						<button class="litm--flip-card-btn" type="button"
+							data-click="toggle-backside" data-type="backpack" data-id="{{backpack.id}}"
+							data-tooltip="{{localize 'Litm.ui.flip-card'}}" data-tooltip-direction="UP">
+						</button>
+					</div>
+				</div>
+				<div class="litm--theme-top">
+					{{#if backpack.backside}}
+						<div class="litm--theme-front litm--backpack-archive-view">
+							{{#if backpack.archiveContents.length}}
+							<ul class="litm--theme-tags">
+								{{#each backpack.archiveContents as |tag|}}
+								<li class="litm--theme-tag embedded" data-id="{{tag.id}}">
+									<div class="litm--theme-tag-button">
+										<span class="tag--name"
+											contenteditable="{{ifThen (eq @root.editingBackpackTagId tag.id) 'true' 'false'}}"
+											data-backpack-tag-field="backpackArchive"
+											data-backpack-tag-editor="{{tag.id}}">{{#unless (eq @root.blankEditingBackpackTagId tag.id)}}{{tag.name}}{{/unless}}</span>
+									</div>
+								</li>
+								{{/each}}
+							</ul>
+							{{/if}}
+							{{#if backpack.archivedStories.length}}
+							<ul class="litm--backpack-stories">
+								{{#each backpack.archivedStories as |story|}}
+								<li class="litm--backpack-story-item litm--story-{{story.data.system.level}}" data-id="{{story.data._id}}">
+									<div class="litm--theme-title-wrapper">
+										<button class="litm--collapse-btn" type="button" data-click="toggle-collapse" data-target="{{story.data._id}}">
+											<i class="fas {{#if story.collapsed}}fa-angle-right{{else}}fa-angle-down{{/if}}"></i>
+										</button>
+										<div class="litm--theme-title"><span class="litm--theme-name"><span class="litm--story-title-text">{{story.data.system.themeTag.name}}</span></span></div>
+									</div>
+									<div class="litm--story-tags-collapsible {{#if story.collapsed}}litm--collapsed{{/if}}" data-collapse-id="{{story.data._id}}">
+										<ul class="taglist-stories">
+											{{#each story.data.system.powerTags as |tag|}}
+											<li class="litm--theme-tag embedded"><div class="litm--theme-tag-button"><span class="tag--name">{{tag.name}}</span></div></li>
+											{{/each}}
+										</ul>
+										{{#each story.data.system.weakness as |tag|}}
+											<div class="litm--weakness"><span class="litm--weakness-part">{{tag.name}}</span></div>
+										{{/each}}
+									</div>
+								</li>
+								{{/each}}
+							</ul>
+							{{/if}}
+						</div>
+					{{else}}
+						<div class="litm--theme-front">
+							{{#if backpack.contents.length}}
+							<ul class="litm--theme-tags" data-tooltip="{{localize 'Litm.ui.tag-context-hint'}}"
+								data-tooltip-direction="LEFT">
+								{{#each backpack.contents as |tag|}}
+								<li class="litm--theme-tag embedded" data-id="{{tag.id}}">
+									<button type="button" class="litm--theme-tag-button"
+										data-id="{{tag.id}}" data-context="tag-menu"
+										{{#if (includes @root.rollTags tag.id)}}data-selected{{/if}}
+										{{#if (includes @root.burntTags tag.id 'id')}}data-burned{{/if}}>
+										<span class="tag--name {{#if tag.isScratched}}scratched{{/if}}"
+											contenteditable="{{ifThen (eq @root.editingBackpackTagId tag.id) 'true' 'false'}}"
+											data-click="select" data-id="{{tag.id}}"
+											data-backpack-tag-editor="{{tag.id}}">{{#unless (eq @root.editingBackpackTagId tag.id)}}{{#if tag.isPrivate}}<i
+											class="litm--secret-indicator fa-solid fa-mask"
+											></i>{{/if}}{{/unless}}{{#unless (eq @root.blankEditingBackpackTagId tag.id)}}{{tag.name}}{{/unless}}</span>
+										<span class="litm--sro">{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+										<span class="litm--scratch {{checked tag.isScratched}}" data-click="toggle-tag-scratch"
+											data-id="{{tag.id}}" aria-hidden="true"></span>
+									</button>
+								</li>
+								{{/each}}
+								{{#if @root.showDraftTags}}
+									{{#each backpack.draftTags as |draft|}}
+									<li class="litm--theme-tag embedded litm--draft-display"><div class="litm--theme-tag-button"><span class="tag--name">{{draft.name}}</span></div></li>
+									{{/each}}
+								{{/if}}
+							</ul>
+							{{/if}}
+							{{#if (and @root.showDraftTags (not backpack.contents.length))}}
+								{{#if backpack.draftTags.length}}
+								<ul class="litm--theme-tags">
+									{{#each backpack.draftTags as |draft|}}
+									<li class="litm--theme-tag embedded litm--draft-display"><div class="litm--theme-tag-button"><span class="tag--name">{{draft.name}}</span></div></li>
+									{{/each}}
+								</ul>
+								{{/if}}
+							{{/if}}
+							{{#if backpack.stories.length}}
+							<ul class="litm--backpack-stories">
+								{{#each backpack.stories as |story|}}
+								<li class="litm--backpack-story-item litm--story-{{story.data.system.level}}"
+									data-id="{{story.data._id}}" data-tooltip="{{localize 'Litm.ui.tag-context-hint'}}"
+									data-tooltip-direction="LEFT">
+									<div class="litm--theme-title-wrapper">
+										<button class="litm--collapse-btn" data-click="toggle-collapse" data-target="{{story.data._id}}">
+											<i class="fas {{#if story.collapsed}}fa-angle-right{{else}}fa-angle-down{{/if}}"></i>
+										</button>
+										<button type="button" class="litm--theme-title {{#if (includes @root.helpingTags story.data.system.themeTag.id 'id')}}litm--theme-helping-tag{{/if}}"
+											data-id="{{story.data.system.themeTag.id}}" data-context="tag-menu"
+											{{#if (includes @root.rollTags story.data.system.themeTag.id 'id')}}data-selected{{/if}}
+											{{#if (includes @root.burntTags story.data.system.themeTag.id 'id')}}data-burned{{/if}}
+											>
+											<span class="litm--theme-name{{#if story.data.system.themeTag.isScratched}} scratched{{/if}}">
+												<span class="litm--story-title-text" data-click="select"
+													data-id="{{story.data.system.themeTag.id}}">{{#if story.data.system.themeTag.isPrivate}}<i
+														class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{story.data.system.themeTag.name}}</span>
+											</span>
+											<span class="litm--sro">{{localize (ifThen story.data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+											<span class="litm--scratch {{checked (or story.data.system.themeTag.isScratched (includes @root.scratchedTags story.data.system.themeTag.id 'id'))}}"
+												data-click="toggle-tag-scratch" data-id="{{story.data.system.themeTag.id}}" aria-hidden="true"></span>
+										</button>
+									</div>
+									<div class="litm--story-tags-collapsible {{#if story.collapsed}}litm--collapsed{{/if}}"
+										data-collapse-id="{{story.data._id}}" data-tooltip="{{localize 'Litm.ui.tag-context-hint'}}"
+										data-tooltip-direction="LEFT">
+										<ul class="taglist-stories">
+											{{#each story.data.system.powerTags as |tag|}}
+												{{> systems/litm-rn/templates/partials/tag.html tag=tag key=@key path=(concat 'items.' ../story.data._id '.system.powerTags') embedded=true contextMenu=true}}
+											{{/each}}
+										</ul>
+										{{#each story.data.system.weakness as |tag|}}
+											<button type="button" class="litm--weakness {{#if (includes @root.helpingTags tag.id 'id')}}litm--theme-helping-tag{{/if}}"
+												data-context="tag-menu"
+												data-id="{{tag.id}}"
+												{{#if (includes @root.rollTags tag.id 'id')}}data-selected{{/if}}>
+												<span class="litm--weakness-part" data-click="select" data-id="{{tag.id}}">{{#if tag.isPrivate}}<i
+														class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{tag.name}}</span>
+											</button>
+										{{/each}}
+									</div>
+								</li>
+								{{/each}}
+							</ul>
+							{{/if}}
+						</div>
+					{{/if}}
+				</div>
+				<div class="litm--theme-bottom">
+					<button type="button" data-click="{{ifThen backpack.backside 'add-archived-story' 'add-story'}}">
+						<span>{{localize "Litm.ui.add-story-theme"}}</span>
+					</button>
+					<button type="button" data-click="{{ifThen backpack.backside 'add-archived-backpack-tag' 'add-backpack-tag'}}">
+						<span>{{localize "Litm.ui.add-tag"}}</span>
+					</button>
+				</div>
+			</div>
 		</div>
 	{{/if}}
+	<div class="litm--character-backpack-card litm--character-notes-card{{#if notesCard.expanded}} expanded{{/if}}{{#if (eq notesCard.id backpackHovered)}} hovered{{/if}}"
+		data-id="notes" data-item-id="notes">
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--theme-background">
+			<div class="litm--theme-meta">
+				<span class="litm--theme-meta-part">{{localize (ifThen notesCard.backside "Litm.other.notes" "Litm.ui.noticed-tags")}}</span>
+				<div class="litm--theme-meta-right">
+					<button class="litm--theme-icon-btn" type="button" data-click="open-item" data-id="notes"
+						data-tooltip="{{localize 'Litm.ui.open-card'}}"><i class="fa far fa-pen-to-square"></i></button>
+					<button class="litm--flip-card-btn" type="button" data-click="toggle-backside"
+						data-id="notes" data-tooltip="{{localize 'Litm.ui.flip-card'}}"></button>
+				</div>
+			</div>
+			<div class="litm--theme-top">
+				{{#if notesCard.backside}}
+					<div class="litm--theme-back"><div class="litm--theme-back-description">{{{notesCard.note}}}</div></div>
+				{{else}}
+					<div class="litm--theme-front">
+						<ul class="litm--noticed-tags">
+							{{#each notesCard.tags as |tag|}}
+							<li>
+								<span class="litm--noticed-tag-name" contenteditable="{{ifThen (eq @root.editingNoticedTagId tag.id) 'true' 'false'}}"
+									data-noticed-tag-editor="{{tag.id}}">{{#if (eq @root.editingNoticedTagId tag.id)}}{{#unless (eq @root.blankEditingNoticedTagId tag.id)}}{{tag.name}}{{/unless}}{{else}}{{{tag.enrichedName}}}{{/if}}</span>
+								<button type="button" data-click="remove-noticed-tag" data-id="{{tag.id}}"
+									data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+								{{#unless @last}}<span class="litm--noticed-tag-comma">,</span>{{/unless}}
+							</li>
+							{{/each}}
+						</ul>
+					</div>
+				{{/if}}
+			</div>
+			<div class="litm--theme-bottom">
+				<button type="button" data-click="open-reference" data-reference-role="quickRules">
+					<i class="fas fa-clipboard-question" aria-hidden="true"></i>
+					<span>{{localize "Litm.reference.short-title"}}</span>
+				</button>
+				<button type="button" data-click="add-noticed-tag" {{#if notesCard.backside}}class="litm--card-footer-placeholder" disabled aria-hidden="true"{{/if}}>
+					<span>{{localize "Litm.ui.notice-tag"}}</span>
+				</button>
+			</div>
+		</div>
+	</div>
 	<div class="litm--character-themes item-list">
 		{{#each themes as |item|}}
 			<div
-				class="litm--character-theme item{{#if (eq item.data._id ../themeHovered)}} hovered{{/if}}"
+				class="litm--character-theme item {{item.data.system.level}}{{#if item.data.system.isEmpty}} litm--theme-empty{{/if}}{{#if (eq item.data._id ../themeHovered)}} hovered{{/if}}"
 				data-id="{{item.data._id}}" data-item-id="{{item.data._id}}">
-				{{> systems/litm-rn/templates/item/theme-ro.html data=item.data}}
+				<div class="litm--character-card-transition" aria-hidden="true"></div>
+				{{#if item.data.system.isEmpty}}
+				<button class="litm--theme-empty-action" type="button" data-click="open-item"
+					data-id="{{item.data._id}}">
+					<i class="fa-solid fa-plus"></i>
+					<strong>{{localize "Litm.hero-creation.create-character"}}</strong>
+				</button>
+				{{/if}}
+				<input type="hidden" name="system.themes.{{item.themeIndex}}.type" value="{{item.data.type}}" />
+				<input type="hidden" name="system.themes.{{item.themeIndex}}.themeTag.id" value="{{item.data.system.themeTag.id}}" />
+				<input type="hidden" name="system.themes.{{item.themeIndex}}.themeTag.type" value="{{item.data.system.themeTag.type}}" />
+				<input type="hidden" name="system.themes.{{item.themeIndex}}.themeTag.name" value="{{item.data.system.themeTag.name}}" />
+				<input type="hidden" name="system.themes.{{item.themeIndex}}.themeTag.isScratched" data-dtype="Boolean" value="{{item.data.system.themeTag.isScratched}}" />
+				<div class="litm--theme-background {{item.data.system.level}}">
+					<div class="litm--theme-meta">
+						<span class="litm--theme-meta-part litm--theme-meta-themebook"
+							draggable="true" data-theme-sort-handle
+							data-theme-index="{{item.themeIndex}}">{{item.data.system.themebook}}</span>
+						<div class="litm--theme-meta-right">
+							<button class="litm--theme-icon-btn" type="button"
+								data-click="open-item" data-id="{{item.data._id}}"
+								data-tooltip="{{localize 'Litm.ui.open-card'}}" data-tooltip-direction="UP">
+								<img src="{{item.themeiconsrc}}_litm_icn.svg" aria-hidden="true" />
+								<i class="fa far fa-pen-to-square"></i>
+							</button>
+							<button class="litm--flip-card-btn" type="button"
+								data-click="toggle-backside" data-type="theme" data-id="{{item.data._id}}"
+								data-tooltip="{{localize 'Litm.ui.flip-card'}}" data-tooltip-direction="UP">
+							</button>
+						</div>
+					</div>
+					<div class="litm--theme-top">
+						{{#if item.data.system.backside}}
+							<button type="button" class="litm--theme-title"
+								data-id="{{item.data._id}}"
+								{{#if (includes @root.rollTags item.data._id 'id')}}data-selected{{/if}}>
+								<span class="litm--theme-name">{{#if item.data.system.themeTag.isPrivate}}<i
+									class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{item.data.system.themeTag.name}}</span>
+							</button>
+							<div class="litm--theme-back">
+								<div class="litm--theme-back-description">{{{item.data.system.enrichedNote}}}</div>
+							</div>
+						{{else}}
+							<button type="button"
+								class="litm--theme-title {{#if (includes @root.helpingTags item.data.system.themeTag.id 'id')}}litm--theme-helping-tag{{/if}}"
+								data-id="{{item.data.system.themeTag.id}}" data-context="tag-menu"
+								{{#if (includes @root.rollTags item.data.system.themeTag.id)}}data-selected{{/if}}
+								{{#if (includes @root.burntTags item.data.system.themeTag.id 'id')}}data-burned{{/if}}
+								>
+								<span class="litm--theme-name {{#if item.data.system.themeTag.isScratched}}scratched{{/if}}"
+									data-click="select" data-id="{{item.data.system.themeTag.id}}">{{#if item.data.system.themeTag.isPrivate}}<i
+									class="litm--secret-indicator fa-solid fa-mask"
+									></i>{{/if}}{{item.data.system.themeTag.name}}</span>
+								<span class="litm--sro">{{localize (ifThen item.data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+								<span class="litm--scratch {{checked (or item.data.system.themeTag.isScratched (includes @root.scratchedTags item.data.system.themeTag.id 'id'))}}"
+									data-click="toggle-tag-scratch" data-id="{{item.data.system.themeTag.id}}" aria-hidden="true"></span>
+							</button>
+							<div class="litm--theme-front" data-tooltip="{{localize 'Litm.ui.tag-context-hint'}}"
+								data-tooltip-direction="LEFT">
+								<ul class="litm--theme-tags">
+									{{#each item.data.system.powerTags as |tag idx|}}
+										{{> systems/litm-rn/templates/partials/tag.html tag=tag key=idx path=(concat 'system.themes.' ../item.themeIndex '.powerTags') embedded=true contextMenu=true}}
+									{{/each}}
+									{{#if @root.showDraftTags}}
+										{{#each item.data.system.draftTags as |draft|}}
+											{{#unless draft.isWeakness}}
+											<li class="litm--theme-tag embedded litm--draft-display"><div class="litm--theme-tag-button"><span class="tag--name">{{draft.name}}</span></div></li>
+											{{/unless}}
+										{{/each}}
+									{{/if}}
+								</ul>
+								<div class="litm--theme-weaknesses">
+								{{#each item.data.system.weaknessTags as |tag|}}
+									<button type="button"
+										class="litm--weakness {{#if (includes @root.helpingTags tag.id 'id')}}litm--theme-helping-tag{{/if}}"
+										data-context="tag-menu"
+										data-id="{{tag.id}}"
+										{{#if (includes @root.rollTags tag.id)}}data-selected{{/if}}>
+										<span class="litm--weakness-part" data-click="select" data-id="{{tag.id}}">{{#if tag.isPrivate}}<i
+											class="litm--secret-indicator fa-solid fa-mask"
+											></i>{{/if}}<span>{{tag.name}}</span></span>
+									</button>
+								{{/each}}
+								{{#if @root.showDraftTags}}
+									{{#each item.data.system.draftTags as |draft|}}
+										{{#if draft.isWeakness}}
+										<div class="litm--weakness litm--draft-display"><span class="litm--weakness-part"><span>{{draft.name}}</span></span></div>
+										{{/if}}
+									{{/each}}
+								{{/if}}
+								</div>
+							</div>
+						{{/if}}
+						{{#unless item.data.system.backside}}
+						{{#if item.data.system.specials}}
+						<div class="litm--theme-specials">
+							{{#each item.data.system.specials as |special idx|}}
+							<div class="litm--theme-special-row">
+								<button type="button" class="litm--theme-special-btn" data-click="send-special-to-chat"
+									data-tooltip="{{localize 'Litm.ui.send-to-chat'}}"	data-tooltip-direction="DOWN"
+									data-special-id="{{special.id}}">
+									<img class="litm--theme-special-icon" src="systems/litm-rn/assets/media/icons/special_icn.svg" alt="" />
+								</button>
+								<span class="litm--theme-special-name" data-tooltip-direction="UP"
+									data-tooltip="&lt;strong&gt;{{special.name}}&lt;/strong&gt;: {{special.enrichedDescription}}">{{special.name}}</span>
+							</div>
+							{{/each}}
+						</div>
+						{{/if}}
+						{{/unless}}
+					</div>
+					<div class="litm--theme-bottom">
+						<div class="litm--theme-motivation">
+								<span role="textbox"><span class="litm--theme-quote">❞</span>{{item.data.system.motivation}}<span class="litm--theme-quote">❞</span></span>
+								<input type="hidden" name="system.themes.{{item.themeIndex}}.motivation" value="{{item.data.system.motivation}}" />
+							</div>
+							<div class="litm--theme-progression" data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+								<div class="litm--theme-progress" data-click="increase" data-context="decrease" data-id="system.themes.{{item.themeIndex}}.abandon">
+									<div class="litm--theme-pips">
+										{{#progress-buttons item.data.system.abandon 3}}
+										<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+										{{/progress-buttons}}
+									</div>
+									<input id="{{item.data._id}}-abandon" class="litm--sro" type="number"
+										name="system.themes.{{item.themeIndex}}.abandon" value="{{item.data.system.abandon}}" />
+									<label for="{{item.data._id}}-abandon">{{localize "Litm.progress.abandon"}}</label>
+									{{#if (eq item.data.system.abandon 3)}}<button type="button" class="litm--advancement-tab" data-click="open-theme-advancement" data-mode="replace" data-theme-index="{{item.themeIndex}}" data-tooltip="{{localize 'Litm.advancement.replace'}}"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>{{/if}}
+								</div>
+								<div class="litm--theme-progress litm--theme-progress--reverse" data-click="increase" data-context="decrease" data-id="system.themes.{{item.themeIndex}}.improve">
+									<div class="litm--theme-pips">
+										{{#if (gt item.data.system.nascentPowerNeeded item.data.system.availableImprovements)}}
+										{{#progress-buttons item.data.system.improve 1}}
+										<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+										{{/progress-buttons}}
+										{{else}}
+										{{#progress-buttons item.data.system.improve item.data.system.improveTrackLength}}
+										<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+										{{/progress-buttons}}
+										{{/if}}
+									</div>
+									<input id="{{item.data._id}}-improve" class="litm--sro" type="number"
+										name="system.themes.{{item.themeIndex}}.improve" value="{{item.data.system.improve}}" />
+									<label for="{{item.data._id}}-improve">{{localize "Litm.progress.improve"}}</label>
+									{{#if item.data.system.availableImprovements}}<button type="button" class="litm--advancement-tab" data-click="open-theme-advancement" data-mode="improve" data-theme-index="{{item.themeIndex}}" data-tooltip="{{localize 'Litm.advancement.improve'}}"><i class="fa-solid fa-sparkles"></i><span>{{item.data.system.availableImprovements}}</span></button>{{/if}}
+								</div>
+								<div class="litm--theme-progress" data-click="increase" data-context="decrease" data-id="system.themes.{{item.themeIndex}}.milestone">
+									<div class="litm--theme-pips">
+										{{#progress-buttons item.data.system.milestone 3}}
+										<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+										{{/progress-buttons}}
+									</div>
+									<input id="{{item.data._id}}-milestone" class="litm--sro" type="number"
+										name="system.themes.{{item.themeIndex}}.milestone" value="{{item.data.system.milestone}}" />
+									<label for="{{item.data._id}}-milestone">{{localize "Litm.progress.milestone"}}</label>
+									{{#if (eq item.data.system.milestone 3)}}<button type="button" class="litm--advancement-tab" data-click="open-theme-advancement" data-mode="evolve" data-theme-index="{{item.themeIndex}}" data-tooltip="{{localize 'Litm.advancement.evolve'}}"><i class="fa-solid fa-seedling"></i></button>{{/if}}
+								</div>
+							</div>
+					</div>
+				</div>
 			</div>
 		{{/each}}
 	</div>
 	<ul
-		class="litm--character-story-tags {{#if tagsFocused}}focused{{/if}} {{#if tagsHovered}}hovered{{/if}}"
+		class="litm--character-story-tags{{#if trackingCardsExpanded}} litm--tracking-cards-expanded{{/if}}"
 		data-mousedown="keep-open" data-dblclick="return" data-id="story-tags"
 		id="story-tags" style="{{tagsFocused}}">
 		<li class="litm--story-tag">
 			<button type="button" data-click="add-tag" data-id="story-tags">
 				<img src="systems/litm-rn/assets/media/yellow-leaf-2.webp"
 					class="litm--red-leaf" alt="Leaf" width="220" />
-				<span><i class="fas fa-plus"></i>
-					{{localize "Litm.ui.add-tag"}}</span>
+				<span>{{{localize "Litm.ui.add-tag-leaf"}}}</span>
 			</button>
 		</li>
 		<li class="litm--story-tag">
 			<button type="button" data-click="add-status" data-id="story-tags">
-				<img src="systems/litm-rn/assets/media/yellow-leaf-2.webp"
-					class="litm--greeny-leaf" alt="Leaf" width="220" />
-				<span><i class="fas fa-plus"></i>
-					{{localize "Litm.ui.add-status"}}</span>
+				<img src="systems/litm-rn/assets/media/green-leaf.webp"
+					class="litm--green-leaf" alt="Leaf" width="220" />
+				<span>{{{localize "Litm.ui.add-status-leaf"}}}</span>
 			</button>
 		</li>
 		{{#each storyTags as |item|}}
 			{{> leaf data=item}}
 		{{/each}}
+		<li class="litm--story-tag litm--tracking-cards-leaf{{#if trackingCardsExpanded}} active{{/if}}"
+			data-click="toggle-tracking-cards">
+			<img src="systems/litm-rn/assets/media/yellow-leaf-2.webp"
+				alt="Leaf" width="220" />
+			<span>{{localize "Litm.ui.tracking-cards"}}</span>
+		</li>
 	</ul>
-</form>
+</div>

@@ -1,138 +1,243 @@
-import { SheetMixin } from "../../mixins/sheet-mixin.js";
-import { confirmDelete, localize as t } from "../../utils.js";
+import { registerDataInputSync } from "../../mixins/sheet-utils.js";
+import { localize as t } from "../../utils.js";
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+const { ItemSheetV2 } = foundry.applications.sheets;
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
-export class ThreatSheet extends SheetMixin(foundry.appv1.sheets.ItemSheet) {
-	isEditing = false;
+export class ThreatSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
+	#contextMenu = null;
+	#pendingConsequenceIndex = null;
+	#scrollTop = 0;
+	#focusName = false;
 
-	/** @override */
-	static get defaultOptions() {
-		return foundry.utils.mergeObject(super.defaultOptions, {
-			classes: ["litm", "litm--threat"],
-			template: "systems/litm-rn/templates/item/threat.html",
-			width: 450,
-			height: 275,
+	static DEFAULT_OPTIONS = {
+		classes: ["litm", "litm--threat"],
+		tag: "form",
+		position: { width: 450, height: 275 },
+		window: {
 			resizable: true,
-			submitOnChange: true,
-		});
-	}
+			title: () => t("TYPES.Item.threat"),
+		},
+		form: { submitOnChange: true },
+	};
+
+	static PARTS = {
+		main: {
+			template: "systems/litm-rn/templates/item/threat.html",
+			scrollable: [".litm--threat-sheet"],
+		},
+	};
 
 	get effects() {
 		return this.item.effects;
 	}
-
 	get system() {
 		return this.item.system;
 	}
 
-	/** @override */
-	async getData() {
-		const { data, ...rest } = super.getData();
+	async _prepareContext(options) {
+		const context = await super._prepareContext(options);
+		context.system = this.document.system;
+		context.title = this.item.name;
 
-		if (!this.isEditing)
-			data.system.consequences = await Promise.all(
-				data.system.consequences.map((c) => TextEditor.enrichHTML(c)),
+		const raw = context.system?.consequences || [];
+		context.consequences = raw;
+
+		context.consequencesHTML = await Promise.all(
+			raw.map((c) =>
+				TextEditor.enrichHTML(c, {
+					secrets: this.document.isOwner,
+					relativeTo: this.document,
+				}),
+			),
+		);
+
+		return context;
+	}
+
+	_onRender(context, options) {
+		super._onRender(context, options);
+		this.#closeContextMenu();
+		const form = this.element;
+		const scroller = form.querySelector(".litm--threat-sheet");
+		if (scroller) {
+			scroller.scrollTop = this.#scrollTop;
+			scroller.addEventListener(
+				"scroll",
+				() => {
+					this.#scrollTop = scroller.scrollTop;
+				},
+				{ passive: true },
 			);
+		}
 
-		return {
-			...rest,
-			data,
-			isEditing: this.isEditing,
-		};
-	}
+		// Обработчики для contenteditable data-input
+		registerDataInputSync(form, this);
+		form
+			.querySelectorAll("[data-input='threat'], [data-input='threat-desc']")
+			.forEach((el) => {
+				el.addEventListener("keydown", (event) => {
+					if (event.key !== "Enter") return;
+					event.preventDefault();
+					event.currentTarget.blur();
+				});
+			});
 
-	activateListeners(html) {
-		super.activateListeners(html);
-
-		const htmlElement = html[0];
-
-		htmlElement.querySelectorAll("[data-click]").forEach(element => {
-			element.addEventListener("click", this.#handleClick.bind(this));
+		form.querySelectorAll("[data-click='add-consequence']").forEach((el) => {
+			el.addEventListener("pointerdown", (event) => event.preventDefault());
+			el.addEventListener("click", () => this.#addConsequence());
+		});
+		form.querySelectorAll("[data-context-consequence]").forEach((el) => {
+			el.addEventListener("contextmenu", (event) =>
+				this.#openConsequenceMenu(event),
+			);
 		});
 
-		htmlElement.querySelectorAll("[data-context]").forEach(element => {
-			element.addEventListener("contextmenu", this.#handleContextMenu.bind(this));
-		});
-
-		if (this.isEditing) {
-			htmlElement.querySelector("[contenteditable]:has(+#consequence)")?.focus();
+		if (this.#focusName) {
+			this.#focusName = false;
+			queueMicrotask(() =>
+				this.#focusEditable(form.querySelector("[data-input='threat']")),
+			);
 		}
-	}
-
-	async _updateObject(event, formData) {
-		const res = await super._updateObject(event, formData);
-
-		if (!formData["system.consequences.0"]) return res;
-
-		// Delete existing tags and statuses
-		await this.item.deleteEmbeddedDocuments(
-			"ActiveEffect",
-			this.effects.map((e) => e._id),
-		);
-
-		const matches = this.system.consequences.flatMap((string) =>
-			Array.from(string.matchAll(CONFIG.litm.regexp.tagStringRe)),
-		);
-
-		// Create new tags and statuses
-		await this.item.createEmbeddedDocuments(
-			"ActiveEffect",
-			matches.map(([_, tag, status]) => {
-				const type = status !== undefined ? "status" : "tag";
-				return {
-					name: tag,
-					label: tag,
-					flags: {
-						["litm-rn"]: {
-							type,
-						},
-					},
-					changes: [
-						{
-							key: type === "tag" ? "TAG" : "STATUS",
-							mode: 0,
-							value: type === "tag" ? 1 : status,
-						},
-					],
-				};
-			}),
-		);
-	}
-
-	#handleClick(event) {
-		const { click } = event.currentTarget.dataset;
-		switch (click) {
-			case "add-consequence":
-				this.#addConsequence();
-				break;
-		}
-	}
-
-	#handleContextMenu(event) {
-		event.preventDefault();
-		const { context } = event.currentTarget.dataset;
-		switch (context) {
-			case "remove-consequence":
-				this.#removeConsequence(event);
-				break;
+		if (this.#pendingConsequenceIndex !== null) {
+			const index = this.#pendingConsequenceIndex;
+			queueMicrotask(() => {
+				const row = form.querySelector(
+					`[data-context-consequence][data-id="${index}"]`,
+				);
+				if (!row) return;
+				this.#pendingConsequenceIndex = null;
+				const scrollTop = scroller?.scrollTop ?? this.#scrollTop;
+				row?.querySelector("prose-mirror button.toggle")?.click();
+				queueMicrotask(() => {
+					this.#focusEditable(
+						row.querySelector('.editor-content[contenteditable="true"]'),
+					);
+					requestAnimationFrame(() => {
+						if (!scroller) return;
+						scroller.scrollTop = scrollTop;
+						this.#scrollTop = scrollTop;
+					});
+				});
+			});
 		}
 	}
 
 	async #addConsequence() {
-		this.isEditing = false;
-		await this.submit(new Event("submit"));
-
-		const consequences = this.system.consequences;
-		consequences.push(t("Litm.ui.name-consequence"));
-		this.item.update({ "system.consequences": consequences });
+		await this.#commitActiveEditor();
+		const arr = this.document.system.consequences || [];
+		this.#pendingConsequenceIndex = arr.length;
+		await this.item.update({
+			"system.consequences": [...arr, t("Litm.ui.name-consequence")],
+		});
 	}
 
-	async #removeConsequence(event) {
-		const { id } = event.currentTarget.dataset;
-		if (!(await confirmDelete("Litm.other.consequence"))) return;
+	async #commitActiveEditor() {
+		const save = this.element?.querySelector(
+			'.litm--consequence-editor.active button[data-action="save"]',
+		);
+		if (save) {
+			save.click();
+			await new Promise((resolve) => queueMicrotask(resolve));
+		}
+		await this.submit();
+	}
 
-		this.system.consequences.splice(id, 1);
+	#focusEditable(element) {
+		if (!element) return;
+		element.focus({ preventScroll: true });
+		const doc = element.ownerDocument;
+		const range = doc.createRange();
+		range.selectNodeContents(element);
+		const selection = doc.defaultView.getSelection();
+		selection.removeAllRanges();
+		selection.addRange(range);
+	}
 
-		this.item.update({ "system.consequences": this.system.consequences });
+	/** Focus the threat name after the next render. */
+	focusNameOnRender() {
+		this.#focusName = true;
+	}
+
+	#openConsequenceMenu(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		this.#closeContextMenu();
+
+		const row = event.currentTarget;
+		const doc = row.ownerDocument;
+		const menu = doc.createElement("div");
+		menu.className = "litm--challenge-context-menu";
+		menu.setAttribute("role", "menu");
+		menu.style.left = `${event.clientX}px`;
+		menu.style.top = `${event.clientY}px`;
+
+		const addOption = (label, icon, callback, separator = false) => {
+			const button = doc.createElement("button");
+			button.type = "button";
+			button.setAttribute("role", "menuitem");
+			button.classList.toggle(
+				"litm--challenge-context-menu-separator",
+				separator,
+			);
+			button.innerHTML = `<i class="${icon}" aria-hidden="true"></i><span>${label}</span>`;
+			button.addEventListener("click", async () => {
+				this.#closeContextMenu();
+				await callback();
+			});
+			menu.append(button);
+		};
+
+		addOption(t("Litm.ui.edit"), "fa-solid fa-pen", () => {
+			row.querySelector("prose-mirror button.toggle")?.click();
+		});
+		addOption(
+			t("Litm.ui.remove"),
+			"fa-solid fa-trash",
+			() => this.#removeConsequence(row.dataset.id),
+			true,
+		);
+
+		doc.body.append(menu);
+		this.#contextMenu = menu;
+		requestAnimationFrame(() => {
+			const rect = menu.getBoundingClientRect();
+			const win = doc.defaultView;
+			if (rect.right > win.innerWidth)
+				menu.style.left = `${Math.max(8, win.innerWidth - rect.width - 8)}px`;
+			if (rect.bottom > win.innerHeight)
+				menu.style.top = `${Math.max(8, win.innerHeight - rect.height - 8)}px`;
+		});
+		setTimeout(
+			() => doc.addEventListener("pointerdown", this.#onContextMenuOutside),
+			0,
+		);
+	}
+
+	#onContextMenuOutside = (event) => {
+		if (!this.#contextMenu?.contains(event.target)) this.#closeContextMenu();
+	};
+
+	#closeContextMenu() {
+		this.#contextMenu?.ownerDocument.removeEventListener(
+			"pointerdown",
+			this.#onContextMenuOutside,
+		);
+		this.#contextMenu?.remove();
+		this.#contextMenu = null;
+	}
+
+	async #removeConsequence(id) {
+		const consequences = foundry.utils.deepClone(
+			this.document.system.consequences || [],
+		);
+		consequences.splice(Number(id), 1);
+		await this.item.update({ "system.consequences": consequences });
+	}
+
+	/** @override */
+	_onClose(options) {
+		this.#closeContextMenu();
+		return super._onClose(options);
 	}
 }

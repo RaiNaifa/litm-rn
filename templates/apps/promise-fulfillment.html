@@ -1,0 +1,26 @@
+<section class="litm--advancement-shell" data-might="greatness">
+	<header class="litm--advancement-header">
+		<div>
+			<span class="litm--advancement-kicker">{{localize "Litm.promise-fulfillment.eyebrow"}}</span>
+			<h1>{{actor.name}}</h1>
+		</div>
+		<div class="litm--advancement-bank">
+			<span>{{localize "Litm.promise-fulfillment.available"}}</span>
+			<strong>{{available}}</strong>
+		</div>
+	</header>
+	<main class="litm--advancement-content">
+		<p class="litm--advancement-hint">{{localize "Litm.promise-fulfillment.hint"}}</p>
+		<label>
+			<span>{{localize "Litm.promise-fulfillment.choice"}}</span>
+			<select name="fulfillment">
+				{{#each options}}<option value="{{value}}">{{label}}</option>{{/each}}
+			</select>
+		</label>
+		<div class="litm--advancement-actions">
+			<button type="button" data-fulfillment-action="choose" {{#unless available}}disabled{{/unless}}>
+				<i class="fa-solid fa-check"></i> {{localize "Litm.promise-fulfillment.confirm"}}
+			</button>
+		</div>
+	</main>
+</section>

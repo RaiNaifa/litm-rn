@@ -1,5 +1,24 @@
-fvtt
-diff.js
+# Foundry local runtime
+fvtt/
 foundry.js
+diff.js
+/*.lock
+
+# Local agent state and working notes
+.agents/
+.claude/
+.codex/
+AGENTS.md
+CLAUDE.md
+CONTEXT.md
+PLAN-*.md
+*_PLAN.md
+
+# Editors, operating systems, and temporary files
 .DS_Store
+Thumbs.db
 .vscode/
+.idea/
+node_modules/
+*.log
+*.tmp

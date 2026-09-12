@@ -1,0 +1,320 @@
+<div class="litm--tc-card {{theme.level}}">
+	<div class="litm--tc-bg" style="--tc-transition-src:url('/{{transitionSrc}}');" aria-hidden="true"></div>
+
+	<div class="litm--tc-left">
+		<div class="litm--tc-header">
+			<div class="litm--image-dropdown litm--tc-level" data-name="system.themes.{{themeIndex}}.level">
+				<input type="hidden" name="system.themes.{{themeIndex}}.level" value="{{theme.level}}" />
+				<div class="selected-image" data-click="open-levels" data-tooltip="{{localize 'Litm.other.might-theme'}}">
+					<img src="{{themeiconsrc}}_litm_icn.svg" alt="" />
+					<span class="litm--tc-level-label">{{currentLevelLabel}}</span>
+					<i class="fas fa-angle-down"></i>
+				</div>
+				<div class="dropdown-options">
+					{{#each themeLevels as |label key|}}
+						<div class="image-option" data-click="select-level" data-value="{{key}}">
+							<img src="systems/litm-rn/assets/media/icons/{{key}}_litm_icn.svg" alt="" />
+							<span>{{label}}</span>
+						</div>
+					{{/each}}
+				</div>
+			</div>
+			<div class="litm--tc-themebook-picker">
+				{{#if customThemebookEditing}}
+				<input class="litm--tc-themebook litm--tc-themebook-custom" type="text"
+					name="system.themes.{{themeIndex}}.themebook" value="{{theme.themebook}}"
+					list="{{themebookSuggestionListId}}"
+					placeholder="{{localize 'Litm.themebook-picker.custom-placeholder'}}" />
+				<datalist id="{{themebookSuggestionListId}}">
+					{{#each customThemebookSuggestions}}
+					<option value="{{this}}"></option>
+					{{/each}}
+				</datalist>
+				{{else if hasLinkedThemebook}}
+				<button type="button" class="litm--tc-themebook litm--tc-themebook-link"
+					data-click="view-themebook" data-uuid="{{theme.themebookUuid}}"
+					data-tooltip="{{localize 'Litm.themebook-picker.open-player-view'}}">
+					{{theme.themebookDisplayName}}
+				</button>
+				{{else}}
+				<span class="litm--tc-themebook litm--tc-themebook-placeholder">
+					{{localize "Litm.themebook-picker.label"}}
+				</span>
+				{{/if}}
+				<button type="button" class="litm--tc-themebook-toggle" data-click="toggle-themebooks"
+					aria-label="{{localize 'Litm.themebook-picker.choose'}}">
+					<i class="fa-solid fa-angle-down"></i>
+				</button>
+				<div class="litm--tc-themebook-popover">
+					<input type="search" data-themebook-search
+						placeholder="{{localize 'Litm.themebook-picker.search'}}" />
+					<button type="button" class="litm--tc-themebook-custom-option"
+						data-click="select-custom-themebook">
+						<i class="fa-solid fa-pen"></i>
+						<span>{{localize "Litm.themebook-picker.custom"}}</span>
+					</button>
+					<div class="litm--tc-themebook-list">
+						{{#each themebookGroups}}
+						<section data-themebook-group>
+							<h4>{{label}}</h4>
+							{{#each items}}
+							<div class="litm--tc-themebook-option" data-themebook-row data-search="{{name}}">
+								<button type="button" class="litm--tc-themebook-select"
+									data-click="select-themebook" data-uuid="{{uuid}}">
+									<img src="{{icon}}" alt="" />
+									<span>{{name}}</span>
+								</button>
+								<button type="button" class="litm--tc-themebook-preview"
+									data-click="preview-themebook" data-uuid="{{uuid}}"
+									data-tooltip="{{localize 'Litm.themebook-picker.preview'}}">
+									<i class="fa-solid fa-book-open"></i>
+								</button>
+							</div>
+							{{/each}}
+						</section>
+						{{/each}}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="litm--tc-title">
+			<button type="button" class="litm--secret-toggle{{#if theme.themeTag.isPrivate}} active{{/if}}"
+				data-click="toggle-secret" data-field="themeTag" data-id="{{theme.themeTag.id}}"
+				data-tooltip="{{localize (ifThen theme.themeTag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+				<i class="{{ifThen theme.themeTag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+			</button>
+			<span class="litm--tc-title-name{{#if theme.themeTag.isScratched}} scratched{{/if}}" contenteditable="true"
+				data-input="title-{{themeIndex}}">{{theme.themeTag.name}}</span>
+			<input type="hidden" name="system.themes.{{themeIndex}}.themeTag.name"
+				id="title-{{themeIndex}}" value="{{theme.themeTag.name}}" />
+			<input type="hidden" name="system.themes.{{themeIndex}}.themeTag.id" value="{{theme.themeTag.id}}">
+			<input type="hidden" name="system.themes.{{themeIndex}}.themeTag.type" value="{{theme.themeTag.type}}">
+			<label class="litm--tc-scratch-label">
+				<input class="litm--scratch litm--tc-scratch litm--tc-scratch--lg" type="checkbox"
+					name="system.themes.{{themeIndex}}.themeTag.isScratched"
+					data-dtype="Boolean" {{checked theme.themeTag.isScratched}} />
+			</label>
+		</div>
+
+		<div class="litm--tc-scroll">
+			<ul class="litm--tc-tags">
+				{{#each theme.powerTags as |tag idx|}}
+					<li class="litm--tc-tag-row" data-id="{{tag.id}}">
+						<button type="button" class="litm--secret-toggle{{#if tag.isPrivate}} active{{/if}}"
+							data-click="toggle-secret" data-field="powerTags" data-id="{{tag.id}}"
+							data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+							<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+						</button>
+						<span class="litm--tc-tag-name{{#if tag.isScratched}} scratched{{/if}}" contenteditable="true"
+							data-input="pname-{{@root.themeIndex}}-{{idx}}"
+							data-placeholder="{{localize 'Litm.ui.name-power'}}">{{tag.name}}</span>
+						<input type="hidden" name="system.themes.{{@root.themeIndex}}.powerTags.{{idx}}.name"
+							id="pname-{{@root.themeIndex}}-{{idx}}" value="{{tag.name}}" />
+						<input type="hidden" name="system.themes.{{@root.themeIndex}}.powerTags.{{idx}}.type" value="{{tag.type}}" />
+						<input type="hidden" name="system.themes.{{@root.themeIndex}}.powerTags.{{idx}}.id" value="{{tag.id}}" />
+						<label class="litm--tc-scratch-label">
+							<input class="litm--scratch litm--tc-scratch" type="checkbox"
+								name="system.themes.{{@root.themeIndex}}.powerTags.{{idx}}.isScratched"
+								data-dtype="Boolean" {{checked tag.isScratched}} />
+						</label>
+						<button type="button" class="litm--tc-remove" data-click="remove-power-tag" data-id="{{tag.id}}"
+							data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+					</li>
+				{{/each}}
+				{{#each theme.draftTags as |draft idx|}}
+					{{#unless draft.isWeakness}}
+					<li class="litm--tc-draft-row" data-id="{{draft.id}}">
+						<button type="button" class="litm--tc-draft-marker litm--tc-draft-marker--inactive"
+							data-click="toggle-draft-weakness" data-id="{{draft.id}}"
+							data-tooltip="{{localize 'Litm.tags.power-tag'}}"></button>
+						<span class="litm--tc-draft-name" contenteditable="true"
+							data-input="dname-{{@root.themeIndex}}-{{idx}}"
+							data-placeholder="{{localize 'Litm.ui.name-tag'}}">{{draft.name}}</span>
+						<input type="hidden" name="system.themes.{{@root.themeIndex}}.draftTags.{{idx}}.name"
+							id="dname-{{@root.themeIndex}}-{{idx}}" value="{{draft.name}}" />
+						<input type="hidden" name="system.themes.{{@root.themeIndex}}.draftTags.{{idx}}.id" value="{{draft.id}}" />
+						<input type="hidden" name="system.themes.{{@root.themeIndex}}.draftTags.{{idx}}.isWeakness" data-dtype="Boolean" value="{{draft.isWeakness}}" />
+						<button type="button" class="litm--tc-draft-promote" data-click="promote-draft" data-id="{{draft.id}}"
+							data-tooltip="{{localize 'Litm.ui.add-tag'}}">
+							<i class="fas fa-plus"></i>
+						</button>
+						<button type="button" class="litm--tc-remove" data-click="remove-draft-tag" data-id="{{draft.id}}"
+							data-tooltip="{{localize 'Litm.ui.remove'}}"><i class="fas fa-times"></i></button>
+					</li>
+					{{/unless}}
+				{{/each}}
+			</ul>
+
+			<div class="litm--tc-weakness">
+				{{#if (or theme.weaknessTags.length theme.hasWeaknessDrafts)}}
+				<div class="litm--tc-weakness-title">{{localize "Litm.tags.weaknesses"}}</div>
+				{{/if}}
+				<ul class="litm--tc-weakness-list">
+					{{#each theme.weaknessTags as |tag idx|}}
+						<li class="litm--tc-weakness-row" data-id="{{tag.id}}">
+							<button type="button" class="litm--secret-toggle{{#if tag.isPrivate}} active{{/if}}"
+								data-click="toggle-secret" data-field="weaknessTags" data-id="{{tag.id}}"
+								data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+								<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+							</button>
+							<span class="litm--tc-weakness-name" contenteditable="true"
+								data-input="wname-{{@root.themeIndex}}-{{idx}}"
+								data-placeholder="{{localize 'Litm.ui.name-weakness'}}">{{tag.name}}</span>
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.weaknessTags.{{idx}}.name"
+								id="wname-{{@root.themeIndex}}-{{idx}}" value="{{tag.name}}" />
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.weaknessTags.{{idx}}.type" value="{{tag.type}}" />
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.weaknessTags.{{idx}}.id" value="{{tag.id}}" />
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.weaknessTags.{{idx}}.isScratched" data-dtype="Boolean" value="{{tag.isScratched}}" />
+							<button type="button" class="litm--tc-remove litm--tc-remove--weakness" data-click="remove-weakness-tag" data-id="{{tag.id}}"
+								data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+						</li>
+					{{/each}}
+					{{#each theme.draftTags as |draft idx|}}
+						{{#if draft.isWeakness}}
+						<li class="litm--tc-draft-row litm--tc-draft-row--weakness" data-id="{{draft.id}}">
+							<button type="button" class="litm--tc-draft-marker litm--tc-draft-marker--active"
+								data-click="toggle-draft-weakness" data-id="{{draft.id}}"
+								data-tooltip="{{localize 'Litm.tags.weakness-tag'}}"></button>
+							<span class="litm--tc-draft-name" contenteditable="true"
+								data-input="dname-{{@root.themeIndex}}-{{idx}}"
+								data-placeholder="{{localize 'Litm.ui.name-tag'}}">{{draft.name}}</span>
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.draftTags.{{idx}}.name"
+								id="dname-{{@root.themeIndex}}-{{idx}}" value="{{draft.name}}" />
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.draftTags.{{idx}}.id" value="{{draft.id}}" />
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.draftTags.{{idx}}.isWeakness" data-dtype="Boolean" value="{{draft.isWeakness}}" />
+							<button type="button" class="litm--tc-draft-promote" data-click="promote-draft" data-id="{{draft.id}}"
+								data-tooltip="{{localize 'Litm.ui.add-tag'}}">
+								<i class="fas fa-plus"></i>
+							</button>
+							<button type="button" class="litm--tc-remove" data-click="remove-draft-tag" data-id="{{draft.id}}"
+								data-tooltip="{{localize 'Litm.ui.remove'}}"><i class="fas fa-times"></i></button>
+						</li>
+						{{/if}}
+					{{/each}}
+				</ul>
+			</div>
+		</div>
+
+		<div class="litm--tc-draft-add">
+			<button type="button" data-click="add-draft-tag">{{localize "Litm.ui.add-draft-tag"}}</button>
+		</div>
+		<div class="litm--tc-tag-add">
+			<button type="button" data-click="add-power-tag">
+				<span>{{localize "Litm.ui.add-power-tag"}}</span>
+			</button>
+			<span class="litm--tc-tag-add-separator"></span>
+			<button type="button" data-click="add-weakness-tag">
+				<span>{{localize "Litm.ui.add-weakness-tag"}}</span>
+			</button>
+		</div>
+
+		<div class="litm--tc-progression">
+			<div class="litm--tc-progress" data-click="increase" data-context="decrease" data-id="abandon"
+				data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+				<div class="litm--tc-pips">
+					{{#progress-buttons theme.abandon 3}}
+					<span class="litm--tc-pip {{#if @checked}}checked{{/if}}"></span>
+					{{/progress-buttons}}
+				</div>
+				<input id="abandon-{{themeIndex}}" class="litm--sro" type="number" name="system.themes.{{themeIndex}}.abandon" value="{{theme.abandon}}" />
+				<label for="abandon-{{themeIndex}}">{{localize "Litm.progress.abandon"}}</label>
+				{{#if (eq theme.abandon 3)}}<button type="button" class="litm--advancement-tab" data-click="open-theme-advancement" data-mode="replace" data-tooltip="{{localize 'Litm.advancement.replace'}}"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>{{/if}}
+			</div>
+			<div class="litm--tc-progress litm--tc-progress--reverse" data-click="increase" data-context="decrease" data-id="improve"
+				data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+				<div class="litm--tc-pips">
+					{{#if (gt theme.nascentPowerNeeded theme.availableImprovements)}}
+					{{#progress-buttons theme.improve 1}}
+					<span class="litm--tc-pip {{#if @checked}}checked{{/if}}"></span>
+					{{/progress-buttons}}
+					{{else}}
+					{{#progress-buttons theme.improve theme.improveTrackLength}}
+					<span class="litm--tc-pip {{#if @checked}}checked{{/if}}"></span>
+					{{/progress-buttons}}
+					{{/if}}
+				</div>
+				<input id="improve-{{themeIndex}}" class="litm--sro" type="number" name="system.themes.{{themeIndex}}.improve" value="{{theme.improve}}" />
+				<label for="improve-{{themeIndex}}">{{localize "Litm.progress.improve"}}</label>
+				{{#if theme.availableImprovements}}<button type="button" class="litm--advancement-tab" data-click="open-theme-advancement" data-mode="improve" data-tooltip="{{localize 'Litm.advancement.improve'}}"><i class="fa-solid fa-sparkles"></i><span>{{theme.availableImprovements}}</span></button>{{/if}}
+			</div>
+			<div class="litm--tc-progress" data-click="increase" data-context="decrease" data-id="milestone"
+				data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+				<div class="litm--tc-pips">
+					{{#progress-buttons theme.milestone 3}}
+					<span class="litm--tc-pip {{#if @checked}}checked{{/if}}"></span>
+					{{/progress-buttons}}
+				</div>
+				<input id="milestone-{{themeIndex}}" class="litm--sro" type="number" name="system.themes.{{themeIndex}}.milestone" value="{{theme.milestone}}" />
+				<label for="milestone-{{themeIndex}}">{{localize "Litm.progress.milestone"}}</label>
+				{{#if (eq theme.milestone 3)}}<button type="button" class="litm--advancement-tab" data-click="open-theme-advancement" data-mode="evolve" data-tooltip="{{localize 'Litm.advancement.evolve'}}"><i class="fa-solid fa-seedling"></i></button>{{/if}}
+			</div>
+		</div>
+	</div>
+
+	<div class="litm--tc-right">
+		<div class="litm--tc-description">
+			<div class="litm--tc-section-label">{{localize "Litm.other.description"}}</div>
+			<div class="litm--tc-motivation">
+				<span class="litm--tc-quote litm--tc-quote-left">❞</span>
+				<span class="litm--tc-motivation-input" contenteditable="true"
+					data-input="motivation-{{themeIndex}}"
+					data-placeholder="{{localize 'Litm.ui.name-motivation'}}">{{theme.motivation}}</span>
+				<input type="hidden" name="system.themes.{{themeIndex}}.motivation"
+					id="motivation-{{themeIndex}}" value="{{theme.motivation}}" />
+				<span class="litm--tc-quote litm--tc-quote-right">❞</span>
+			</div>
+			<div class="litm--tc-note">
+				<prose-mirror name="system.themes.{{themeIndex}}.note" button="true" toggled="false" editable="true" value="{{theme.note}}">
+					{{{theme.enrichedNote}}}
+				</prose-mirror>
+			</div>
+		</div>
+		<div class="litm--tc-specials">
+			<div class="litm--tc-section-label">{{localize "Litm.other.specials"}}</div>
+			<ul class="litm--tc-specials-list">
+				{{#each theme.specials as |special idx|}}
+					<li class="litm--tc-special-row{{#if special.isEditing}} is-editing{{/if}}" data-special-id="{{special.id}}">
+						<img class="litm--tc-special-icon" src="systems/litm-rn/assets/media/icons/special_icn.svg" alt="" data-click="send-special-to-chat" data-special-id="{{special.id}}" />
+						<div class="litm--tc-special-body">
+							{{#if special.isEditing}}
+								<span class="litm--tc-special-name" contenteditable="true"
+									data-input="special-name-{{@root.themeIndex}}-{{idx}}">{{special.name}}</span>
+							{{else}}
+								<span class="litm--tc-special-name" draggable="true"
+									data-drag-special="{{special.id}}"
+									data-drag-special-path="system.themes.{{@root.themeIndex}}.specials">{{special.name}}</span>
+							{{/if}}
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.specials.{{idx}}.name"
+								id="special-name-{{@root.themeIndex}}-{{idx}}" value="{{special.name}}" />
+							<span class="litm--tc-special-separator">:</span>
+							{{#if special.isEditing}}
+								<span class="litm--tc-special-description-edit" contenteditable="true"
+									data-input="special-desc-{{@root.themeIndex}}-{{idx}}"
+									data-placeholder="{{localize 'Litm.ui.name-special-description'}}">{{special.description}}</span>
+							{{else}}
+								<span class="litm--tc-special-description-enriched">{{{special.enrichedDescription}}}</span>
+							{{/if}}
+							<input type="hidden" name="system.themes.{{@root.themeIndex}}.specials.{{idx}}.description"
+								id="special-desc-{{@root.themeIndex}}-{{idx}}" value="{{special.description}}" />
+						</div>
+						<input type="hidden" name="system.themes.{{@root.themeIndex}}.specials.{{idx}}.id" value="{{special.id}}" />
+						<div class="litm--tc-special-actions">
+							<button type="button" class="litm--tc-special-toggle-edit"
+								data-click="toggle-edit-special" data-id="{{special.id}}"
+								data-tooltip="{{localize 'Litm.ui.edit'}}"><i class="{{#if special.isEditing}}fas fa-floppy-disk{{else}}fa-regular fa-pen-to-square{{/if}}"></i></button>
+							<button type="button" class="litm--tc-remove" data-click="remove-special-tag" data-id="{{special.id}}"
+								data-tooltip="{{localize 'Litm.ui.remove'}}"><i class="fas fa-times"></i></button>
+						</div>
+					</li>
+				{{/each}}
+				{{#unless theme.specials.length}}
+					<li class="litm--tc-empty">{{localize "Litm.ui.no-specials"}}</li>
+				{{/unless}}
+			</ul>
+			<div class="litm--tc-special-add">
+				<button type="button" data-click="add-special">{{localize "Litm.ui.add-special"}}</button>
+			</div>
+		</div>
+	</div>
+</div>

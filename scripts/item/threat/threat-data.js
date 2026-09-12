@@ -5,8 +5,10 @@ export class ThreatData extends foundry.abstract.TypeDataModel {
 		const fields = foundry.data.fields;
 		return {
 			threat: new fields.StringField({
-				required: true, nullable: false, blank: false,
-				initial: () => t("Litm.ui.name-threat")
+				required: true,
+				nullable: false,
+				blank: false,
+				initial: () => t("Litm.ui.name-threat"),
 			}),
 			consequences: new fields.ArrayField(
 				new fields.StringField({ required: true, nullable: false }),

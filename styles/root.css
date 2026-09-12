@@ -1,4 +1,155 @@
 /* Font smooth only on macOS */
+/*
+ * Foundry's FontConfig injects these faces into the main document at runtime.
+ * Detached ApplicationV2 windows and the v13 PopOut! module do not reliably
+ * inherit those injected rules, so keep system-owned faces in static CSS too.
+ */
+@font-face {
+	font-family: "LitM Dice";
+	src: url("../assets/fonts/litm-dice.otf") format("opentype");
+}
+
+@font-face {
+	font-family: "Ramsey Foundational";
+	src: url("../assets/fonts/RamseyFoundationalBold.ttf") format("truetype");
+	font-style: normal;
+	font-weight: 700;
+}
+
+@font-face {
+	font-family: CaslonAntique;
+	src: url("../assets/fonts/caslon.ttf") format("truetype");
+	font-style: normal;
+	font-weight: normal;
+	size-adjust: 110%;
+}
+
+@font-face {
+	font-family: CaslonAntique;
+	src: url("../assets/fonts/caslon-b.ttf") format("truetype");
+	font-style: normal;
+	font-weight: bold;
+	size-adjust: 110%;
+}
+
+@font-face {
+	font-family: CaslonAntique;
+	src: url("../assets/fonts/caslon-i.ttf") format("truetype");
+	font-style: italic;
+	font-weight: normal;
+	size-adjust: 110%;
+}
+
+@font-face {
+	font-family: Fraunces;
+	src: url("../assets/fonts/fraunces.ttf") format("truetype");
+	font-style: normal;
+	font-weight: 300 800;
+}
+
+@font-face {
+	font-family: Fraunces;
+	src: url("../assets/fonts/fraunces-i.ttf") format("truetype");
+	font-style: italic;
+	font-weight: 300 800;
+}
+
+@font-face {
+	font-family: AlchemyItalic;
+	src: url("../assets/fonts/alchemy-i.ttf") format("truetype");
+	font-style: italic;
+}
+
+@font-face {
+	font-family: PackardAntique;
+	src: url("../assets/fonts/packard.ttf") format("truetype");
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: PackardAntique;
+	src: url("../assets/fonts/packard-b.ttf") format("truetype");
+	font-weight: bold;
+}
+
+@font-face {
+	font-family: PowellAntique;
+	src: url("../assets/fonts/powell.ttf") format("truetype");
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: PowellAntique;
+	src: url("../assets/fonts/powell-b.ttf") format("truetype");
+	font-weight: bold;
+}
+
+@font-face {
+	font-family: AubreyPro;
+	src: url("../assets/fonts/aubrey-pro.otf") format("opentype");
+	font-weight: 300 800;
+}
+
+@font-face {
+	font-family: Dudka;
+	src: url("../assets/fonts/dudka.ttf") format("truetype");
+	font-style: normal;
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: Dudka;
+	src: url("../assets/fonts/dudka-i.ttf") format("truetype");
+	font-style: italic;
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: "Dudka Italic";
+	src: url("../assets/fonts/dudka-i.ttf") format("truetype");
+	font-style: italic;
+}
+
+@font-face {
+	font-family: Dudka;
+	src: url("../assets/fonts/dudka-b.ttf") format("truetype");
+	font-weight: bold;
+}
+
+@font-face {
+	font-family: TagesschriftCyrillic;
+	src: url("../assets/fonts/tagesschrift-cyrillic.ttf") format("truetype");
+	font-weight: 300 800;
+}
+
+@font-face {
+	font-family: TagesschriftCyrillicSC;
+	src: url("../assets/fonts/tagesschrift-cyrillic.ttf") format("truetype");
+	font-weight: 300 800;
+	size-adjust: 110%;
+}
+
+@font-face {
+	font-family: TorukSC;
+	src: url("../assets/fonts/toruksc.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "TorukSC Primary";
+	src: url("../assets/fonts/toruksc.ttf") format("truetype");
+	size-adjust: 95%;
+}
+
+@font-face {
+	font-family: GentiumPlus;
+	src: url("../assets/fonts/gentium-plus.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: GentiumBookPlus;
+	src: url("../assets/fonts/gentium-book-plus.ttf") format("truetype");
+}
+
 /* biome-ignore lint/correctness/noUnknownMediaFeatureName: It's used because this is specific to a certain browser/OS */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
 	html {
@@ -8,19 +159,26 @@
 }
 
 body {
+	/* Colors */
 	--litm-color-bg: hsl(40, 85%, 87%);
 	--litm-color: hsl(40, 27%, 24%);
+	--litm-colot-darker: rgb(41 33 19);
+	--litm-color-tag-story-bg: rgb(212, 199, 191);
+	--litm-color-header-bg: rgb(67, 24, 0);
 	--litm-color-origin-bg: rgb(75, 110, 87);
-	--litm-color-origin-light-bg: rgba(75, 110, 87, 0.35);
+	--litm-color-origin-light-bg: rgb(187, 181, 150);
+	--litm-color-origin-light-bg: var(--litm-color-might-origin);
 	--litm-color-adventure-bg: rgb(132, 74, 55);
-	--litm-color-adventure-light-bg: rgba(132, 74, 55, 0.35);
+	--litm-color-adventure-light-bg: rgb(201, 156, 119);
+	--litm-color-adventure-light-bg: var(--litm-color-might-adventure);
 	--litm-color-greatness-bg: rgb(81, 81, 125);
-	--litm-color-greatness-light-bg: rgba(81, 81, 125, 0.35);
+	--litm-color-greatness-light-bg: rgb(184, 176, 183);
+	--litm-color-greatness-light-bg: var(--litm-color-might-greatness);
 	--litm-color-alt-bg: hsl(34, 34%, 82%);
 	--litm-color-dark-bg: hsl(0, 0%, 45%);
 	--litm-color-accent-bg: hsl(225.94 10.66% 41.72%);
 	--litm-color-accent: hsl(46.61 81.44% 92.99%);
-	--litm-color-accent-2: hsl(24deg 20.72% 43.81%);
+	--litm-color-accent-2: rgb(135, 107, 89);
 	--litm-color-accent-3: hsl(17, 84%, 31%);
 	--litm-color-lock: hsl(10, 100%, 32%);
 	--litm-color-open: hsl(96, 84%, 32.36%);
@@ -30,26 +188,99 @@ body {
 		hsl(0 0% 100%)
 	);
 	--litm-color-primary: color-mix(in hsl, var(--litm-color) 75%, hsl(0 0% 0%));
-	--litm-color-primary-dark: color-mix(in hsl, var(--litm-color) 50%, hsl(0 0% 0%));
+	--litm-color-primary: var(--litm-color-text-espresso);
+	--litm-color-primary-dark: color-mix(
+		in hsl,
+		var(--litm-color) 50%,
+		hsl(0 0% 0%)
+	);
+	--litm-color-primary-dark: var(--litm-color-text-black);
 	--litm-color-row-odd: rgb(0, 0, 0, 0.1);
 	--litm-color-weakness: hsl(10 41.04% 26.41%);
 	--litm-color-weakness-bg: hsl(6.5 42.05% 41.08% / 20%);
 	--litm-color-muted-bg: hsl(0 0% 45.42% / 20%);
-	--litm-color-tag-bg: hsl(45 98% 46% / 70%);
+	--litm-color-tag-bg: rgb(234, 183, 50);
 	--litm-color-tag-bg-overlap: hsl(45 98% 46%);
-	--litm-color-status-bg: hsl(75.88 48.31% 42.3% / 70%);
+	--litm-color-status-bg: rgb(164, 171, 84);
 	--litm-color-status-bg-overlap: hsl(75.88 48.31% 42.3%);
 	--litm-color-limit-bg: hsl(0 67.35% 63.41% / 70%);
+	--litm-color-limit-light-bg: rgb(224, 181, 147);
+	--litm-color-grey: rgb(212, 199, 191);
+
+	/* New Colors */
+	--litm-color-ash: rgb(210, 204, 193);
+	--litm-color-consequences: rgb(102, 90, 121);
+	--litm-color-consequences: rgb(92 83 127);
+	/* --litm-color-consequences: rgb(86, 74, 129); */
+	--litm-color-drab: rgb(197, 186, 170);
+	--litm-color-driftwood: rgb(108, 80, 63);
+	--litm-color-dust: rgb(211 193 181);
+	--litm-color-success: rgb(202, 152, 82);
+	/* --litm-color-success: rgb(205, 148, 69); */
+	--litm-color-taupe: rgb(148, 125, 109);
+	--litm-color-highlight-bg: rgb(198, 180, 168);
+	--litm-color-highlight-border: rgb(170, 144, 125);
+	--litm-color-limit-dark: rgb(130, 63, 63);
+	--litm-color-might-adventure: rgb(201 157 134);
+	--litm-color-might-adventure-dark: rgb(123, 58, 58);
+	--litm-color-might-greatness: rgb(155, 155, 185);
+	--litm-color-might-greatness-dark: rgb(84, 83, 128);
+	--litm-color-might-origin: rgb(160, 175, 130);
+	--litm-color-might-origin-dark: rgb(58, 88, 70);
+	--litm-color-might-variable: #a9886b;
+	--litm-color-might-variable-icon: #6d5c4d;
+	--litm-color-tag-limit-bg: rgb(209, 168, 159);
+	--litm-color-tag-limit-bg-1: rgb(208, 145, 131);
+	--litm-color-tag-limit-bg-dark: rgb(121, 54, 47);
+	--litm-color-tag-status-bg-light: rgb(187, 204, 175);
+	--litm-color-tag-status-bg: rgb(148 179 84);
+	--litm-color-tag-status-bg: var(--litm-color-status-bg);
+	--litm-color-tag-status-bg: rgb(150 173 103);
+	--litm-color-tag-status-enricher: rgb(171, 204, 147);
+	--litm-color-tag-story-bg-light: rgb(238, 213, 146);
+	--litm-color-tag-story-bg: rgb(235 195 66);
+	--litm-color-tag-story-bg: rgb(221 185 70);
+	--litm-color-tag-story-bg: rgb(221 192 103);
+	--litm-color-tag-story-enricher: rgb(244, 213, 118);
+	--litm-color-tag-weakness-bg: rgb(235, 185, 136);
+	--litm-color-tag-weakness-text: rgb(211 152 115);
+	--litm-color-text-accent-brick: rgb(159, 60, 41);
+	--litm-color-text-accent-creme: rgb(237, 226, 211);
+	--litm-color-text-accent-crimson: rgb(116, 42, 42);
+	--litm-color-text-accent-rust: rgb(144, 84, 84);
+	--litm-color-text-accent-terracotta: rgb(197, 137, 125);
+	--litm-color-text-accent-walnut: rgb(78, 48, 28);
+	--litm-color-text-espresso: rgb(47, 35, 32);
+	--litm-color-text-heading-gold: rgb(219, 145, 39);
+	--litm-color-text-heading-ochre: rgb(232, 183, 118);
+	--litm-color-text-white: rgb(254, 254, 254);
+	--litm-color-text-black: rgb(1, 1, 1);
+	--litm-color-text-muted: rgb(199, 171, 134);
+
+	--litm-color-bg-primary: var(--litm-color-ash);
+	--litm-color-bg-secondary: var(--litm-color-drab);
+	--litm-color-text-primary: var(--litm-color-text-black);
+	--litm-color-text-secondary: var(--litm-color-text-espresso);
+
+	--litm-background-1: rgb(239, 230, 223);
 
 	/* Fonts */
-	--litm-font-heading: PackardAntique, CaslonAntique, TagesschriftCyrillic, "Palatino Linotype",
-		"Book Antiqua", Palatino, serif;
-	--litm-font-primary: CaslonAntique, LibreCaslonText, TorukSC Primary, "Palatino Linotype",
-		"Book Antiqua", Palatino, serif;
-	--litm-font-accent: AlchemyItalic, TagesschriftCyrillic, "Brush Script MT", "Bradley Hand ITC",
-		"Lucida Calligraphy", "Lucida Handwriting", "Apple Chancery", cursive;
-	--litm-font-text: Fraunces, LibreCaslonText, TorukSC, "Book Antiqua", Palatino, serif;
-	--litm-font-sc: PowellAntique, PackardAntique, TagesschriftCyrillicSC, Palatino, serif;
+	--litm-font-heading: PackardAntique, CaslonAntique, TagesschriftCyrillic,
+		"Palatino Linotype", "Book Antiqua", Palatino, serif;
+	--litm-font-special-heading: "Ramsey Foundational", TagesschriftCyrillic,
+		TorukSC, "Palatino Linotype", serif;
+	--litm-font-primary: CaslonAntique, LibreCaslonText, TorukSC Primary,
+		"Palatino Linotype", "Book Antiqua", Palatino, serif;
+	--litm-font-secondary: GentiumBookPlus, "TorukSC Primary", serif;
+	--litm-font-accent: AlchemyItalic, TagesschriftCyrillic, "Brush Script MT",
+		"Bradley Hand ITC", "Lucida Calligraphy", "Lucida Handwriting",
+		"Apple Chancery", cursive;
+	--litm-font-text: Fraunces, LibreCaslonText, TorukSC, "Book Antiqua", Palatino,
+		serif;
+	--litm-font-text-1: TorukSC, Fraunces, LibreCaslonText, "Book Antiqua",
+		Palatino, serif;
+	--litm-font-sc: PowellAntique, PackardAntique, TagesschriftCyrillicSC,
+		Palatino, serif;
 
 	/* Vertical spacing */
 	--litm-space-1: 0.25rem;
@@ -62,8 +293,8 @@ body {
 	&.game .app {
 		/* Foundry Overrides */
 		--font-size-26: 1.625rem;
-		--font-primary: Fraunces, GentiumBookPlus, BespokeSans, Lato, "PackardAntique", "Open Sans",
-			sans-serif;
+		--font-primary: Fraunces, GentiumBookPlus, BespokeSans, Lato,
+			"PackardAntique", "Open Sans", sans-serif;
 		--color-text-light-1: var(--litm-color-accent);
 		--color-shadow-primary: var(--litm-color-primary);
 		--color-shadow-highlight: var(--litm-color-accent-bg);
@@ -78,7 +309,7 @@ body {
 	&:has(.motivation:hover) #tooltip {
 		color: var(--litm-color-primary-bg);
 		-webkit-font-smoothing: antialiased;
-		font-family: var(--font-primary);
+		font-family: var(--font-primary) !important;
 		font-size: var(--font-size-16);
 		letter-spacing: 1px;
 		text-align: center;
@@ -86,21 +317,21 @@ body {
 	}
 }
 
+body.theme-dark {
+	--litm-color-bg-primary: var(--litm-color-text-accent-walnut);
+	--litm-color-bg-secondary: var(--litm-color-driftwood);
+	--litm-color-text-primary: var(--litm-color-text-white);
+	--litm-color-text-secondary: var(--litm-color-text-accent-creme);
+}
+
 .app.litm,
 .application.litm {
-	background: url("../assets/media/background.webp") no-repeat left / cover;
-	box-shadow: none;
-	filter: drop-shadow(rgb(0, 0, 0, 0.6) 2px 4px 8px);
-
 	&:where(:not(.minimized)) {
-		padding: 0.625rem;
-
-		& .window-title {
-			display: none;
+		& .window-header {
+			flex: 0 0 1.5rem;
 		}
 	}
 
-	/* Scrollbar colors */
 	& * {
 		scrollbar-color: var(--litm-color-accent-2) transparent;
 		scrollbar-width: thin;
@@ -110,7 +341,7 @@ body {
 		}
 	}
 
-	& button {
+	& button:not(.window-header button) {
 		border: none;
 		background: none;
 
@@ -118,6 +349,15 @@ body {
 		&:focus,
 		&:active {
 			box-shadow: none;
+			outline: none;
+		}
+	}
+
+	& input,
+	& select {
+		&:focus {
+			box-shadow: none;
+			outline: none;
 		}
 	}
 
@@ -135,9 +375,8 @@ body {
 
 	& .window-header {
 		border-bottom: none;
-		font-family: var(--litm-font-primary);
+		font-family: var(--litm-font-primary) !important;
 		justify-content: end;
-		flex: 0 0 1.5rem;
 
 		& .document-id-link {
 			margin-inline: 0 auto;
@@ -157,6 +396,10 @@ body {
 		background: none;
 	}
 
+	& .window-resize-handle {
+		z-index: 100;
+	}
+
 	& form {
 		display: flex;
 		flex-direction: column;
@@ -168,41 +411,48 @@ body {
 
 		& .editor-container {
 			background: var(--menu-background);
-	    border-radius: 6px;
+			border-radius: 6px;
 		}
 
 		& .editor-content {
 			font-size: var(--font-size-14);
+			line-height: 19px;
 
 			&:not([contenteditable]) {
 				padding: 0 6px 0 12px;
-	
 			}
 		}
 	}
 
 	& .prosemirror,
-	prose-mirror {
+	& prose-mirror {
 		margin: 1em 0.3em 1em 1em;
 	}
 
 	& .prosemirror .editor-container,
-	prose-mirror .editor-container {
+	& prose-mirror .editor-container {
 		flex: unset;
 		max-height: 200px;
 		overflow: overlay;
 	}
 
 	& .prosemirror .editor-content,
-	prose-mirror .editor-content {
+	& prose-mirror .editor-content {
 		position: relative;
 		padding-left: 0.3rem;
 	}
 
 	& .prosemirror menu,
-	prose-mirror menu {
+	& prose-mirror menu {
 		gap: 2px;
 		padding: 8px 0 8px 0;
+	}
+
+	& input[type="radio"]::before,
+	& input[type="radio"]:checked::after,
+	& input[type="checkbox"]::before,
+	& input[type="checkbox"]:checked::after {
+		content: none;
 	}
 }
 
@@ -220,3 +470,7 @@ body {
 		filter: drop-shadow(0 0 0 transparent);
 	}
 }
+
+/* body {
+	--font-sans-condensed: var(--litm-font-accent) !important;
+} */

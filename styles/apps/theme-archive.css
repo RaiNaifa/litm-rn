@@ -1,0 +1,101 @@
+.litm--theme-archive {
+	--archive-paper: url("../../assets/media/paper.webp") left top repeat;
+	--archive-text: var(--litm-color-text-secondary);
+	--archive-accent: var(--litm-color-text-accent-crimson);
+	background: var(--archive-paper);
+}
+
+.litm--theme-archive .window-content {
+	padding: 0;
+	overflow: hidden;
+	background: transparent;
+	color: var(--archive-text);
+	font-family: var(--litm-font-text);
+	backdrop-filter: none;
+}
+
+.litm--archive-shell {
+	height: 100%;
+	min-height: 0;
+	padding: 30px 36px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	background: linear-gradient(90deg, rgb(94 61 46 / 8%), transparent 40%);
+}
+
+.litm--archive-shell > header {
+	padding-bottom: 14px;
+	border-bottom: 2px solid var(--archive-accent);
+}
+.litm--archive-shell > header > span {
+	color: var(--archive-accent);
+	font-family: var(--litm-font-sc);
+	font-weight: 700;
+	text-transform: uppercase;
+}
+.litm--archive-shell h1,
+.litm--archive-entry h2 {
+	margin: 2px 0 8px;
+	color: var(--archive-text);
+	font-family: var(--litm-font-heading);
+}
+.litm--archive-list {
+	display: grid;
+	gap: 16px;
+	padding-top: 20px;
+}
+.litm--archive-entry {
+	padding: 16px 18px;
+	border-left: 4px solid var(--litm-color-might-origin-dark);
+	background: color-mix(in srgb, var(--archive-accent) 7%, transparent);
+}
+.litm--archive-entry[data-might="adventure"] {
+	border-color: var(--litm-color-might-adventure-dark);
+}
+.litm--archive-entry[data-might="greatness"] {
+	border-color: var(--litm-color-might-greatness-dark);
+}
+.litm--archive-entry-heading {
+	display: flex;
+	align-items: start;
+	justify-content: space-between;
+	gap: 12px;
+}
+.litm--archive-entry-heading button {
+	appearance: none;
+	width: 32px;
+	border: 1px solid transparent !important;
+	background: transparent !important;
+	color: inherit !important;
+	box-shadow: none !important;
+}
+.litm--archive-shell button {
+	font-family: var(--litm-font-text) !important;
+}
+.litm--archive-entry-heading button:hover {
+	border-color: var(--archive-accent) !important;
+	color: var(--archive-accent) !important;
+}
+.litm--archive-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.litm--archive-tags span {
+	padding: 2px 7px;
+	background: var(--litm-color-tag-story-bg);
+	color: var(--litm-color-text-espresso);
+}
+.litm--archive-tags .weakness {
+	background: var(--litm-color-tag-weakness-bg);
+}
+
+:is(#interface.theme-dark, body.theme-dark) .litm--theme-archive {
+	--archive-paper: url("../../assets/media/paper-dark.webp") left top repeat;
+	--archive-text: var(--litm-color-text-secondary);
+	--archive-accent: var(--litm-color-text-heading-ochre);
+}
+
+:is(#interface.theme-dark, body.theme-dark) .litm--archive-entry {
+	background: rgb(0 0 0 / 20%);
+}

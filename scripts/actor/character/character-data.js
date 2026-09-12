@@ -1,8 +1,9 @@
-import { error, warn } from "../../logger.js";
+import { error } from "../../logger.js";
 
 export class CharacterData extends foundry.abstract.TypeDataModel {
 	static defineSchema() {
 		const fields = foundry.data.fields;
+		const abstract = game.litm.data;
 		return {
 			note: new fields.HTMLField(),
 			fellowshipId: new fields.StringField({
@@ -10,6 +11,206 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 				nullable: true,
 				initial: null,
 			}),
+			bio: new fields.HTMLField(),
+			quintessences: new fields.ArrayField(
+				new fields.EmbeddedDataField(abstract.SpecialData),
+				{ initial: () => [] },
+			),
+			promise: new fields.NumberField({
+				integer: true,
+				min: 0,
+				max: 5,
+				initial: 0,
+			}),
+			availableFulfillments: new fields.NumberField({
+				integer: true,
+				min: 0,
+				initial: 0,
+			}),
+			fulfillment: new fields.ArrayField(new fields.StringField(), {
+				initial: () => [],
+			}),
+			relationships: new fields.ArrayField(
+				new fields.EmbeddedDataField(abstract.RelationshipData),
+				{ initial: () => [] },
+			),
+			backpackTags: new fields.ArrayField(
+				new fields.EmbeddedDataField(abstract.TagData),
+				{ initial: () => [] },
+			),
+			backpackDraftTags: new fields.ArrayField(
+				new fields.SchemaField({
+					id: new fields.StringField({
+						required: true,
+						initial: () => foundry.utils.randomID(),
+					}),
+					name: new fields.StringField({ required: true, initial: "" }),
+				}),
+				{ initial: () => [] },
+			),
+			backpackArchive: new fields.ArrayField(
+				new fields.EmbeddedDataField(abstract.TagData),
+				{ initial: () => [] },
+			),
+			noticedTags: new fields.ArrayField(
+				new fields.SchemaField({
+					id: new fields.StringField({
+						required: true,
+						initial: () => foundry.utils.randomID(),
+					}),
+					name: new fields.StringField({ required: true, initial: "" }),
+					type: new fields.StringField({
+						initial: "tag",
+						choices: ["tag", "status"],
+					}),
+				}),
+				{ initial: () => [] },
+			),
+			themeArchive: new fields.ArrayField(new fields.ObjectField(), {
+				initial: () => [],
+			}),
+			themeCreationDraft: new fields.ObjectField({
+				required: false,
+				nullable: true,
+				initial: null,
+			}),
+			characterOptions: new fields.SchemaField({
+				enableBackpackDrafts: new fields.BooleanField({ initial: false }),
+				showDraftTags: new fields.BooleanField({ initial: false }),
+			}),
+			shortDescription: new fields.StringField({ initial: "" }),
+			heroTitle: new fields.StringField({ initial: "" }),
+			themes: new fields.ArrayField(
+				new fields.SchemaField({
+					id: new fields.StringField({ required: true }),
+					type: new fields.StringField({ initial: "theme" }),
+					isEmpty: new fields.BooleanField({ initial: false }),
+					creationMode: new fields.StringField({
+						initial: "custom",
+						choices: ["custom", "themebook", "themekit"],
+					}),
+					name: new fields.StringField(),
+					themebook: new fields.StringField({ initial: "" }),
+					themebookUuid: new fields.StringField({ initial: "", blank: true }),
+					themebookCustom: new fields.BooleanField({ initial: true }),
+					themekitUuid: new fields.StringField({ initial: "", blank: true }),
+					themekitName: new fields.StringField({ initial: "", blank: true }),
+					themebookAnswers: new fields.ArrayField(
+						new fields.SchemaField({
+							id: new fields.StringField({ required: true }),
+							sourceUuid: new fields.StringField({ initial: "", blank: true }),
+							questionId: new fields.StringField({ initial: "", blank: true }),
+							kind: new fields.StringField({
+								choices: ["introduction", "power", "weakness"],
+							}),
+							question: new fields.StringField({ initial: "", blank: true }),
+							answer: new fields.StringField({ initial: "", blank: true }),
+							tagId: new fields.StringField({ initial: "", blank: true }),
+							role: new fields.StringField({
+								initial: "",
+								blank: true,
+								choices: ["", "title", "power", "weakness"],
+							}),
+							createdAt: new fields.NumberField({
+								integer: true,
+								min: 0,
+								initial: 0,
+							}),
+						}),
+						{ initial: () => [] },
+					),
+					level: new fields.StringField({ initial: "origin" }),
+					themeTag: new fields.EmbeddedDataField(abstract.TagData),
+					powerTags: new fields.ArrayField(
+						new fields.EmbeddedDataField(abstract.TagData),
+						{ initial: () => [] },
+					),
+					weaknessTags: new fields.ArrayField(
+						new fields.EmbeddedDataField(abstract.TagData),
+						{ initial: () => [] },
+					),
+					draftTags: new fields.ArrayField(
+						new fields.SchemaField({
+							id: new fields.StringField({
+								initial: () => foundry.utils.randomID(),
+							}),
+							name: new fields.StringField({ initial: "" }),
+							isWeakness: new fields.BooleanField({ initial: false }),
+						}),
+						{ initial: () => [] },
+					),
+					specials: new fields.ArrayField(
+						new fields.EmbeddedDataField(abstract.SpecialData),
+						{ initial: () => [] },
+					),
+					improve: new fields.NumberField({
+						integer: true,
+						min: 0,
+						max: 6,
+						initial: 0,
+					}),
+					improveTrackLength: new fields.NumberField({
+						integer: true,
+						min: 1,
+						max: 6,
+						initial: 3,
+					}),
+					improvementsPerTrack: new fields.NumberField({
+						integer: true,
+						min: 1,
+						max: 3,
+						initial: 1,
+					}),
+					abandon: new fields.NumberField({
+						integer: true,
+						min: 0,
+						max: 3,
+						initial: 0,
+					}),
+					milestone: new fields.NumberField({
+						integer: true,
+						min: 0,
+						max: 3,
+						initial: 0,
+					}),
+					availableImprovements: new fields.NumberField({
+						integer: true,
+						min: 0,
+						initial: 0,
+					}),
+					nascentPowerNeeded: new fields.NumberField({
+						integer: true,
+						min: 0,
+						max: 2,
+						initial: 0,
+					}),
+					claimedSpecials: new fields.ArrayField(
+						new fields.SchemaField({
+							sourceUuid: new fields.StringField({ initial: "", blank: true }),
+							specialId: new fields.StringField({ initial: "", blank: true }),
+							name: new fields.StringField({ initial: "", blank: true }),
+							themeSpecialId: new fields.StringField({
+								initial: "",
+								blank: true,
+							}),
+							retired: new fields.BooleanField({ initial: false }),
+							claimedAt: new fields.NumberField({
+								integer: true,
+								min: 0,
+								initial: 0,
+							}),
+						}),
+						{ initial: () => [] },
+					),
+					thresholdNotifications: new fields.SchemaField({
+						milestone: new fields.BooleanField({ initial: false }),
+						abandon: new fields.BooleanField({ initial: false }),
+					}),
+					motivation: new fields.StringField({ initial: "" }),
+					note: new fields.HTMLField(),
+				}),
+				{ initial: () => [] },
+			),
 		};
 	}
 
@@ -21,9 +222,10 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get backpack() {
-		const backpack = this.parent.items.find((item) => item.type === "backpack");
-		if (!backpack) return [];
-		return backpack.system;
+		return {
+			contents: this._source.backpackTags ?? [],
+			specials: this._source.quintessences ?? [],
+		};
 	}
 
 	get fellowship() {
@@ -31,89 +233,117 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		return game.items.get(this.fellowshipId) ?? null;
 	}
 
-	get hero() {
-		const hero = this.parent.items.find((item) => item.type === "hero");
-		if (!hero) return [];
-		return hero.system;
+	#schemaThemes() {
+		return (this._source.themes ?? []).filter((theme) => !theme.isEmpty);
 	}
 
 	get embeddedTags() {
-		const hero = this.hero.contents || [];
-		const backpack = this.backpack.contents || [];
-		const themeTags = this.parent.items
-			.filter((item) => item.type === "theme")
-			.flatMap((item) => item.system.allTags);
+		const heroRels = (this._source.relationships ?? []).map((r) => ({
+			...r,
+			type: "hero",
+		}));
+		const heroTags = this._source.backpackTags ?? [];
+		const themeEntries = this.#schemaThemes();
+		const themeTags = themeEntries.flatMap((t) => [
+			...(t.powerTags ?? []),
+			...(t.weaknessTags ?? []),
+			...(t.themeTag ? [t.themeTag] : []),
+		]);
 		const storyThemeTags = this.parent.items
-			.filter((item) => item.type === "story")
+			.filter(
+				(item) => item.type === "story" && item.system.isArchived !== true,
+			)
 			.flatMap((item) => item.system.allTags);
-		return [...hero, ...backpack, ...themeTags, ...storyThemeTags];
+		return [...heroRels, ...heroTags, ...themeTags, ...storyThemeTags];
 	}
 
 	get allTags() {
-		const embeddedTags = this.embeddedTags;
+		const embeddedTags = this.parent.items
+			.filter(
+				(item) => item.type === "story" && item.system.isArchived !== true,
+			)
+			.flatMap((item) => item.system.allTags);
+
+		const effectTags = this.parent.effects
+			.filter((e) => e.flags?.["litm-rn"]?.ownerType)
+			.map((e) => ({
+				id: e.id,
+				name: e.name,
+				type: "tag",
+				ownerType: e.flags["litm-rn"].ownerType,
+				ownerId: e.flags["litm-rn"].ownerId,
+				isScratched: e.flags["litm-rn"].isScratched ?? false,
+				isCrispy: e.flags["litm-rn"].isCrispy ?? false,
+				isHindering: e.flags["litm-rn"].isHindering ?? false,
+			}));
 		const fellowshipTags = this.fellowship?.system?.allTags ?? [];
-		return [...embeddedTags, ...fellowshipTags];
+		return [...embeddedTags, ...effectTags, ...fellowshipTags];
 	}
 
 	get powerTags() {
-		return this.allTags.filter(
-			(tag) =>
+		return this.allTags.filter((tag) => {
+			if (tag.isHindering) return false;
+			return (
 				tag.type === "powerCrispy" ||
 				tag.type === "powerTag" ||
 				tag.type === "themeCrispy" ||
 				tag.type === "themeTag" ||
-				tag.type === "backpack"
-		);
+				tag.type === "backpack" ||
+				tag.type === "tag"
+			);
+		});
 	}
 
 	get weaknessTags() {
-		const themeWeakness =  this.parent.items
-			.filter((item) => item.type === "theme")
-			.flatMap((item) => item.system.weakness);
-		const storyThemeWeakness =  this.parent.items
-			.filter((item) => item.type === "theme")
+		const effectWeakness = this.parent.effects
+			.filter((e) => {
+				const f = e.flags?.["litm-rn"];
+				if (!f?.ownerType) return false;
+				return !!f.isHindering;
+			})
+			.map((e) => ({
+				id: e.id,
+				name: e.name,
+				type: "tag",
+				isScratched: e.flags["litm-rn"].isScratched ?? false,
+				ownerType: e.flags["litm-rn"].ownerType,
+				ownerId: e.flags["litm-rn"].ownerId,
+				isHindering: true,
+			}));
+
+		const storyThemeWeakness = this.parent.items
+			.filter(
+				(item) => item.type === "story" && item.system.isArchived !== true,
+			)
 			.flatMap((item) => item.system.weakness);
 		const fellowshipWeakness = this.fellowship?.system?.weakness ?? [];
-		return [...themeWeakness, ...storyThemeWeakness, ...fellowshipWeakness];
+		return [...effectWeakness, ...storyThemeWeakness, ...fellowshipWeakness];
 	}
 
 	get availablePowerTags() {
-		const backpack = this.backpack.contents.filter(
-			(tag) => !tag.isScratched,
-		);
-		const themeTags = this.parent.items
-			.filter((item) => item.type === "theme")
-			.flatMap((item) => item.system.availablePowerTags);
-		const fellowshipTags = this.fellowship?.system?.availablePowerTags ?? [];
-		return [...backpack, ...themeTags, ...fellowshipTags];
-	}
-
-	get statuses() {
-		return this.parent.appliedEffects
-			.filter((item) => {
-				const flags = item.flags["litm-rn"];
-				if (!flags) return false;
-				if (flags.type === "status") return true;
-				if (flags.type === "might") return false; // just in case
-				if (flags.type === "tag") return flags.values?.some((v) => !!v) ?? false;
-				// Legacy: no type set
-				return flags.values?.some((v) => !!v) ?? false;
+		const effectTags = this.parent.effects
+			.filter((e) => {
+				const f = e.flags?.["litm-rn"];
+				if (!f?.ownerType) return false;
+				if (f.isHindering) return false;
+				if (f.isScratched) return false;
+				return true;
 			})
-			.map((item) => {
-				return {
-					...item.flags["litm-rn"],
-					type: "status",
-					value: item.flags["litm-rn"].values?.findLast((v) => !!v) || 0,
-					id: item._id,
-					name: item.name,
-				};
-			});
+			.map((e) => ({
+				id: e.id,
+				name: e.name,
+				type: "tag",
+				ownerType: e.flags["litm-rn"].ownerType,
+				ownerId: e.flags["litm-rn"].ownerId,
+				isScratched: e.flags["litm-rn"].isScratched ?? false,
+				isCrispy: e.flags["litm-rn"].isCrispy ?? false,
+			}));
+		const fellowshipTags = this.fellowship?.system?.availablePowerTags ?? [];
+		return [...effectTags, ...fellowshipTags];
 	}
 
 	get availableRelationships() {
-		return this.hero.contents.filter(
-			(tag) => !tag.isScratched,
-		);
+		return (this._source.relationships ?? []).filter((tag) => !tag.isScratched);
 	}
 
 	get storyTags() {
@@ -122,16 +352,40 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 				const flags = item.flags["litm-rn"];
 				if (!flags) return false;
 				if (flags.type === "status") return false;
-				if (flags.type === "might") return false; // just in case
-				if (flags.type === "tag") return !(flags.values?.some((v) => !!v));
+				if (flags.type === "might") return false;
+				if (flags.type === "tag") {
+					if (flags.ownerType) return false;
+					return !flags.values?.some((v) => !!v);
+				}
 				if (flags.type) return false;
-				// Legacy: no type set
 				return flags.values?.every((v) => !v) ?? true;
 			})
 			.map((item) => {
 				return {
 					...item.flags["litm-rn"],
 					type: "tag",
+					id: item._id,
+					name: item.name,
+				};
+			});
+	}
+
+	get statuses() {
+		return this.parent.appliedEffects
+			.filter((item) => {
+				const flags = item.flags["litm-rn"];
+				if (!flags) return false;
+				if (flags.type === "status") return true;
+				if (flags.type === "might") return false;
+				if (flags.type === "tag")
+					return flags.values?.some((v) => !!v) ?? false;
+				return flags.values?.some((v) => !!v) ?? false;
+			})
+			.map((item) => {
+				return {
+					...item.flags["litm-rn"],
+					type: "status",
+					value: item.flags["litm-rn"].values?.findLast((v) => !!v) || 0,
 					id: item._id,
 					name: item.name,
 				};
@@ -148,51 +402,6 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	async prepareDerivedData() {
-		// Make sure only four themes are present
-		const themes = this.parent.items.filter((item) => item.type === "theme");
-		if (themes.length > 4) {
-			warn(
-				`Too many themes found for ${this.parent.name}, attempting to resolve...`,
-			);
-			const toDelete = themes.slice(4);
-			await this.parent.deleteEmbeddedDocuments(
-				"Item",
-				toDelete.map((item) => item._id),
-			);
-		}
-
-		// Make sure only one backpack is present
-		const backpacks = this.parent.items.contents.filter(
-			(item) => item.type === "backpack",
-		);
-		if (backpacks.length > 1) {
-			warn(
-				`Too many backpacks found for ${this.parent.name}, attempting to resolve...`,
-			);
-			const toDelete = backpacks.slice(1);
-			await this.parent.deleteEmbeddedDocuments(
-				"Item",
-				toDelete.map((item) => item._id),
-			);
-		}
-
-		// Make sure only one hero is present
-		const heroes = this.parent.items.filter(
-			(item) => item.type === "hero",
-		);
-		if (heroes.length > 1) {
-			warn(
-				`Too many heroes found for ${this.parent.name}, attempting to resolve...`,
-			);
-			const toDelete = heroes.slice(1);
-			await this.parent.deleteEmbeddedDocuments(
-				"Item",
-				toDelete.map((item) => item._id),
-			);
-		}
-
-		// Validate unique data ids
-		// Get duplicates
 		const duplicates = this.embeddedTags
 			.map((tag) => tag.id)
 			.filter((id, index, arr) => arr.indexOf(id) !== index);
@@ -200,7 +409,6 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 		warn("Duplicate tag IDs found, attempting to resolve...");
 		error(`Duplicate tag IDs found for: ${this.parent._id}`, duplicates);
 
-		// try to fix duplicates
 		const tags = this.embeddedTags;
 		for (const tag of tags) {
 			if (duplicates.includes(tag.id)) {

@@ -1,0 +1,89 @@
+<section class="litm--advancement-shell" data-might="{{theme.level}}">
+	<header class="litm--advancement-header">
+		<div>
+			<span class="litm--advancement-kicker">{{localize "Litm.advancement.improve"}}</span>
+			<h1>{{theme.name}}</h1>
+		</div>
+		<div class="litm--advancement-bank">
+			<span>{{localize "Litm.advancement.available"}}</span>
+			<strong>{{theme.availableImprovements}}</strong>
+		</div>
+	</header>
+	<main class="litm--advancement-content">
+		<p class="litm--advancement-hint">{{localize "Litm.advancement.fellowship-improve-hint"}}</p>
+		<label>
+			<span>{{localize "Litm.advancement.choice"}}</span>
+			<select name="choice">
+				<option value="power">{{localize "Litm.advancement.add-power"}}</option>
+				<option value="weakness">{{localize "Litm.advancement.add-weakness"}}</option>
+				<option value="remove-weakness">{{localize "Litm.advancement.remove-weakness"}}</option>
+				<option value="special">{{localize "Litm.advancement.gain-special"}}</option>
+				<option value="reset-abandon">{{localize "Litm.advancement.reset-abandon"}}</option>
+				<option value="reset-milestone">{{localize "Litm.advancement.reset-milestone"}}</option>
+				<option value="reset-both">{{localize "Litm.advancement.reset-both"}}</option>
+			</select>
+		</label>
+		<div class="litm--advancement-field-row" data-improvement-section="tag">
+			<span>{{localize "Litm.advancement.tag-source"}}</span>
+			<div class="litm--advancement-source-picker">
+				<input type="hidden" name="tagSource" value="manual" />
+				<button type="button" class="litm--advancement-source-selected" data-advancement-action="toggle-tag-sources">
+					<i class="fa-solid fa-pen"></i><span>{{localize "Litm.advancement.source-manual"}}</span><i class="fa-solid fa-angle-down"></i>
+				</button>
+				<div class="litm--advancement-source-options">
+					<button type="button" data-advancement-action="select-tag-source" data-value="manual" data-name="" data-kind="all">
+						<i class="fa-solid fa-pen"></i><span>{{localize "Litm.advancement.source-manual"}}</span>
+					</button>
+					{{#each tagSources}}
+					<button type="button" data-advancement-action="select-tag-source" data-value="{{value}}" data-name="{{name}}" data-kind="{{#if isWeakness}}weakness{{else}}power{{/if}}">
+						{{#if (eq sourceType "themebook")}}<i class="fa-solid fa-book-open"></i>
+						{{else}}<i class="fa-solid fa-tag"></i>{{/if}}
+						<span>{{label}}</span>
+						{{#if used}}<i class="fa-solid fa-rotate-right" data-tooltip="{{localize 'Litm.advancement.used-before'}}"></i>{{/if}}
+					</button>
+					{{/each}}
+				</div>
+			</div>
+		</div>
+		<label data-improvement-section="tag">
+			<span>{{localize "Litm.advancement.tag-name"}}</span>
+			<input name="value" type="text" autocomplete="off" />
+		</label>
+		<label data-improvement-section="special">
+			<span>{{localize "Litm.advancement.special-source"}}</span>
+			<select name="specialSource">
+				<option value="custom">{{localize "Litm.advancement.source-custom-special"}}</option>
+				{{#each specialOptions}}
+				<option value="{{value}}" data-name="{{name}}" data-description="{{description}}"
+					data-source-name="{{sourceName}}" data-enriched-description="{{enrichedDescription}}"
+					{{#if claimed}}disabled{{/if}}>
+					{{name}} · {{sourceName}}{{#if claimed}} · {{localize "Litm.advancement.claimed"}}{{/if}}
+				</option>
+				{{/each}}
+			</select>
+		</label>
+		<div class="litm--advancement-custom-special" data-improvement-section="special-custom">
+			<label><span>{{localize "Litm.advancement.special-name"}}</span><input name="customSpecialName" type="text" /></label>
+			<label><span>{{localize "Litm.advancement.special-description"}}</span><textarea name="customSpecialDescription"></textarea></label>
+		</div>
+		<label data-improvement-section="remove-weakness">
+			<span>{{localize "Litm.advancement.remove-weakness"}}</span>
+			<select name="weaknessTarget">
+				<option value="">{{localize "Litm.advancement.choose-weakness"}}</option>
+				{{#each weaknessTags}}<option value="{{id}}">{{name}}</option>{{/each}}
+			</select>
+		</label>
+		<fieldset class="litm--advancement-rewrite">
+			<legend>{{localize "Litm.advancement.optional-rewrite"}}</legend>
+			<select name="rewriteTarget">
+				<option value="">{{localize "Litm.advancement.do-not-rewrite"}}</option>
+				{{#each rewriteTags}}<option value="{{kind}}:{{id}}">{{name}}</option>{{/each}}
+			</select>
+			<input name="rewriteValue" type="text" placeholder="{{localize 'Litm.advancement.new-tag-text'}}" />
+		</fieldset>
+		<div class="litm--advancement-actions">
+			<button type="button" data-advancement-action="apply-improvement" {{#unless canSpend}}disabled{{/unless}}><i class="fa-solid fa-check"></i> {{localize "Litm.advancement.take-improvement"}}</button>
+			<button type="button" class="danger" data-advancement-action="reset-available" {{#unless canSpend}}disabled{{/unless}}><i class="fa-solid fa-rotate-left"></i> {{localize "Litm.advancement.reset-available"}}</button>
+		</div>
+	</main>
+</section>

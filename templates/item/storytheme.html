@@ -1,0 +1,134 @@
+<div class="litm--tc-card litm--st-card {{system.level}}">
+	<datalist id="litm--story-types-{{document.id}}">
+		{{#each storyTypes as |storyType|}}
+			<option value="{{storyType}}"></option>
+		{{/each}}
+	</datalist>
+	<div class="litm--tc-bg" style="--tc-transition-src:url('/{{transitionSrc}}');" aria-hidden="true"></div>
+
+	<div class="litm--tc-left">
+		<div class="litm--hc-header litm--st-header">
+			<input class="litm--hc-title" type="text" name="name" value="{{title}}"
+				placeholder="{{localize 'Litm.other.story-theme'}}" required />
+			<img class="litm--hc-avatar" src="{{document.img}}" alt="{{title}}"
+				data-action="editImage" data-edit="img" data-tooltip="{{localize 'FILES.BrowseTooltip'}}" />
+		</div>
+
+		<div class="litm--tc-header litm--st-meta">
+			<div class="litm--image-dropdown litm--tc-level" data-name="system.level">
+				<input type="hidden" name="system.level" value="{{system.level}}" />
+				<div class="selected-image" data-click="open-levels" data-tooltip="{{localize 'Litm.other.might-theme'}}">
+					<img src="{{themeiconsrc}}_litm_icn.svg" alt="" />
+					<span class="litm--tc-level-label">{{currentLevelLabel}}</span>
+					<i class="fas fa-angle-down"></i>
+				</div>
+				<div class="dropdown-options">
+					{{#each system.levels as |label key|}}
+						<div class="image-option" data-click="select-level" data-value="{{key}}">
+							<img src="systems/litm-rn/assets/media/icons/{{key}}_litm_icn.svg" alt="" />
+							<span>{{label}}</span>
+						</div>
+					{{/each}}
+				</div>
+			</div>
+			<input list="litm--story-types-{{document.id}}" class="litm--tc-themebook" type="text"
+				name="system.storyType" value="{{system.storyType}}"
+				placeholder="{{localize 'Litm.other.story-type'}}" />
+		</div>
+
+		<div class="litm--tc-title">
+			{{#if isEmbedded}}
+				<button type="button" class="litm--secret-toggle{{#if system.themeTag.isPrivate}} active{{/if}}"
+					data-click="toggle-secret" data-field="themeTag" data-id="{{system.themeTag.id}}"
+					data-tooltip="{{localize (ifThen system.themeTag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+					<i class="{{ifThen system.themeTag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+				</button>
+			{{/if}}
+			<span class="litm--tc-title-name{{#if system.themeTag.isScratched}} scratched{{/if}}" contenteditable="true"
+				data-input="story-title">{{system.themeTag.name}}</span>
+			<input type="hidden" id="story-title" name="system.themeTag.name" value="{{system.themeTag.name}}" />
+			<input type="hidden" name="system.themeTag.id" value="{{system.themeTag.id}}" />
+			<input type="hidden" name="system.themeTag.type" value="{{system.themeTag.type}}" />
+			<label class="litm--tc-scratch-label">
+				<input class="litm--scratch litm--tc-scratch litm--tc-scratch--lg" type="checkbox"
+					name="system.themeTag.isScratched" data-dtype="Boolean" {{checked system.themeTag.isScratched}} />
+			</label>
+		</div>
+
+		<div class="litm--tc-scroll">
+			<ul class="litm--tc-tags">
+				{{#each system.powerTags as |tag idx|}}
+					<li class="litm--tc-tag-row" data-id="{{tag.id}}">
+						{{#if @root.isEmbedded}}
+							<button type="button" class="litm--secret-toggle{{#if tag.isPrivate}} active{{/if}}"
+								data-click="toggle-secret" data-field="powerTags" data-id="{{tag.id}}"
+								data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+								<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+							</button>
+						{{/if}}
+						<span class="litm--tc-tag-name{{#if tag.isScratched}} scratched{{/if}}" contenteditable="true"
+							data-input="story-power-{{idx}}" data-placeholder="{{localize 'Litm.ui.name-power'}}">{{tag.name}}</span>
+						<input type="hidden" id="story-power-{{idx}}" name="system.powerTags.{{idx}}.name" value="{{tag.name}}" />
+						<input type="hidden" name="system.powerTags.{{idx}}.type" value="{{tag.type}}" />
+						<input type="hidden" name="system.powerTags.{{idx}}.id" value="{{tag.id}}" />
+						<label class="litm--tc-scratch-label">
+							<input class="litm--scratch litm--tc-scratch" type="checkbox"
+								name="system.powerTags.{{idx}}.isScratched" data-dtype="Boolean" {{checked tag.isScratched}} />
+						</label>
+						<button type="button" class="litm--tc-remove" data-click="remove-power-tag" data-id="{{tag.id}}"
+							data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+					</li>
+				{{/each}}
+			</ul>
+
+			<div class="litm--tc-weakness">
+				{{#if system.weakness.length}}
+					<div class="litm--tc-weakness-title">{{localize "Litm.tags.weaknesses"}}</div>
+				{{/if}}
+				<ul class="litm--tc-weakness-list">
+					{{#each system.weakness as |tag idx|}}
+						<li class="litm--tc-weakness-row" data-id="{{tag.id}}">
+							{{#if @root.isEmbedded}}
+								<button type="button" class="litm--secret-toggle{{#if tag.isPrivate}} active{{/if}}"
+									data-click="toggle-secret" data-field="weaknessTags" data-id="{{tag.id}}"
+									data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+									<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+								</button>
+							{{/if}}
+							<span class="litm--tc-weakness-name" contenteditable="true"
+								data-input="story-weakness-{{idx}}" data-placeholder="{{localize 'Litm.ui.name-weakness'}}">{{tag.name}}</span>
+							<input type="hidden" id="story-weakness-{{idx}}" name="system.weaknessTags.{{idx}}.name" value="{{tag.name}}" />
+							<input type="hidden" name="system.weaknessTags.{{idx}}.type" value="{{tag.type}}" />
+							<input type="hidden" name="system.weaknessTags.{{idx}}.id" value="{{tag.id}}" />
+							<input type="hidden" name="system.weaknessTags.{{idx}}.isScratched" data-dtype="Boolean" value="{{tag.isScratched}}" />
+							<button type="button" class="litm--tc-remove litm--tc-remove--weakness"
+								data-click="remove-weakness-tag" data-id="{{tag.id}}"
+								data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+						</li>
+					{{/each}}
+				</ul>
+			</div>
+		</div>
+
+		<div class="litm--tc-tag-add litm--st-footer">
+			<button type="button" data-click="add-power-tag">
+				<span>{{localize "Litm.ui.add-power-tag"}}</span>
+			</button>
+			<span class="litm--tc-tag-add-separator"></span>
+			<button type="button" data-click="add-weakness-tag">
+				<span>{{localize "Litm.ui.add-weakness-tag"}}</span>
+			</button>
+		</div>
+	</div>
+
+	<div class="litm--tc-right litm--st-right">
+		<div class="litm--tc-description">
+			<div class="litm--tc-section-label">{{localize "Litm.other.description"}}</div>
+			<div class="litm--tc-note">
+				<prose-mirror name="system.note" button="true" toggled="false" editable="true" value="{{system.noteRaw}}">
+					{{{system.note}}}
+				</prose-mirror>
+			</div>
+		</div>
+	</div>
+</div>

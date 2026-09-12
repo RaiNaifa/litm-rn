@@ -1,0 +1,73 @@
+<div class="litm--trope-art-settings-body">
+	<section class="litm--trope-art-preview">
+		{{#if hasArt}}
+		<img src="{{art}}" alt="{{name}}" />
+		{{else}}
+		<div class="litm--trope-art-empty">
+			<i class="fa-regular fa-image"></i>
+			<span>{{localize "Litm.trope.no-art"}}</span>
+		</div>
+		{{/if}}
+	</section>
+
+	<div class="litm--trope-art-actions">
+		<button type="button" data-action="chooseArt">
+			<i class="fa-solid fa-folder-open"></i>
+			{{#if hasArt}}{{localize "Litm.trope.change-art"}}{{else}}{{localize "Litm.trope.choose-art"}}{{/if}}
+		</button>
+		<button type="button" data-action="removeArt" {{#unless hasArt}}disabled{{/unless}}>
+			<i class="fa-solid fa-trash"></i>
+			{{localize "Litm.trope.remove-art"}}
+		</button>
+	</div>
+
+	<fieldset class="litm--trope-art-side">
+		<legend>{{localize "Litm.trope.art-position"}}</legend>
+		<label>
+			<input type="radio" name="artSide" value="left"
+				{{#if (eq artSide "left")}}checked{{/if}} />
+			<i class="fa-solid fa-align-left"></i>
+			{{localize "Litm.trope.art-left"}}
+			<i class="fa-solid fa-check litm--trope-art-selected"></i>
+		</label>
+		<label>
+			<input type="radio" name="artSide" value="right"
+				{{#if (eq artSide "right")}}checked{{/if}} />
+			<i class="fa-solid fa-align-right"></i>
+			{{localize "Litm.trope.art-right"}}
+			<i class="fa-solid fa-check litm--trope-art-selected"></i>
+		</label>
+	</fieldset>
+
+	<fieldset class="litm--trope-art-side litm--trope-art-align">
+		<legend>{{localize "Litm.trope.art-vertical-align"}}</legend>
+		<label>
+			<input type="radio" name="artAlign" value="top"
+				{{#if (eq artAlign "top")}}checked{{/if}} />
+			<i class="fa-solid fa-arrow-up"></i>
+			{{localize "Litm.trope.art-top"}}
+			<i class="fa-solid fa-check litm--trope-art-selected"></i>
+		</label>
+		<label>
+			<input type="radio" name="artAlign" value="center"
+				{{#if (eq artAlign "center")}}checked{{/if}} />
+			<i class="fa-solid fa-arrows-up-down"></i>
+			{{localize "Litm.trope.art-center"}}
+			<i class="fa-solid fa-check litm--trope-art-selected"></i>
+		</label>
+		<label>
+			<input type="radio" name="artAlign" value="bottom"
+				{{#if (eq artAlign "bottom")}}checked{{/if}} />
+			<i class="fa-solid fa-arrow-down"></i>
+			{{localize "Litm.trope.art-bottom"}}
+			<i class="fa-solid fa-check litm--trope-art-selected"></i>
+		</label>
+	</fieldset>
+
+	<footer>
+		<button type="button" data-action="save">
+			<i class="fa-solid fa-check"></i>
+			{{localize "Litm.ui.save-and-close"}}
+		</button>
+	</footer>
+</div>

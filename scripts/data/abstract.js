@@ -8,6 +8,11 @@ export class TagData extends foundry.abstract.DataModel {
 				validate: (id) => foundry.data.validators.isValidId(id),
 				initial: () => foundry.utils.randomID(),
 			}),
+			ownerId: new fields.StringField({
+				required: false,
+				nullable: true,
+				initial: null,
+			}),
 			name: new fields.StringField({
 				required: true,
 				nullable: false,
@@ -15,9 +20,23 @@ export class TagData extends foundry.abstract.DataModel {
 			isScratched: new fields.BooleanField({
 				required: false,
 			}),
+			isPrivate: new fields.BooleanField({
+				required: false,
+				initial: false,
+			}),
 			type: new fields.StringField({
 				required: true,
-				choices: ["weaknessTag", "weaknessStoryTag", "powerCrispy", "powerTag", "backpack", "hero", "themeCrispy", "themeTag", "fulfillment"],
+				choices: [
+					"weaknessTag",
+					"weaknessStoryTag",
+					"powerCrispy",
+					"powerTag",
+					"backpack",
+					"hero",
+					"themeCrispy",
+					"themeTag",
+					"fulfillment",
+				],
 			}),
 		};
 	}
@@ -33,25 +52,22 @@ export class RelationshipData extends foundry.abstract.DataModel {
 				validate: (id) => foundry.data.validators.isValidId(id),
 				initial: () => foundry.utils.randomID(),
 			}),
+			fellowActorId: new fields.StringField({
+				required: true,
+				nullable: false,
+			}),
 			name: new fields.StringField({
 				required: true,
 				nullable: false,
-			}),
-			fellowName: new fields.StringField({
-				required: true,
-				nullable: false,
-			}),
-			isActive: new fields.BooleanField({
-				required: true,
-				initial: false,
+				initial: () => game.i18n.localize("Litm.tags.relationship"),
 			}),
 			isScratched: new fields.BooleanField({
 				required: true,
-				initial: false,
+				initial: true,
 			}),
-			type: new fields.StringField({
-				required: true,
-				choices: ["hero"],
+			isPrivate: new fields.BooleanField({
+				required: false,
+				initial: false,
 			}),
 		};
 	}
@@ -74,10 +90,6 @@ export class SpecialData extends foundry.abstract.DataModel {
 			description: new fields.StringField({
 				required: true,
 				nullable: false,
-			}),
-			isActive: new fields.BooleanField({
-				required: true,
-				initial: false,
 			}),
 		};
 	}

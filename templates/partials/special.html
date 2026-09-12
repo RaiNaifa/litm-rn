@@ -1,28 +1,12 @@
-<li {{#if remove}}data-context="remove-special" {{/if}} data-id="{{special.id}}"
-	class="litm--special {{#if embedded}}embedded{{/if}}">
-	<!-- Tags embedded in the character sheet have different functionality -->
+<li data-id="{{special.id}}"
+	class="litm--special {{#if embedded}}embedded{{/if}}"
+	draggable="true" data-drag-special="{{special.id}}" data-drag-special-path="{{path}}">
 	{{#if embedded}}
-		<!-- Select Special button -->
-		<button type="button" class="litm--special-button {{#if special.isActive}}litm--special-active{{/if}}"
-			data-id="{{special.id}}" data-tooltip="{{localize 'Litm.ui.toggle-scratch-special'}}" data-click="select"
-			{{#if (includes @root.rollTags special.id 'id')}}data-selected{{/if}}>
-			<div class="litm--special-inline">
-				<!-- isActive indicator -->
-				<span class="litm--checkbox litm--checkbox-with-bg litm--special-checkbox {{checked special.isActive}}"></span>
-				<!-- Name -->
-				<span class="litm--special-name">{{special.name}}</span>
-			</div>
-			<!-- Description -->
-			 <span>{{{special.enrichedDescription}}}</span>
-		</button>
+		<div class="litm--special-inline">
+			<span class="litm--special-name">{{special.name}}</span>
+		</div>
+		<span>{{{special.enrichedDescription}}}</span>
 	{{else}}
-		<!-- Tag functionality in Items -->
-		<!-- isActive checkbox -->
-		<label data-tooltip="{{localize (tagActiveString special false)}}"><span
-				class="litm--sro litm--special-sro">{{localize "Litm.tags.isActive"}}</span>
-			<input class="litm--checkbox litm--checkbox-with-bg litm--special-checkbox" type="checkbox" name="{{path}}.{{key}}.isActive"
-				{{checked special.isActive}} />
-		</label>
 		<!-- Name input -->
 		<input class="litm--special-name tag--name" type="text" name="{{path}}.{{key}}.name" value="{{special.name}}">
 		<!-- Description -->

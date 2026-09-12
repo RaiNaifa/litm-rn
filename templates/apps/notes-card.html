@@ -1,0 +1,25 @@
+<div class="litm--tc-card litm--hc-card litm--bc-card litm--nc-card">
+	<div class="litm--tc-bg litm--hc-bg" style="--tc-transition-src:url('/systems/litm-rn/assets/media/transition-left-brown-dark.webp');" aria-hidden="true"></div>
+	<div class="litm--tc-left litm--hc-left">
+		<div class="litm--bc-tags">
+			<div class="litm--tc-section-label">{{localize "Litm.ui.noticed-tags"}}</div>
+			<ul class="litm--tc-tags">
+				{{#each tags as |tag idx|}}
+				<li class="litm--tc-tag-row">
+					<span class="litm--tc-tag-name" contenteditable="true" data-input="ntname-{{idx}}">{{tag.name}}</span>
+					<input type="hidden" name="system.noticedTags.{{idx}}.name" id="ntname-{{idx}}" value="{{tag.name}}" />
+					<input type="hidden" name="system.noticedTags.{{idx}}.id" value="{{tag.id}}" />
+					<button type="button" class="litm--tc-remove" data-click="remove-tag" data-id="{{tag.id}}"><i class="fas fa-times"></i></button>
+				</li>
+				{{/each}}
+			</ul>
+		</div>
+		<div class="litm--tc-progression litm--hc-progression litm--tc-special-add litm--bc-add-tag"><button type="button" data-click="add-tag"><span>{{localize "Litm.ui.notice-tag"}}</span></button></div>
+	</div>
+	<div class="litm--tc-right litm--hc-right litm--bc-right litm--nc-right">
+		<div class="litm--tc-description litm--bc-notes">
+			<div class="litm--tc-section-label">{{localize "Litm.other.notes"}}</div>
+			<div class="litm--tc-note"><prose-mirror name="system.note" button="true" toggled="false" editable="true" value="{{note}}">{{{enrichedNote}}}</prose-mirror></div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,66 @@
+.litm.litm--story-theme {
+	& .litm--st-header {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 12px 18px;
+		padding-bottom: 4px;
+	}
+
+	& .litm--hc-title {
+		flex: 1;
+		min-width: 0;
+		height: auto;
+		padding: 2px 4px;
+		color: var(--tc-ink-bright);
+		font-family: var(--litm-font-accent);
+		font-size: var(--font-size-28);
+		text-align: left;
+	}
+
+	& .litm--hc-avatar {
+		display: block;
+		width: 40px;
+		height: 40px;
+		flex: 0 0 40px;
+		object-fit: cover;
+		object-position: top;
+		border: 1px solid var(--tc-muted);
+		border-radius: 5px;
+		cursor: pointer;
+
+		&:hover,
+		&:focus {
+			box-shadow: 0 0 0 1px var(--tc-accent);
+		}
+	}
+
+	& .litm--st-meta {
+		padding-top: 2px;
+	}
+
+	& .litm--st-footer {
+		margin-top: auto;
+		padding: 14px 30px 16px;
+	}
+
+	& .litm--st-right {
+		padding-right: 20px;
+	}
+
+	& .litm--st-right .litm--tc-description {
+		height: 100%;
+		padding-top: 15px;
+	}
+
+	& .litm--st-right .litm--tc-note {
+		flex: 1;
+		min-height: 0;
+		margin-top: 10px;
+	}
+
+	& .litm--st-right prose-mirror,
+	& .litm--st-right [role="application"] {
+		height: 100%;
+	}
+}

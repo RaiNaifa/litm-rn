@@ -1,0 +1,227 @@
+{{#*inline "campTag"}}
+<div class="litm--camp-tag-item litm--camp-tag-{{tag.type}}{{#if tag.isPrivate}} private{{/if}}{{#if tag.isPermanent}} permanent{{/if}}{{#if scratched}} scratched{{/if}}" {{#if context}}data-camp-tag-context="{{tag.id}}" data-tooltip="{{localize 'Litm.camp.tag-menu-tooltip'}}"{{/if}}>
+	<div class="litm--camp-tag-visual">
+		<div class="litm--camp-tag-inner">
+			<span class="litm--camp-tag-name" {{#if context}}data-camp-tag-name="{{tag.id}}"{{/if}}>{{tag.name}}</span>
+			{{#if tag.isPermanent}}<i class="fas fa-infinity" data-tooltip="{{localize 'Litm.tags.isPermanent'}}"></i>{{/if}}
+			{{#if tag.isPrivate}}<i class="fas fa-mask"></i>{{/if}}
+		</div>
+		{{#if (eq tag.type "status")}}<span class="litm--camp-tag-values">{{#each tag.values}}<i class="litm--camp-status-dot{{#if this}} filled{{/if}}"></i>{{/each}}</span>{{/if}}
+	</div>
+	{{#if removable}}<button type="button" class="litm--camp-tag-remove" data-camp-action="remove-campsite-tag" data-id="{{tag.id}}" data-tooltip="{{localize 'Litm.ui.remove'}}"><i class="fas fa-xmark"></i></button>{{/if}}
+</div>
+{{/inline}}
+
+<div class="litm--camp-shell">
+	<header class="litm--camp-heading">
+		<div>
+			<span class="litm--camp-kicker">{{phaseLabel}}</span>
+			<h2>{{session.fellowshipName}}</h2>
+		</div>
+		<div class="litm--camp-bonus">
+			<span>{{localize "Litm.camp.camp-action-bonus"}}</span>
+			<strong>+{{session.bonus}}</strong>
+		</div>
+	</header>
+
+	<nav class="litm--camp-tabs" aria-label="{{localize 'Litm.camp.phases'}}">
+		<button type="button" class="{{#if isSetup}}{{#unless isDraft}}selected{{/unless}}{{/if}}{{#if currentSetup}} current{{/if}}" data-camp-tab="setup">
+			<span class="litm--camp-tab-content"><i class="fas fa-tent"></i><span class="litm--camp-tab-label">{{localize "Litm.camp.setup"}}</span></span>
+		</button>
+		<button type="button" class="{{#if isActivity1}}selected{{/if}}{{#if currentActivity1}} current{{/if}}" data-camp-tab="activity-1" {{#unless canVisitActivity1}}disabled{{/unless}}>
+			<span class="litm--camp-tab-content"><span class="litm--camp-tab-number">1</span><span class="litm--camp-tab-label">{{localize "Litm.camp.activity"}}</span></span>
+		</button>
+		<button type="button" class="{{#if isActivity2}}selected{{/if}}{{#if currentActivity2}} current{{/if}}" data-camp-tab="activity-2" {{#unless canVisitActivity2}}disabled{{/unless}}>
+			<span class="litm--camp-tab-content"><span class="litm--camp-tab-number">2</span><span class="litm--camp-tab-label">{{localize "Litm.camp.activity"}}</span></span>
+		</button>
+		<button type="button" class="{{#if isActivity3}}selected{{/if}}{{#if currentActivity3}} current{{/if}}" data-camp-tab="activity-3" {{#unless canVisitActivity3}}disabled{{/unless}}>
+			<span class="litm--camp-tab-content"><span class="litm--camp-tab-number">3</span><span class="litm--camp-tab-label">{{localize "Litm.camp.activity"}}</span></span>
+		</button>
+		<button type="button" class="{{#if isQuality}}selected{{/if}}{{#if currentQuality}} current{{/if}}" data-camp-tab="quality" {{#unless canVisitQuality}}disabled{{/unless}}>
+			<span class="litm--camp-tab-content"><i class="fas fa-people-group"></i><span class="litm--camp-tab-label">{{localize "Litm.camp.quality-time"}}</span></span>
+		</button>
+	</nav>
+
+	<section class="litm--camp-page">
+		<div class="litm--camp-workspace{{#if isDraft}} draft{{/if}}">
+			<aside class="litm--camp-overview litm--camp-panel">
+				{{#if isDraft}}
+				<div class="litm--camp-duration">
+					<h3>{{localize "Litm.camp.duration"}}</h3>
+					<div class="litm--camp-segments">
+						<label><input type="radio" name="camp-duration" value="camp" data-set-path="duration" {{checked (eq session.duration "camp")}}><span>{{localize "Litm.camp.duration-camp"}}</span></label>
+						<label><input type="radio" name="camp-duration" value="days" data-set-path="duration" {{checked (eq session.duration "days")}}><span>{{localize "Litm.camp.duration-days"}} <b>+1</b></span></label>
+						<label><input type="radio" name="camp-duration" value="weeks" data-set-path="duration" {{checked (eq session.duration "weeks")}}><span>{{localize "Litm.camp.duration-weeks"}} <b>+2</b></span></label>
+						<label><input type="radio" name="camp-duration" value="months" data-set-path="duration" {{checked (eq session.duration "months")}}><span>{{localize "Litm.camp.duration-months"}} <b>+3</b></span></label>
+					</div>
+				</div>
+				{{else}}
+				<div class="litm--camp-duration-record"><i class="fas fa-moon"></i><span>{{localize "Litm.camp.duration"}}</span><strong>{{durationLabel}}</strong></div>
+				{{/if}}
+				<h3><i class="fas fa-location-dot"></i> {{localize "Litm.camp.campsite"}}</h3>
+				{{#if (and isGM setupEditable)}}
+				<input type="text" value="{{session.campsite.name}}" data-set-path="campsite.name" placeholder="{{localize 'Litm.camp.campsite-name'}}">
+				<textarea data-set-path="campsite.description" placeholder="{{localize 'Litm.camp.campsite-description'}}">{{session.campsite.description}}</textarea>
+				{{else}}
+				<div class="litm--camp-campsite-name">{{#if session.campsite.name}}{{session.campsite.name}}{{else}}—{{/if}}</div>
+				<div class="litm--camp-campsite-description">{{#if session.campsite.description}}{{session.campsite.description}}{{else}}—{{/if}}</div>
+				{{/if}}
+				<div class="litm--camp-site-tags">
+					{{#each session.campsite.tags}}
+					{{> campTag tag=this site=true context=(and @root.isGM @root.setupEditable)}}
+					{{/each}}
+				</div>
+				{{#if (and isGM setupEditable)}}
+				<div class="litm--camp-add-tag">
+					<input type="text" data-campsite-name placeholder="{{localize 'Litm.ui.token-hud-effect-placeholder'}}">
+					<button type="button" data-camp-action="add-campsite-tag"><i class="fas fa-plus"></i></button>
+				</div>
+				<div class="litm--camp-drop" data-campsite-drop><i class="fas fa-arrow-down"></i> {{localize "Litm.camp.drop-tags"}}</div>
+				{{/if}}
+			</aside>
+
+			<main class="litm--camp-phase-main">
+			{{#if isSetup}}{{#unless isDraft}}
+		<section class="litm--camp-review{{#if selectedChoiceLocked}} confirmed{{/if}}">
+				<div class="litm--camp-hero-switcher litm--camp-activity-summary litm--camp-preparation-summary">
+					{{#each heroes}}<button type="button" class="{{#if selected}}active{{/if}}" data-actor-id="{{id}}"><img src="{{img}}" alt=""><span>{{name}}</span><small class="litm--camp-activity-state">{{#if preparationReady}}<i class="fas fa-circle-check"></i> {{localize "Litm.camp.ready"}}{{else}}{{localize "Litm.camp.not-ready"}}{{/if}}</small><small class="litm--camp-third-request">&nbsp;</small></button>{{/each}}
+				</div>
+				{{#if selectedActor}}
+				<div class="litm--camp-panel">
+				<h3 class="litm--camp-review-heading">{{localize "Litm.camp.review"}}</h3>
+				<div class="litm--camp-resource-group"><h4>{{localize "Litm.camp.backpack-tags"}}</h4>
+				{{#each resources.backpack}}
+					<div class="litm--camp-resource">
+						{{> campTag tag=this}}
+						<div class="litm--camp-choice-buttons"><button type="button" class="{{#if (eq prep.action 'keep')}}active{{/if}}" data-set-decision="preparation.{{@root.selectedActor.id}}.{{key}}" data-decision-action="keep" data-tooltip="{{localize 'Litm.camp.keep'}}"><i class="fas fa-thumbtack"></i></button><button type="button" class="danger {{#if (and (eq prep.action 'expire') (eq prep.timing 'now'))}}active{{/if}}" data-set-decision="preparation.{{@root.selectedActor.id}}.{{key}}" data-decision-action="expire" data-decision-timing="now" data-tooltip="{{localize 'Litm.camp.remove'}}"><i class="fas fa-hourglass-end"></i></button><button type="button" class="danger {{#if (and (eq prep.action 'expire') (eq prep.timing 'after'))}}active{{/if}}" data-set-decision="preparation.{{@root.selectedActor.id}}.{{key}}" data-decision-action="expire" data-decision-timing="after" data-tooltip="{{localize 'Litm.camp.remove-after'}}"><i class="fas fa-hourglass-half"></i></button><button type="button" class="{{#unless (eq prep.action 'expire')}}placeholder{{/unless}} {{#if prep.archive}}active{{/if}}" data-set-button="preparation.{{@root.selectedActor.id}}.{{key}}.archive" data-set-value="{{#if prep.archive}}false{{else}}true{{/if}}" data-tooltip="{{localize 'Litm.camp.archive-instead'}}" {{#unless (eq prep.action 'expire')}}disabled{{/unless}}><i class="fas fa-box-archive"></i></button></div>
+					</div>
+				{{else}}<p class="litm--camp-empty">{{localize "Litm.camp.no-tags"}}</p>{{/each}}</div>
+				<div class="litm--camp-resource-group"><h4>{{localize "Litm.camp.tracking-tags"}}</h4>
+				{{#each resources.tracking}}
+					<div class="litm--camp-resource">{{> campTag tag=this}}<div class="litm--camp-choice-buttons"><button type="button" class="{{#if (eq prep.action 'keep')}}active{{/if}}" data-set-decision="preparation.{{@root.selectedActor.id}}.{{key}}" data-decision-action="keep" data-tooltip="{{localize 'Litm.camp.keep'}}"><i class="fas fa-thumbtack"></i></button><button type="button" class="danger {{#if (and (eq prep.action 'expire') (eq prep.timing 'now'))}}active{{/if}}" data-set-decision="preparation.{{@root.selectedActor.id}}.{{key}}" data-decision-action="expire" data-decision-timing="now" data-tooltip="{{localize 'Litm.camp.remove'}}"><i class="fas fa-hourglass-end"></i></button><button type="button" class="danger {{#if (and (eq prep.action 'expire') (eq prep.timing 'after'))}}active{{/if}}" data-set-decision="preparation.{{@root.selectedActor.id}}.{{key}}" data-decision-action="expire" data-decision-timing="after" data-tooltip="{{localize 'Litm.camp.remove-after'}}"><i class="fas fa-hourglass-half"></i></button><button type="button" class="{{#unless (eq prep.action 'expire')}}placeholder{{/unless}} {{#if prep.archive}}active{{/if}}" data-set-button="preparation.{{@root.selectedActor.id}}.{{key}}.archive" data-set-value="{{#if prep.archive}}false{{else}}true{{/if}}" data-tooltip="{{localize 'Litm.camp.archive-instead'}}" {{#unless (eq prep.action 'expire')}}disabled{{/unless}}><i class="fas fa-box-archive"></i></button></div></div>
+				{{else}}<p class="litm--camp-empty">{{localize "Litm.camp.no-tags"}}</p>{{/each}}</div>
+				</div>
+				{{/if}}
+				{{#if isGM}}{{#if selectedChoiceLocked}}{{#if tabIsCurrent}}<button type="button" class="litm--camp-unlock-choice" data-camp-action="unlock-choice" data-phase="setup"><i class="fas fa-lock-open"></i> {{localize "Litm.camp.unlock-choice"}}</button>{{/if}}{{/if}}{{/if}}
+			</section>
+			{{/unless}}{{/if}}
+
+	{{#if (or isActivity1 isActivity2 isActivity3)}}
+	<section class="litm--camp-activities">
+		<div class="litm--camp-hero-switcher litm--camp-activity-summary">
+			{{#each heroes}}<button type="button" class="{{#if selected}}active{{/if}}" data-actor-id="{{id}}"><img src="{{img}}" alt=""><span>{{name}}</span><small class="litm--camp-activity-state">{{activityLabel}}{{#if submitted}} ✓{{/if}}</small><small class="litm--camp-third-request">{{#if thirdRequested}}<i class="fas fa-envelope"></i> {{localize "Litm.camp.third-requested"}}{{else}}&nbsp;{{/if}}</small></button>{{/each}}
+		</div>
+		{{#if (and isActivity3 (not isSkippedThirdRevisit))}}
+		<p class="litm--camp-third-warning"><i class="fas fa-triangle-exclamation"></i> {{localize "Litm.camp.third-consequence-warning"}}</p>
+		{{/if}}
+		{{#if selectedActor}}
+		{{#if isSkippedThirdRevisit}}
+		<div class="litm--camp-panel litm--camp-skipped-third"><h4>{{localize "Litm.camp.third-skipped"}}</h4><button type="button" class="primary" data-camp-action="start-third-late">{{localize "Litm.camp.start-third-late"}}</button><p class="litm--camp-third-warning"><i class="fas fa-triangle-exclamation"></i> {{localize "Litm.camp.start-third-late-warning"}}</p></div>
+		{{else}}
+		<fieldset class="litm--camp-panel litm--camp-activity-card{{#if activity.submitted}} confirmed{{/if}}" {{#unless canEditSelected}}disabled{{/unless}}>
+			<div class="litm--camp-activity-types{{#if isActivity3}} is-third{{/if}}">
+				<button type="button" class="{{#if (eq activity.type 'rest')}}active{{/if}}" data-camp-action="choose-activity" data-type="rest" data-index="{{activityIndex}}" {{#unless canChooseRest}}disabled{{/unless}}><i class="fas fa-bed"></i><span class="litm--camp-option-label">{{localize "Litm.camp.rest"}}</span></button>
+				<button type="button" class="{{#if (eq activity.type 'reflect')}}active{{/if}}" data-camp-action="choose-activity" data-type="reflect" data-index="{{activityIndex}}" {{#unless canChooseReflect}}disabled{{/unless}}><i class="fas fa-brain"></i><span class="litm--camp-option-label">{{localize "Litm.camp.reflect"}}</span></button>
+				<button type="button" class="{{#if (eq activity.type 'camp-action')}}active{{/if}}" data-camp-action="choose-activity" data-type="camp-action" data-index="{{activityIndex}}"><i class="fas fa-hammer"></i><span class="litm--camp-option-label">{{localize "Litm.camp.camp-action"}}</span></button>
+				{{#if isActivity3}}<button type="button" class="{{#if (eq activity.type 'skip-activity')}}active{{/if}}" data-camp-action="choose-activity" data-type="skip-activity" data-index="{{activityIndex}}"><i class="fas fa-forward"></i><span class="litm--camp-option-label">{{localize "Litm.camp.skip-activity"}}</span></button>{{/if}}
+			</div>
+
+			{{#if (eq activity.type "rest")}}
+			<div class="litm--camp-activity-detail">
+				<p class="litm--camp-hint">{{localize "Litm.camp.rest-hint"}}</p>
+				{{#each resources.statuses}}
+				<div class="litm--camp-resource litm--camp-status-resource">
+					{{> campTag tag=(lookup this "statusDisplay")}}
+					<div class="litm--camp-choice-buttons litm--camp-status-controls"><button type="button" class="{{#if (eq rest.action 'keep')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="keep" data-tooltip="{{localize 'Litm.camp.keep'}}"><i class="fas fa-thumbtack"></i></button><button type="button" class="danger {{#if (eq rest.action 'expire')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="expire" data-tooltip="{{localize 'Litm.camp.remove'}}"><i class="fas fa-hourglass-end"></i></button><button type="button" class="restore {{#if (eq rest.action 'status')}}active{{/if}}" data-choose-status-decrease="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}" data-current-decrease="{{rest.decrease}}" data-tooltip="{{localize 'Litm.camp.decrease'}}"><i class="fas fa-arrow-left"></i></button><span class="litm--camp-status-change{{#unless rest.decrease}} zero{{/unless}}"><b>{{rest.decrease}}</b><button type="button" data-reset-status="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}" data-tooltip="{{localize 'Litm.camp.reset-decrease'}}" {{#unless rest.decrease}}disabled{{/unless}}><i class="fas fa-rotate-left"></i></button></span></div>
+				</div>
+				{{/each}}
+				{{#each resources.expirable}}
+				<div class="litm--camp-resource">{{> campTag tag=this}}<div class="litm--camp-choice-buttons"><button type="button" class="{{#if (eq rest.action 'keep')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="keep" data-tooltip="{{localize 'Litm.camp.keep'}}"><i class="fas fa-thumbtack"></i></button><button type="button" class="danger {{#if (eq rest.action 'expire')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="expire" data-tooltip="{{localize 'Litm.camp.remove'}}"><i class="fas fa-hourglass-end"></i></button><button type="button" class="{{#unless (eq rest.action 'expire')}}placeholder{{/unless}} {{#if rest.archive}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.archive" data-set-value="{{#if rest.archive}}false{{else}}true{{/if}}" data-tooltip="{{localize 'Litm.camp.archive-instead'}}" {{#unless (eq rest.action 'expire')}}disabled{{/unless}}><i class="fas fa-box-archive"></i></button></div></div>
+				{{/each}}
+				{{#each resources.scratched}}
+				<div class="litm--camp-resource">{{> campTag tag=this scratched=true}}<div class="litm--camp-choice-buttons"><button type="button" class="{{#if (eq rest.action 'keep')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="keep" data-tooltip="{{localize 'Litm.camp.leave-scratched'}}"><i class="fas fa-ban"></i></button><button type="button" class="restore {{#if (eq rest.action 'restore')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="restore" data-tooltip="{{localize 'Litm.camp.restore'}}"><i class="fas fa-wand-magic-sparkles"></i></button></div></div>
+				{{/each}}
+				{{#if resources.storyThemes.length}}
+				<div class="litm--camp-story-themes">
+					{{#each resources.storyThemes as |theme|}}
+					<section class="litm--camp-story-theme">
+						<header class="litm--camp-story-theme-header">
+							<img src="{{theme.img}}" alt="">
+							<span>{{theme.name}}</span>
+							<i class="litm--camp-story-theme-might litm--camp-story-theme-might-{{theme.level}}"></i>
+						</header>
+						{{#each theme.tags}}
+						<div class="litm--camp-resource litm--camp-story-theme-resource">
+							{{> campTag tag=this scratched=true}}
+							<div class="litm--camp-choice-buttons"><button type="button" class="{{#if (eq rest.action 'keep')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="keep" data-tooltip="{{localize 'Litm.camp.leave-scratched'}}"><i class="fas fa-ban"></i></button><button type="button" class="restore {{#if (eq rest.action 'restore')}}active{{/if}}" data-set-button="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.choices.{{key}}.action" data-set-value="restore" data-tooltip="{{localize 'Litm.camp.restore'}}"><i class="fas fa-wand-magic-sparkles"></i></button></div>
+						</div>
+						{{/each}}
+					</section>
+					{{/each}}
+				</div>
+				{{/if}}
+			</div>
+			{{/if}}
+
+			{{#if (eq activity.type "reflect")}}
+			<div class="litm--camp-activity-detail">
+				<p class="litm--camp-hint">{{#if (eq session.duration "camp")}}{{localize "Litm.camp.gain-improve"}}{{else}}{{localize "Litm.camp.gain-improvement"}}{{/if}}</p>
+				<div class="litm--camp-theme-list">{{#each themes}}<label><input type="radio" name="reflect-theme" value="{{id}}" data-set-path="heroes.{{@root.selectedActor.id}}.activities.{{@root.activityIndex}}.themeId" {{checked selected}}><span>{{name}}</span></label>{{/each}}</div>
+			</div>
+			{{/if}}
+
+			{{#if (eq activity.type "camp-action")}}
+			<div class="litm--camp-activity-detail litm--camp-roll-launch"><p class="litm--camp-hint">{{localize "Litm.camp.camp-action-hint"}}</p><button type="button" data-camp-action="open-camp-roll" data-index="{{activityIndex}}">{{localize "Litm.camp.open-roll"}}</button></div>
+			{{#if activity.result}}<p class="litm--camp-benefit"><i class="fas fa-check"></i> {{localize "Litm.camp.result"}}: {{localize "Litm.ui.total-power"}} {{activity.result.power}}{{#if activity.result.effects}} → {{activity.result.effects}} {{localize "Litm.camp.effects"}}{{/if}}</p>{{/if}}
+			{{/if}}
+		</fieldset>
+		{{/if}}
+		{{#if isGM}}{{#if selectedChoiceLocked}}{{#if tabIsCurrent}}<button type="button" class="litm--camp-unlock-choice" data-camp-action="unlock-choice" data-phase="activity" data-index="{{activityIndex}}"><i class="fas fa-lock-open"></i> {{localize "Litm.camp.unlock-choice"}}</button>{{/if}}{{/if}}{{/if}}
+		{{/if}}
+	</section>
+	{{/if}}
+
+	{{#if isQuality}}
+	<section class="litm--camp-quality">
+		<div class="litm--camp-hero-switcher litm--camp-activity-summary litm--camp-quality-summary">{{#each heroes}}<button type="button" class="{{#if selected}}active{{/if}}" data-actor-id="{{id}}"><img src="{{img}}" alt=""><span>{{name}}</span><small class="litm--camp-activity-state">{{qualityLabel}}{{#if qualitySubmitted}} ✓{{/if}}</small><small class="litm--camp-third-request">&nbsp;</small></button>{{/each}}</div>
+		<fieldset class="litm--camp-panel{{#if selectedChoiceLocked}} confirmed{{/if}}" {{#unless canEditSelected}}disabled{{/unless}}>
+			<div class="litm--camp-quality-options">
+				<label><input type="radio" name="quality-type" value="tag" data-set-path="heroes.{{selectedActor.id}}.quality.type" {{checked (eq selectedHero.quality.type "tag")}}><span>{{localize "Litm.camp.recover-fellowship-tag"}}</span></label>
+				<label><input type="radio" name="quality-type" value="relationship" data-set-path="heroes.{{selectedActor.id}}.quality.type" {{checked (eq selectedHero.quality.type "relationship")}}><span>{{localize "Litm.camp.tend-relationship"}}</span></label>
+			</div>
+			{{#if (eq selectedHero.quality.type "tag")}}<div class="litm--camp-theme-list">{{#each fellowshipTags}}<label><input type="radio" name="quality-tag" value="{{id}}" data-set-path="heroes.{{@root.selectedActor.id}}.quality.tagId" {{checked selected}}><span class="scratched">{{name}}</span></label>{{else}}<p class="litm--camp-empty">{{localize "Litm.camp.no-fellowship-tags"}}</p>{{/each}}</div>{{/if}}
+			{{#if (eq selectedHero.quality.type "relationship")}}<div class="litm--camp-relationships">{{#each relationships}}<label><input type="radio" name="quality-relationship" value="{{fellowActorId}}" data-camp-action="choose-relationship" data-fellow-actor-id="{{fellowActorId}}" {{checked selected}}><span><b>{{fellowName}}:</b>&nbsp;<span class="litm--camp-relationship-name{{#if scratched}} scratched{{/if}}">{{name}}</span></span>{{#if selected}}<input type="text" value="{{@root.selectedHero.quality.relationshipName}}" data-set-path="heroes.{{@root.selectedActor.id}}.quality.relationshipName" placeholder="{{localize 'Litm.camp.relationship-name'}}">{{/if}}</label>{{else}}<p class="litm--camp-empty">{{localize "Litm.camp.no-relationship-members"}}</p>{{/each}}</div>{{/if}}
+		</fieldset>
+		{{#if isGM}}{{#if selectedChoiceLocked}}{{#if tabIsCurrent}}<button type="button" class="litm--camp-unlock-choice" data-camp-action="unlock-choice" data-phase="quality"><i class="fas fa-lock-open"></i> {{localize "Litm.camp.unlock-choice"}}</button>{{/if}}{{/if}}{{/if}}
+	</section>
+	{{/if}}
+			</main>
+		</div>
+	</section>
+
+	<footer class="litm--camp-footer">
+		<div class="litm--camp-footer-left">
+			{{#if isGM}}{{#unless isDraft}}<button type="button" class="litm--camp-cancel" data-camp-action="cancel-camp"><i class="fas fa-xmark"></i>{{localize "Litm.camp.cancel"}}</button>{{/unless}}{{/if}}
+		</div>
+		<div class="litm--camp-footer-center">
+			{{#unless isGM}}
+			{{#if isSetup}}{{#unless isDraft}}{{#if tabIsCurrent}}<button type="button" class="{{#if playerPreparationReady}}primary active{{/if}}" data-camp-action="toggle-preparation-ready" {{#if playerPreparationReady}}disabled{{/if}}><i class="fas fa-circle-check"></i>{{localize "Litm.camp.ready"}}</button>{{/if}}{{/unless}}{{/if}}
+			{{#if isActivity}}{{#if tabIsCurrent}}<button type="button" class="{{#if playerActivitySubmitted}}primary active{{/if}}" data-camp-action="submit-activity" data-index="{{activityIndex}}" {{#if (or playerActivitySubmitted (not activityChoiceComplete))}}disabled{{/if}}><i class="fas fa-circle-check"></i>{{localize (ifThen playerActivitySubmitted "Litm.camp.choice-confirmed" "Litm.camp.confirm-choice")}}</button>{{/if}}{{/if}}
+			{{#if isQuality}}{{#if tabIsCurrent}}<button type="button" class="{{#if playerQualitySubmitted}}primary active{{/if}}" data-camp-action="submit-quality" {{#if (or playerQualitySubmitted (not qualityChoiceComplete))}}disabled{{/if}}><i class="fas fa-circle-check"></i>{{localize (ifThen playerQualitySubmitted "Litm.camp.choice-confirmed" "Litm.camp.confirm-choice")}}</button>{{/if}}{{/if}}
+			{{#if isActivity2}}<button type="button" data-camp-action="request-third"><i class="fas fa-envelope"></i>{{localize "Litm.camp.request-third"}}</button>{{/if}}
+			{{/unless}}
+			{{#if isGM}}{{#if tabIsCurrent}}{{#if isActivity2}}<button type="button" data-camp-action="skip-third">{{localize "Litm.camp.skip-third"}}</button>{{/if}}{{/if}}{{/if}}
+		</div>
+		<div class="litm--camp-footer-right">
+			{{#if isGM}}
+			{{#if tabIsCurrent}}
+			{{#if isSetup}}{{#if isDraft}}<button type="button" class="primary" data-camp-action="start-camp"><i class="fas fa-campground"></i>{{localize "Litm.camp.start"}}</button>{{else}}<button type="button" class="primary" data-camp-action="advance-phase">{{localize "Litm.camp.confirm-begin-activity-1"}} <i class="fas fa-arrow-right"></i></button>{{/if}}{{/if}}
+			{{#if isActivity1}}<button type="button" class="primary" data-camp-action="advance-phase">{{localize "Litm.camp.begin-activity-2"}} <i class="fas fa-arrow-right"></i></button>{{/if}}
+			{{#if isActivity2}}<button type="button" class="primary" data-camp-action="advance-phase">{{localize "Litm.camp.begin-activity-3"}} <i class="fas fa-arrow-right"></i></button>{{/if}}
+			{{#if isActivity3}}<button type="button" class="primary" data-camp-action="advance-phase">{{localize "Litm.camp.begin-quality"}} <i class="fas fa-arrow-right"></i></button>{{/if}}
+			{{#if isQuality}}<button type="button" class="primary" data-camp-action="finish-camp"><i class="fas fa-campground"></i>{{localize "Litm.camp.finish"}}</button>{{/if}}
+			{{/if}}
+			{{/if}}
+		</div>
+	</footer>
+</div>

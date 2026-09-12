@@ -9,6 +9,21 @@ export class HandlebarsHelpers {
 			return args.reduce((acc, val) => acc + val, 0);
 		});
 
+		Handlebars.registerHelper("loop", (count) =>
+			Array.from({ length: count }, (_, i) => i + 1),
+		);
+
+		Handlebars.registerHelper("alphaIndex", (index) => {
+			let value = Number(index) + 1;
+			let label = "";
+			while (value > 0) {
+				value -= 1;
+				label = String.fromCharCode(65 + (value % 26)) + label;
+				value = Math.floor(value / 26);
+			}
+			return label;
+		});
+
 		Handlebars.registerHelper("includes", (array, value, path) =>
 			Array.isArray(array)
 				? (path && array.some((i) => i[path] === value)) ||
@@ -34,14 +49,6 @@ export class HandlebarsHelpers {
 			(string) => string.charAt(0).toUpperCase() + string.slice(1),
 		);
 
-		Handlebars.registerHelper("tagActiveString", (tag, readonly) =>
-			tag.isActive
-				? "Litm.tags.isActive"
-				: readonly
-					? "Litm.tags.isInactive"
-					: "Litm.tags.activate",
-		);
-
 		Handlebars.registerHelper("tagScratchedString", (tag, readonly) =>
 			tag.isScratched
 				? "Litm.tags.isScratched"
@@ -54,21 +61,17 @@ export class HandlebarsHelpers {
 
 export class HandlebarsPartials {
 	static partials = [
-		"systems/litm-rn/templates/apps/loot-dialog.html",
 		"systems/litm-rn/templates/apps/roll-dialog.html",
-		"systems/litm-rn/templates/apps/story-tags.html",
 		"systems/litm-rn/templates/chat/message.html",
 		"systems/litm-rn/templates/chat/message-tooltip.html",
 		"systems/litm-rn/templates/chat/moderation.html",
-		"systems/litm-rn/templates/item/backpack-ro.html",
-		"systems/litm-rn/templates/item/fellowship-ro.html",
-		"systems/litm-rn/templates/item/hero-ro.html",
-		"systems/litm-rn/templates/item/theme-ro.html",
 		"systems/litm-rn/templates/partials/crispy-power-tag.html",
 		"systems/litm-rn/templates/partials/new-tag.html",
 		"systems/litm-rn/templates/partials/tag.html",
 		"systems/litm-rn/templates/partials/special.html",
 		"systems/litm-rn/templates/partials/relationship.html",
+		"systems/litm-rn/templates/apps/parts/reference-image-setting.html",
+		"systems/litm-rn/templates/apps/parts/reference-color-setting.html",
 	];
 
 	static register() {

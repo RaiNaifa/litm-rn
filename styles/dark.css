@@ -1,19 +1,197 @@
-body.theme-dark {
-	& :not(.litm) {
-		& .litm--tag,
-		& .litm--status,
-		& .litm--limit,
-		& .litm--might {
-			color: var(--color-text-primary);
+.theme-dark {
+	& .litm--fellowship-dropdown option,
+	& .litm--image-dropdown .dropdown-options {
+		background: url("../assets/media/paper-dark.webp") left top repeat;
+	}
+
+	& mark:where(.litm--tag, .litm--status, .litm--limit, .litm--might) {
+		--litm-enriched-highlight: rgb(131 99 0);
+		color: var(--litm-color-text-accent-creme);
+
+		&.litm--status {
+			--litm-enriched-highlight: var(--litm-color-might-origin-dark);
+		}
+
+		&.litm--limit {
+			--litm-enriched-highlight: var(--litm-color-tag-limit-bg-dark);
+		}
+
+		&.litm--might.litm--origin {
+			--litm-enriched-highlight: color-mix(
+				in srgb,
+				var(--litm-color-might-origin-dark) 20%,
+				transparent
+			);
+		}
+
+		&.litm--might.litm--adventure {
+			--litm-enriched-highlight: color-mix(
+				in srgb,
+				var(--litm-color-might-adventure-dark) 20%,
+				transparent
+			);
+		}
+
+		&.litm--might.litm--greatness {
+			--litm-enriched-highlight: color-mix(
+				in srgb,
+				var(--litm-color-might-greatness-dark) 20%,
+				transparent
+			);
+		}
+
+		&.litm--might.litm--origin img {
+			content: url("../assets/media/icons/origin-color-light_litm_icn.svg");
+		}
+
+		&.litm--might.litm--adventure img {
+			content: url("../assets/media/icons/adventure-color-light_litm_icn.svg");
+		}
+
+		&.litm--might.litm--greatness img {
+			content: url("../assets/media/icons/greatness-color-light_litm_icn.svg");
+		}
+	}
+
+	/* Light-themed sheets and chat cards override the surrounding world theme. */
+	&
+		:is(.themed.theme-light, .chat-message)
+		mark:where(.litm--tag, .litm--status, .litm--limit, .litm--might) {
+		--litm-enriched-highlight: var(--litm-color-tag-story-enricher);
+		color: var(--litm-color-text-black);
+
+		&.litm--status {
+			--litm-enriched-highlight: var(--litm-color-tag-status-enricher);
+		}
+
+		&.litm--limit {
+			--litm-enriched-highlight: var(--litm-color-tag-limit-bg);
+		}
+
+		&.litm--might.litm--origin {
+			--litm-enriched-highlight: color-mix(
+				in srgb,
+				var(--litm-color-origin-light-bg) 20%,
+				transparent
+			);
+		}
+
+		&.litm--might.litm--adventure {
+			--litm-enriched-highlight: color-mix(
+				in srgb,
+				var(--litm-color-adventure-light-bg) 20%,
+				transparent
+			);
+		}
+
+		&.litm--might.litm--greatness {
+			--litm-enriched-highlight: color-mix(
+				in srgb,
+				var(--litm-color-greatness-light-bg) 20%,
+				transparent
+			);
+		}
+
+		&.litm--might.litm--origin img {
+			content: url("../assets/media/icons/origin-color_litm_icn.svg");
+		}
+
+		&.litm--might.litm--adventure img {
+			content: url("../assets/media/icons/adventure-color_litm_icn.svg");
+		}
+
+		&.litm--might.litm--greatness img {
+			content: url("../assets/media/icons/greatness-color_litm_icn.svg");
 		}
 	}
 }
 
-.sheet.themed.theme-dark {
-	& .litm--tag,
-	& .litm--status,
-	& .litm--limit,
-	& .litm--might {
-		color: var(--color-text-primary);
+/* Explicit enriched-content themes override the world's selected color scheme. */
+.litm-enriched-theme-light
+	mark:where(.litm--tag, .litm--status, .litm--limit, .litm--might) {
+	--litm-enriched-highlight: var(--litm-color-tag-story-enricher);
+	color: var(--litm-color-text-black);
+
+	&.litm--status {
+		--litm-enriched-highlight: var(--litm-color-tag-status-enricher);
+	}
+	&.litm--limit {
+		--litm-enriched-highlight: var(--litm-color-tag-limit-bg);
+	}
+	&.litm--might.litm--origin {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-origin-light-bg) 80%,
+			transparent
+		);
+	}
+	&.litm--might.litm--adventure {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-adventure-light-bg) 80%,
+			transparent
+		);
+	}
+	&.litm--might.litm--greatness {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-greatness-light-bg) 80%,
+			transparent
+		);
+	}
+	&.litm--might.litm--origin img {
+		content: url("../assets/media/icons/origin-color_litm_icn.svg");
+	}
+	&.litm--might.litm--adventure img {
+		content: url("../assets/media/icons/adventure-color_litm_icn.svg");
+	}
+	&.litm--might.litm--greatness img {
+		content: url("../assets/media/icons/greatness-color_litm_icn.svg");
+	}
+}
+
+.litm-enriched-theme-dark
+	mark:where(.litm--tag, .litm--status, .litm--limit, .litm--might) {
+	--litm-enriched-highlight: rgb(131 99 0);
+	color: var(--litm-color-text-accent-creme);
+
+	&.litm--status {
+		--litm-enriched-highlight: var(--litm-color-might-origin-dark);
+	}
+	&.litm--limit {
+		--litm-enriched-highlight: rgb(138 75 69);
+	}
+	&.litm--might.litm--origin {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-might-origin-dark) 20%,
+			transparent
+		);
+	}
+	&.litm--might.litm--adventure {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-might-adventure-dark) 20%,
+			transparent
+		);
+	}
+	&.litm--might.litm--greatness {
+		--litm-enriched-highlight: color-mix(
+			in srgb,
+			var(--litm-color-might-greatness-dark) 20%,
+			transparent
+		);
+	}
+	&.litm--might.litm--origin img {
+		content: url("../assets/media/icons/origin-color-light_litm_icn.svg");
+	}
+	&.litm--might.litm--adventure img {
+		content: url("../assets/media/icons/adventure-color-light_litm_icn.svg");
+	}
+	&.litm--might.litm--greatness img {
+		content: url("../assets/media/icons/greatness-color-light_litm_icn.svg");
+	}
+	&.litm--weakness-enriched img {
+		filter: grayscale(1) brightness(2.4);
 	}
 }

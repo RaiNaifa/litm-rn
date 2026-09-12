@@ -1,0 +1,111 @@
+<div class="litm--background-settings">
+	<div class="litm--background-workspace">
+	<section class="litm--background-preview">
+		<div class="litm--background-preview-stage"
+			style="--background-sheet-aspect:{{previewSheetWidth}} / {{previewSheetHeight}};--background-art-width:{{previewArtPercent}}%;">
+			<img class="litm--background-preview-default" src="{{transitionSrc}}" alt="" />
+			{{#if hasImage}}
+			<div class="litm--background-preview-mask"
+				style="--content-transition-src:url('/{{transitionSrc}}');">
+				<div class="litm--background-preview-art" style="{{artStyle}}"></div>
+			</div>
+			{{/if}}
+			<div class="litm--background-preview-copy">
+				<small>{{localize "TYPES.Item.themebook"}}</small>
+				<h2>{{name}}</h2>
+				<p>{{localize "Litm.theme-content.background-preview-text"}}</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="litm--background-controls">
+		<div class="litm--background-picker">
+			<button type="button" data-action="chooseImage">
+				<i class="fa-solid fa-folder-open"></i>
+				{{localize "Litm.theme-content.choose-background"}}
+			</button>
+			<button type="button" data-action="resetImage" {{#unless hasImage}}disabled{{/unless}}>
+				<i class="fa-solid fa-rotate-left"></i>
+				{{localize "Litm.theme-content.default-background"}}
+			</button>
+		</div>
+		<label class="litm--background-fit-control">
+			<span>{{localize "Litm.theme-content.background-fit"}}</span>
+			<select data-background-fit>
+				<option value="cover" {{#if (eq settings.backgroundFit "cover")}}selected{{/if}}>
+					{{localize "Litm.theme-content.background-fit-cover"}}
+				</option>
+				<option value="stretch" {{#if (eq settings.backgroundFit "stretch")}}selected{{/if}}>
+					{{localize "Litm.theme-content.background-fit-stretch"}}
+				</option>
+			</select>
+			<span></span>
+		</label>
+		<label class="litm--background-fit-control">
+			<span>{{localize "Litm.theme-content.background-anchor-y"}}</span>
+			<select data-background-anchor="backgroundAnchorY">
+				<option value="top" {{#if (eq settings.backgroundAnchorY "top")}}selected{{/if}}>{{localize "Litm.theme-content.anchor-top"}}</option>
+				<option value="center" {{#if (eq settings.backgroundAnchorY "center")}}selected{{/if}}>{{localize "Litm.theme-content.anchor-center"}}</option>
+				<option value="bottom" {{#if (eq settings.backgroundAnchorY "bottom")}}selected{{/if}}>{{localize "Litm.theme-content.anchor-bottom"}}</option>
+			</select>
+			<span></span>
+		</label>
+		<label>
+			<span>{{localize "Litm.theme-content.background-scale"}}</span>
+			<input type="range" min="0.25" max="3" step="0.05"
+				value="{{settings.backgroundScale}}" data-background-setting="backgroundScale" />
+			<input type="number" min="0.25" max="3" step="0.05"
+				value="{{settings.backgroundScale}}" data-background-setting="backgroundScale" />
+		</label>
+		<label>
+			<span>{{localize "Litm.theme-content.background-rotation"}}</span>
+			<input type="range" min="-180" max="180" step="1"
+				value="{{settings.backgroundRotation}}" data-background-setting="backgroundRotation" />
+			<input type="number" min="-180" max="180" step="1"
+				value="{{settings.backgroundRotation}}" data-background-setting="backgroundRotation" />
+		</label>
+		<div class="litm--background-reflection-control">
+			<span>{{localize "Litm.theme-content.background-reflection"}}</span>
+			<button type="button" class="litm--background-reflection-choice{{#if settings.backgroundFlipX}} active{{/if}}"
+				data-background-toggle="backgroundFlipX" aria-pressed="{{settings.backgroundFlipX}}">
+				<i class="fa-solid fa-arrows-left-right"></i>
+				<span>{{localize "Litm.theme-content.background-reflection-x"}}</span>
+			</button>
+			<button type="button" class="litm--background-reflection-choice{{#if settings.backgroundFlipY}} active{{/if}}"
+				data-background-toggle="backgroundFlipY" aria-pressed="{{settings.backgroundFlipY}}">
+				<i class="fa-solid fa-arrows-up-down"></i>
+				<span>{{localize "Litm.theme-content.background-reflection-y"}}</span>
+			</button>
+		</div>
+		<label>
+			<span>{{localize "Litm.theme-content.background-offset-x"}}</span>
+			<input type="range" min="-500" max="500" step="1"
+				value="{{settings.backgroundOffsetX}}" data-background-setting="backgroundOffsetX" />
+			<input type="number" min="-1000" max="1000" step="1"
+				value="{{settings.backgroundOffsetX}}" data-background-setting="backgroundOffsetX" />
+		</label>
+		<label>
+			<span>{{localize "Litm.theme-content.background-offset-y"}}</span>
+			<input type="range" min="-500" max="500" step="1"
+				value="{{settings.backgroundOffsetY}}" data-background-setting="backgroundOffsetY" />
+			<input type="number" min="-1000" max="1000" step="1"
+				value="{{settings.backgroundOffsetY}}" data-background-setting="backgroundOffsetY" />
+		</label>
+		<button type="button" data-action="resetPosition">
+			<i class="fa-solid fa-crosshairs"></i>
+			{{localize "Litm.theme-content.reset-position"}}
+		</button>
+	</section>
+	</div>
+
+	<footer>
+		<button type="button" data-action="save">
+			<i class="fa-solid fa-floppy-disk"></i>
+			{{localize "Save"}}
+		</button>
+		<button type="button" data-action="saveAndClose">
+			<i class="fa-solid fa-check"></i>
+			{{localize "Litm.ui.save-and-close"}}
+		</button>
+	</footer>
+</div>

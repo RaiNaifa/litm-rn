@@ -1,0 +1,499 @@
+{{#*inline 'tagItem' tag ref isOwner readonly editingId}}
+<div class="litm--tm-tag-item litm--tm-tag-{{tag.type}}{{ifThen tag.isPrivate ' litm--tm-private' ''}}{{ifThen tag.isHindering ' litm--tm-hindering' ''}}{{ifThen (and tag.isScratched readonly) ' litm--tm-scratched' ''}}{{#if (eq tag.type 'might')}} litm--tm-might-val-{{ifThen (eq tag.value 0) 'origin' (ifThen (eq tag.value 6) 'greatness' 'adventure')}}{{/if}}{{#if tag.isCrispy}} litm--tm-crispy{{/if}}{{#if tag.isPermanent}} litm--tm-permanent{{/if}}{{#if (and @root.isGM (lookup @root.rollSelMap tag.id))}} litm--tag-roll-selected{{/if}}"
+  data-context-tag
+  data-tag-id="{{tag.id}}" data-ref="{{ref}}" data-tag-type="{{tag.type}}"
+  data-readonly="{{readonly}}"
+  {{#if (lookup @root.playerRollSelMap (concat ref ":" tag.id))}}data-selected{{/if}}
+  {{#if (eq (lookup @root.playerRollSelMap (concat ref ":" tag.id)) "burned")}}data-burned{{/if}}
+  {{#if @root.isGM}}draggable="true"{{/if}}
+  data-tooltip="{{tag.name}}{{#if tag.value}} ({{tag.value}}){{/if}}">
+  <div class="litm--tm-tag-visual">
+  <div class="litm--tm-tag-inner">
+    {{! Tag name (editable or not) — pushed left }}
+    <div class="litm--tm-tag-name{{#if (and tag.isScratched readonly)}} litm--tm-scratched-text{{/if}}"
+      {{#if (and @root.isGM (ne tag.type 'limit') (not (and (eq ref 'fellowship') tag.isScratched (ne tag.type 'weaknessTag'))))}}data-action="select"
+      {{else if (and @root.hasPlayerCharacter (not (and (eq ref 'fellowship') tag.isScratched (ne tag.type 'weaknessTag'))) (or (eq tag.type 'tag') (eq tag.type 'status') (eq tag.type 'powerTag') (eq tag.type 'weaknessTag') (eq tag.type 'weaknessStoryTag') (eq tag.type 'themeTag') (eq tag.type 'powerCrispy') (eq tag.type 'themeCrispy')))}}data-action="player-select"{{/if}}
+      contenteditable="{{ifThen (eq tag.id editingId) 'true' 'false'}}"
+      data-id="{{tag.id}}" data-ref="{{ref}}"
+      data-tag-type="{{tag.type}}" data-is-scratched="{{tag.isScratched}}"
+      >{{#if (or (eq tag.type 'powerCrispy') (eq tag.type 'powerTag') (eq tag.type 'themeCrispy') (eq tag.type 'themeTag'))}}<i class="litm--tm-type-icon" style="background-image:url('systems/litm-rn/assets/media/icons/weakness-marker-litm_inactive.svg')"></i>{{/if}}{{#if (eq tag.type 'weaknessTag')}}<i class="litm--tm-type-icon" style="background-image:url('systems/litm-rn/assets/media/icons/weakness-marker-litm_active.svg')"></i>{{/if}}<span class="litm--tm-tag-text">{{tag.name}}</span>
+    </div>
+
+    {{! Right-aligned indicators block }}
+    <div class="litm--tm-tag-indicators">
+      {{! Roll selection portrait indicators — GM only }}
+      {{#if (and @root.isGM (lookup @root.rollSelMap tag.id))}}
+        <div class="litm--roll-selected-indicators">
+          {{#each (lookup @root.rollSelMap tag.id) as |sel|}}
+            <img class="litm--roll-selected-portrait" src="{{sel.portrait}}"
+              alt="" draggable="false" data-tooltip="{{sel.actorName}}" />
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{#if (eq tag.type 'tag')}}
+        {{#if tag.isPermanent}}<i class="litm--tm-tag-icon litm--tm-icon-permanent fas fa-infinity" data-tooltip="{{localize 'Litm.tags.isPermanent'}}"></i>{{/if}}
+        {{#if tag.isCrispy}}<i class="litm--tm-tag-icon litm--tm-icon-crispy fas fa-hourglass-half"></i>{{/if}}
+        {{#if tag.isPrivate}}<i class="litm--tm-tag-icon litm--tm-icon-private fa-solid fa-mask"></i>{{/if}}
+      {{/if}}
+
+      {{#if (eq tag.type 'status')}}
+        {{#if tag.isPrivate}}<i class="litm--tm-tag-icon litm--tm-icon-private fa-solid fa-mask"></i>{{/if}}
+        <div class="litm--tm-status-values">
+          {{#each tag.values}}
+          <span class="litm--tm-status-dot{{ifThen this ' litm--tm-filled' ''}}"></span>
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{#if (eq tag.type 'might')}}
+        {{#if tag.isPrivate}}<i class="litm--tm-tag-icon litm--tm-icon-private fa-solid fa-mask"></i>{{/if}}
+        <span class="litm--tm-might-indicator litm--tm-might-{{#if (eq tag.value 0)}}origin{{else if (eq tag.value 6)}}greatness{{else}}adventure{{/if}}"></span>
+      {{/if}}
+
+      {{#if (eq tag.type 'limit')}}
+        {{#if tag.isPrivate}}<i class="litm--tm-tag-icon litm--tm-icon-private fa-solid fa-mask"></i>{{/if}}
+        <span class="litm--tm-limit-indicator" data-limit-value="{{tag.value}}">
+          {{#if tag.value}}<span class="litm--tm-limit-current">{{tag.currentValue}}</span><span class="litm--tm-limit-sep">/</span><span class="litm--tm-limit-max">{{tag.value}}</span>{{else}}<span class="litm--tm-limit-immune">~</span>{{/if}}
+        </span>
+      {{/if}}
+    </div>
+
+    {{! Fellowship scratched indicator }}
+    {{#if (and tag.isScratched readonly)}}<img class="litm--tm-scratch-icon" src="systems/litm-rn/assets/media/scratch.svg" alt="" />{{/if}}
+
+  </div></div>
+
+  {{! Hover popup — only for non-readonly tags with perms }}
+  {{#if false}}
+  {{#if (or @root.isGM isOwner (eq ref "story") (eq ref "scene"))}}
+  <div class="litm--tm-tag-popup" data-tooltip-direction="UP">
+    {{! Tag type — no type-specific block }}
+    {{#if (eq tag.type 'tag')}}
+    <div class="litm--tm-popup-group">
+      <button type="button" class="litm--tm-popup-btn" data-action="edit-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.edit'}}">
+        <i class="fas fa-pencil"></i>
+      </button>
+      <!-- <button type="button" class="litm--tm-popup-btn" data-action="toggle-hindering" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isHindering 'Litm.ui.make-helping' 'Litm.tags.toHindering')}}">
+        <img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_{{ifThen tag.isHindering 'active' 'inactive'}}.svg" alt="" />
+      </button> -->
+      {{#if @root.isGM}}
+      <button type="button" class="litm--tm-popup-btn" data-action="toggle-private" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+        <i class="fa-solid fa-mask"></i>
+      </button>
+      {{/if}}
+      <button type="button" class="litm--tm-popup-btn" data-action="toggle-crispy" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isCrispy 'Litm.tags.isCrispy' 'Litm.tags.toCrispy')}}">
+        <i class="fas {{ifThen tag.isCrispy 'fa-hourglass-half' 'fa-hourglass'}}"></i>
+      </button>
+    </div>
+    <div class="litm--tm-popup-end">
+      <button type="button" class="litm--tm-popup-btn litm--tm-popup-remove" data-action="remove-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.remove'}}">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {{/if}}
+
+    {{! Status type — status block in the middle }}
+    {{#if (eq tag.type 'status')}}
+    <div class="litm--tm-popup-group">
+      <button type="button" class="litm--tm-popup-btn" data-action="edit-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.edit'}}">
+        <i class="fas fa-pencil"></i>
+      </button>
+      <!-- <button type="button" class="litm--tm-popup-btn" data-action="toggle-hindering" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isHindering 'Litm.ui.make-helping' 'Litm.tags.toHindering')}}">
+        <img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_{{ifThen tag.isHindering 'active' 'inactive'}}.svg" alt="" />
+      </button> -->
+      {{#if @root.isGM}}
+      <button type="button" class="litm--tm-popup-btn" data-action="toggle-private" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+        <i class="fa-solid fa-mask"></i>
+      </button>
+      {{/if}}
+    </div>
+    <div class="litm--tm-popup-status">
+      {{#each tag.values}}
+      <button type="button" class="litm--tm-popup-status-btn{{ifThen this ' filled' ''}}"
+        data-action="toggle-status-value" data-value="{{@index}}" data-id="{{../tag.id}}" data-ref="{{../ref}}"
+        data-tooltip="{{add @index 1}}"></button>
+      {{/each}}
+    </div>
+    <div class="litm--tm-popup-end">
+      <button type="button" class="litm--tm-popup-btn litm--tm-popup-remove" data-action="remove-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.remove'}}">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {{/if}}
+
+    {{! Might type — might block in the middle }}
+    {{#if (eq tag.type 'might')}}
+    <div class="litm--tm-popup-group">
+      <button type="button" class="litm--tm-popup-btn" data-action="edit-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.edit'}}">
+        <i class="fas fa-pencil"></i>
+      </button>
+      <!-- <button type="button" class="litm--tm-popup-btn" data-action="toggle-hindering" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isHindering 'Litm.ui.make-helping' 'Litm.tags.toHindering')}}">
+        <img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_{{ifThen tag.isHindering 'active' 'inactive'}}.svg" alt="" />
+      </button> -->
+      {{#if @root.isGM}}
+      <button type="button" class="litm--tm-popup-btn" data-action="toggle-private" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+        <i class="fa-solid fa-mask"></i>
+      </button>
+      {{/if}}
+    </div>
+    <div class="litm--tm-popup-might">
+      <button type="button" class="litm--tm-popup-might-btn litm--might-origin{{ifThen (eq tag.value 0) ' active' ''}}"
+        data-action="set-might-value" data-value="0" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.tags.origin-0'}}"></button>
+      <button type="button" class="litm--tm-popup-might-btn litm--might-adventure{{ifThen (eq tag.value 3) ' active' ''}}"
+        data-action="set-might-value" data-value="3" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.tags.adventure-3'}}"></button>
+      <button type="button" class="litm--tm-popup-might-btn litm--might-greatness{{ifThen (eq tag.value 6) ' active' ''}}"
+        data-action="set-might-value" data-value="6" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.tags.greatness-6'}}"></button>
+    </div>
+    <div class="litm--tm-popup-end">
+      <button type="button" class="litm--tm-popup-btn litm--tm-popup-remove" data-action="remove-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.remove'}}">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {{/if}}
+
+    {{! Limit type — limits block in the middle, no hindering }}
+    {{#if (eq tag.type 'limit')}}
+    <div class="litm--tm-popup-group">
+      <button type="button" class="litm--tm-popup-btn" data-action="edit-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.edit'}}">
+        <i class="fas fa-pencil"></i>
+      </button>
+      {{#if @root.isGM}}
+      <button type="button" class="litm--tm-popup-btn" data-action="toggle-private" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isPrivate' 'Litm.tags.toPrivate')}}">
+        <i class="fa-solid fa-mask"></i>
+      </button>
+      {{/if}}
+    </div>
+    <div class="litm--tm-popup-limits">
+      <button type="button" class="litm--tm-popup-limit-btn{{ifThen (not tag.value) ' active' ''}}"
+        data-action="set-limit-value" data-value="" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="~">~</button>
+      {{#each (loop 6)}}
+      <button type="button" class="litm--tm-popup-limit-btn{{ifThen (eq ../tag.value this) ' active' ''}}"
+        data-action="set-limit-value" data-value="{{this}}" data-id="{{../tag.id}}" data-ref="{{../ref}}"
+        data-tooltip="{{this}}">{{this}}</button>
+      {{/each}}
+    </div>
+    <div class="litm--tm-popup-end">
+      <button type="button" class="litm--tm-popup-btn litm--tm-popup-remove" data-action="remove-tag" data-id="{{tag.id}}" data-ref="{{ref}}"
+        data-tooltip="{{localize 'Litm.ui.remove'}}">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {{/if}}
+  </div>
+  {{/if}}
+  {{/if}}
+</div>
+{{/inline}}
+
+{{#*inline 'tagList' tags ref isOwner readonly editingId}}
+  {{#if tags.length}}
+  <div class="litm--tm-tag-list">
+    {{#each tags}}{{#if (eq this.type 'limit')}}
+    <div class="litm--tm-limit-wrapper{{ifThen this.isPrivate ' litm--tm-private' ''}}" data-limit-id="{{this.id}}" data-ref="{{../ref}}">
+      {{> tagItem tag=this ref=../ref isOwner=../isOwner readonly=../readonly editingId=../editingId}}
+      {{#if this.containedStatuses.length}}
+      <div class="litm--tm-limit-contents">
+        {{#if (not this.value)}}
+        <span class="litm--tm-limit-hint">{{localize "Litm.ui.limit-immune-hint"}}</span>
+        {{/if}}
+        {{#each this.containedStatuses}}
+        {{> tagItem tag=this ref=../../ref isOwner=../../isOwner readonly=false editingId=../../editingId}}
+        {{/each}}
+      </div>
+      {{/if}}
+    </div>
+    {{else}}
+    {{> tagItem tag=this ref=../ref isOwner=../isOwner readonly=../readonly editingId=../editingId}}
+    {{/if}}{{/each}}
+  </div>
+  {{/if}}
+{{/inline}}
+
+{{#*inline 'actorBlock' actor sectionRef editingId parentSection}}
+<div class="litm--tm-actor{{ifThen (or actor.hidden actor.hideFromPlayers) ' litm--tm-hidden' ''}}"
+  data-ref="{{actor.ref}}" data-section="{{sectionRef}}" data-parent-section="{{parentSection}}">
+  <div class="litm--tm-actor-head">
+    <img src="{{actor.img}}" alt="" class="litm--tm-actor-img"
+      data-action="open-sheet" data-ref="{{actor.ref}}"
+      data-tooltip="{{localize 'Litm.ui.open-sheet'}}" />
+    <div class="litm--tm-actor-info">
+      <div class="litm--tm-actor-name"
+        {{#if @root.isGM}}draggable="true" data-action="reorder-actor"{{/if}}>{{actor.name}}</div>
+      <div class="litm--tm-btn-row">
+        {{!-- Remove from manager (first, with right margin) --}}
+        {{#if actor.sceneControls}}
+        {{#if @root.isGM}}
+        <button type="button" class="litm--tm-btn-remove" data-action="remove-actor" data-ref="{{actor.ref}}"
+          data-tooltip="{{localize 'Litm.ui.remove-from-manager'}}">
+          <i class="fas fa-times"></i>
+        </button>
+        {{/if}}
+        {{else if (and @root.isGM (not (and @root.selectedFellowshipId actor.fellowshipId (eq actor.fellowshipId @root.selectedFellowshipId))))}}
+        <button type="button" class="litm--tm-btn-remove" data-action="remove-story-actor" data-ref="{{actor.ref}}"
+          data-tooltip="{{localize 'Litm.ui.remove-from-manager'}}">
+          <i class="fas fa-times"></i>
+        </button>
+        {{/if}}
+
+        {{!-- Hide/show --}}
+        {{#if actor.sceneControls}}
+        {{#if @root.isGM}}
+        <button type="button" data-action="toggle-hidden" data-ref="{{actor.ref}}"
+          data-tooltip="{{localize (ifThen actor.hidden 'Litm.tags.show' 'Litm.tags.hide')}}">
+          <i class="fas {{ifThen actor.hidden 'fa-eye-slash' 'fa-eye'}}"></i>
+        </button>
+        {{/if}}
+        {{else if @root.isGM}}
+        <button type="button" data-action="toggle-hide-story" data-ref="{{actor.ref}}"
+          data-tooltip="{{localize (ifThen actor.hideFromPlayers 'Litm.tags.show' 'Litm.tags.hide')}}">
+          <i class="fas {{ifThen actor.hideFromPlayers 'fa-eye-slash' 'fa-eye'}}"></i>
+        </button>
+        {{/if}}
+
+        {{!-- Ping and Focus (group with right margin via focus-token class) --}}
+        <button type="button" data-action="ping-token" data-ref="{{actor.ref}}"
+          data-tooltip="{{localize 'Litm.ui.ping-token'}}">
+          <i class="fas fa-location-crosshairs"></i>
+        </button>
+        <button type="button" class="litm--tm-btn-group-end" data-action="focus-token" data-ref="{{actor.ref}}"
+          data-tooltip="{{localize 'Litm.ui.focus-token'}}">
+          <i class="fas fa-crosshairs"></i>
+        </button>
+
+        {{!-- Add tag, status, might, limit --}}
+        {{#if actor.isOwner}}
+        <button type="button" data-action="add-tag" data-section="actor-{{actor.ref}}" data-tooltip="{{localize 'Litm.ui.add-tag'}}"><span class="litm--tm-add-icon litm--tm-add-icon-tag" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-status" data-section="actor-{{actor.ref}}" data-tooltip="{{localize 'Litm.ui.add-status'}}"><span class="litm--tm-add-icon litm--tm-add-icon-status" aria-hidden="true"></span></button>
+        {{#unless actor.isCharacter}}
+        <button type="button" data-action="add-might" data-section="actor-{{actor.ref}}" data-tooltip="{{localize 'Litm.ui.add-might'}}"><span class="litm--tm-add-icon litm--tm-add-icon-might" aria-hidden="true"></span></button>
+        {{/unless}}
+        <button type="button" data-action="add-limit" data-section="actor-{{actor.ref}}" data-tooltip="{{localize 'Litm.ui.add-limit'}}"><span class="litm--tm-add-icon litm--tm-add-icon-limit" aria-hidden="true"></span></button>
+        {{/if}}
+      </div>
+    </div>
+    <button type="button" class="litm--tm-actor-collapse"
+      data-action="toggle-collapse" data-collapse-id="{{actor.collapseId}}"
+      data-tooltip="{{localize 'Litm.ui.toggle-tags'}}">
+      <i class="fas {{ifThen (includes @root.collapsed actor.collapseId) 'fa-caret-right' 'fa-caret-down'}}"></i>
+    </button>
+  </div>
+  {{#unless (includes @root.collapsed actor.collapseId)}}
+  {{> tagList tags=actor.tags ref=sectionRef isOwner=actor.isOwner editingId=editingId}}
+  {{/unless}}
+</div>
+{{/inline}}
+
+<div class="litm--tm-content">
+  <div class="litm--tm-column" data-column="fellowship">
+  <section class="litm--tm-section" data-section="fellowship">
+    <header class="litm--tm-section-header" data-action="toggle-collapse" data-collapse-id="s1-fellowship">
+      <h3>{{localize "Litm.other.fellowship"}}</h3>
+      <i class="fas {{ifThen (includes collapsed 's1-fellowship') 'fa-caret-right' 'fa-caret-down'}} litm--tm-collapse-icon"></i>
+    </header>
+    {{#unless (includes collapsed "s1-fellowship")}}
+    <div class="litm--tm-section-body">
+      {{#if hasSelection}}
+      <div class="litm--tm-fellowship-selected">
+        <p class="litm--tm-empty">{{activeFellowship.motivation}}</p>
+		{{#if @root.isGM}}
+		<div class="litm--tm-camp-row">
+			<button type="button" class="{{#if activeFellowship.campActive}}active{{/if}}" data-action="open-camp">
+				<i class="fas fa-campground"></i>
+				<span>{{localize (ifThen activeFellowship.campActive "Litm.camp.open" "Litm.camp.open-setup")}}</span>
+			</button>
+		</div>
+		{{/if}}
+        <div class="litm--tm-fellowship-header">
+          <img src="{{activeFellowship.img}}" alt="" class="litm--tm-fellowship-img"
+            data-action="open-fellowship"
+            data-tooltip="{{localize 'Litm.ui.open-sheet'}}" />
+          <span class="litm--tm-fellowship-name">{{activeFellowship.themebook}}</span>
+          <span class="litm--tm-might-indicator litm--tm-fellowship-might litm--tm-might-{{activeFellowship.level}}"></span>
+          {{#if @root.isGM}}
+          <button type="button" data-action="clear-fellowship" data-tooltip="{{localize 'Litm.ui.clear-fellowship'}}">
+            <i class="fas fa-times"></i>
+          </button>
+          {{/if}}
+          <button type="button" class="litm--tm-actor-collapse" data-action="toggle-collapse"
+            data-collapse-id="{{activeFellowship.collapseId}}"
+            data-tooltip="{{localize 'Litm.ui.toggle-tags'}}">
+            <i class="fas {{ifThen (includes @root.collapsed activeFellowship.collapseId) 'fa-caret-right' 'fa-caret-down'}}"></i>
+          </button>
+        </div>
+        {{#unless (includes @root.collapsed activeFellowship.collapseId)}}
+        {{> tagList tags=activeFellowship.powerTags ref="fellowship" isOwner=false readonly=true}}
+        {{> tagList tags=activeFellowship.weaknessTags ref="fellowship" isOwner=false readonly=true}}
+        {{#if activeFellowship.specials.length}}
+        <div class="litm--tm-fellowship-specials">
+          {{#each activeFellowship.specials}}
+          <button type="button" class="litm--tm-special-btn" data-action="send-special" data-special-id="{{this.id}}"
+            data-tooltip="{{this.name}}: {{this.enrichedDescription}}" data-tooltip-direction="UP">
+            <img src="systems/litm-rn/assets/media/icons/special_icn.svg" alt="" />
+          </button>
+          {{/each}}
+        </div>
+        {{/if}}
+        {{/unless}}
+      </div>
+      {{#each activeFellowship.actors}}
+      {{> actorBlock actor=this sectionRef=this.ref parentSection="fellowship" editingId=../editingId}}
+      {{/each}}
+      {{#unless activeFellowship.actors.length}}
+      <p class="litm--tm-empty">{{localize "Litm.ui.no-fellowship-actors"}}</p>
+      {{/unless}}
+      {{else}}
+      {{#if @root.isGM}}
+      <div class="litm--tm-fellowship-select-row">
+        <select data-action="select-fellowship">
+          <option value="">{{localize "Litm.ui.select-fellowship"}}</option>
+          {{#each allFellowshipOptions}}
+          <option value="{{this.id}}">{{this.name}}</option>
+          {{/each}}
+        </select>
+      </div>
+      {{else}}
+      <p class="litm--tm-empty">{{localize "Litm.ui.no-fellowship-selected"}}</p>
+      {{/if}}
+      {{#unless allFellowshipOptions.length}}
+      <p class="litm--tm-empty">{{localize "Litm.ui.no-fellowships"}}</p>
+      {{/unless}}
+      {{/if}}
+    </div>
+    {{/unless}}
+  </section>
+  </div>
+
+  <div class="litm--tm-column" data-column="tags">
+  <section class="litm--tm-section" data-section="story">
+    <header class="litm--tm-section-header" data-action="toggle-collapse" data-collapse-id="s1-story">
+      <h3>{{localize "Litm.other.story-tags"}}</h3>
+      <i class="fas {{ifThen (includes collapsed 's1-story') 'fa-caret-right' 'fa-caret-down'}} litm--tm-collapse-icon"></i>
+    </header>
+    {{#unless (includes collapsed "s1-story")}}
+    <div class="litm--tm-section-body">
+      <p class="litm--tm-empty">{{localize "Litm.ui.manage-story-tags-hint"}}</p>
+      <div class="litm--tm-btn-row litm--tm-section-btn-row">
+        <button type="button" data-action="add-tag" data-section="story" data-tooltip="{{localize 'Litm.ui.add-tag'}}"><span class="litm--tm-add-icon litm--tm-add-icon-tag" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-status" data-section="story" data-tooltip="{{localize 'Litm.ui.add-status'}}"><span class="litm--tm-add-icon litm--tm-add-icon-status" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-might" data-section="story" data-tooltip="{{localize 'Litm.ui.add-might'}}"><span class="litm--tm-add-icon litm--tm-add-icon-might" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-limit" data-section="story" data-tooltip="{{localize 'Litm.ui.add-limit'}}"><span class="litm--tm-add-icon litm--tm-add-icon-limit" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-story-theme" data-section="story" data-tooltip="{{localize 'Litm.ui.add-story-theme'}}"><span class="litm--tm-add-icon litm--tm-add-icon-story-theme" aria-hidden="true"></span></button>
+        {{#if isGM}}<button type="button" class="litm--tm-clear-btn" data-action="clear-story-tags" data-tooltip="{{localize 'Litm.ui.clear'}}"><i class="fas fa-eraser"></i></button>{{/if}}
+      </div>
+      {{> tagList tags=storyTags ref="story" editingId=editingId}}
+      {{#if storyThemes.length}}
+      <div class="litm--tm-story-themes">
+        {{#each storyThemes as |theme|}}
+        <div class="litm--tm-fellowship-selected litm--tm-story-theme">
+          <div class="litm--tm-fellowship-header">
+            <img src="{{theme.img}}" alt="" class="litm--tm-fellowship-img"
+              data-action="open-story-theme" data-item-id="{{theme.id}}"
+              data-tooltip="{{localize 'Litm.ui.open-sheet'}}" />
+            <span class="litm--tm-fellowship-name litm--tm-story-theme-drag-handle"
+              draggable="true" data-action="reorder-story-theme">{{theme.name}}</span>
+            <span class="litm--tm-might-indicator litm--tm-story-theme-might litm--tm-might-{{theme.level}}"></span>
+            {{#if @root.isGM}}
+            <button type="button" data-action="remove-story-theme" data-item-id="{{theme.id}}"
+              data-tooltip="{{localize 'Litm.ui.remove-from-manager'}}">
+              <i class="fas fa-times"></i>
+            </button>
+            {{/if}}
+            <button type="button" class="litm--tm-actor-collapse" data-action="toggle-collapse"
+              data-collapse-id="{{theme.collapseId}}" data-tooltip="{{localize 'Litm.ui.toggle-tags'}}">
+              <i class="fas {{ifThen (includes @root.collapsed theme.collapseId) 'fa-caret-right' 'fa-caret-down'}}"></i>
+            </button>
+          </div>
+          {{#unless (includes @root.collapsed theme.collapseId)}}
+          {{> tagList tags=theme.powerTags ref=theme.ref isOwner=false readonly=true}}
+          {{> tagList tags=theme.weaknessTags ref=theme.ref isOwner=false readonly=true}}
+          {{/unless}}
+        </div>
+        {{/each}}
+      </div>
+      {{/if}}
+    </div>
+    {{/unless}}
+  </section>
+
+  <section class="litm--tm-section" data-section="scene">
+    <header class="litm--tm-section-header" data-action="toggle-collapse" data-collapse-id="s2-scene">
+      <h3>{{localize "Litm.other.scene-tags"}}{{#if sceneName}}<span class="litm--tm-scene-name">: {{sceneName}}</span>{{/if}}</h3>
+      <i class="fas {{ifThen (includes collapsed 's2-scene') 'fa-caret-right' 'fa-caret-down'}} litm--tm-collapse-icon"></i>
+    </header>
+    {{#unless (includes collapsed "s2-scene")}}
+    <div class="litm--tm-section-body">
+      <p class="litm--tm-empty">{{localize "Litm.ui.manage-scene-tags-hint"}}</p>
+      <div class="litm--tm-btn-row litm--tm-section-btn-row">
+        <button type="button" data-action="add-tag" data-section="scene" data-tooltip="{{localize 'Litm.ui.add-tag'}}"><span class="litm--tm-add-icon litm--tm-add-icon-tag" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-status" data-section="scene" data-tooltip="{{localize 'Litm.ui.add-status'}}"><span class="litm--tm-add-icon litm--tm-add-icon-status" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-might" data-section="scene" data-tooltip="{{localize 'Litm.ui.add-might'}}"><span class="litm--tm-add-icon litm--tm-add-icon-might" aria-hidden="true"></span></button>
+        <button type="button" data-action="add-limit" data-section="scene" data-tooltip="{{localize 'Litm.ui.add-limit'}}"><span class="litm--tm-add-icon litm--tm-add-icon-limit" aria-hidden="true"></span></button>
+        {{#if isGM}}<button type="button" class="litm--tm-clear-btn" data-action="clear-scene-tags" data-tooltip="{{localize 'Litm.ui.clear'}}"><i class="fas fa-eraser"></i></button>{{/if}}
+      </div>
+      {{> tagList tags=sceneTags ref="scene" editingId=editingId}}
+    </div>
+    {{/unless}}
+  </section>
+  </div>
+
+  <div class="litm--tm-column" data-column="actors">
+  <section class="litm--tm-section" data-section="actors">
+    <header class="litm--tm-section-header" data-action="toggle-collapse" data-collapse-id="s1-actors">
+      <h3>{{localize "Litm.ui.story-actors"}}</h3>
+      <i class="fas {{ifThen (includes collapsed 's1-actors') 'fa-caret-right' 'fa-caret-down'}} litm--tm-collapse-icon"></i>
+    </header>
+    {{#unless (includes collapsed "s1-actors")}}
+    <div class="litm--tm-section-body">
+      {{#if @root.isGM}}<p class="litm--tm-empty">{{localize "Litm.ui.drop-actors-story"}}</p>{{/if}}
+      {{#if @root.isGM}}
+      <div class="litm--tm-btn-row litm--tm-section-btn-row">
+        <button type="button" data-action="clear-story-actors" data-tooltip="{{localize 'Litm.ui.clear'}}"><i class="fas fa-eraser"></i></button>
+      </div>
+      {{/if}}
+      {{#each nonFellowshipActors}}{{> actorBlock actor=this sectionRef=ref parentSection="actors" editingId=../editingId}}{{/each}}
+    </div>
+    {{/unless}}
+  </section>
+
+  <section class="litm--tm-section" data-section="scene-actors">
+    <header class="litm--tm-section-header" data-action="toggle-collapse" data-collapse-id="s2-actors">
+      <h3>{{localize "Litm.ui.scene-actors"}}</h3>
+      <i class="fas {{ifThen (includes collapsed 's2-actors') 'fa-caret-right' 'fa-caret-down'}} litm--tm-collapse-icon"></i>
+    </header>
+    {{#unless (includes collapsed "s2-actors")}}
+    <div class="litm--tm-section-body">
+      {{#if @root.isGM}}<p class="litm--tm-empty">{{localize "Litm.ui.drop-actors-scene"}}</p>{{/if}}
+      {{#if @root.isGM}}
+      <div class="litm--tm-btn-row litm--tm-section-btn-row">
+        <button type="button" data-action="add-all-tokens" data-tooltip="{{localize 'Litm.ui.add-all-tokens'}}"><i class="fas fa-users"></i></button>
+        <button type="button" data-action="clear-scene-actors" data-tooltip="{{localize 'Litm.ui.clear'}}"><i class="fas fa-eraser"></i></button>
+      </div>
+      {{/if}}
+      {{#each sceneActors}}
+      {{> actorBlock actor=this sectionRef=ref parentSection="scene" editingId=../editingId}}
+      {{/each}}
+    </div>
+    {{/unless}}
+  </section>
+  </div>
+</div>

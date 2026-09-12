@@ -3,6 +3,18 @@ import { info } from "../logger.js";
 export class Fonts {
 	static register() {
 		info("Registering Fonts...");
+		foundry.applications.settings.menus.FontConfig.loadFont(
+			"Ramsey Foundational",
+			{
+				fonts: [
+					{
+						name: "Ramsey Foundational",
+						urls: ["systems/litm-rn/assets/fonts/RamseyFoundationalBold.ttf"],
+						weight: "700",
+					},
+				],
+			},
+		);
 		foundry.applications.settings.menus.FontConfig.loadFont("LitM Dice", {
 			fonts: [
 				{
@@ -125,27 +137,33 @@ export class Fonts {
 				},
 			],
 		});
-		foundry.applications.settings.menus.FontConfig.loadFont("TagesschriftCyrillic", {
-			editor: true,
-			fonts: [
-				{
-					name: "TagesschriftCyrillic",
-					urls: ["systems/litm-rn/assets/fonts/tagesschrift-cyrillic.ttf"],
-					weight: "300 800",
-				},
-			],
-		});
-		foundry.applications.settings.menus.FontConfig.loadFont("TagesschriftCyrillicSC", {
-			editor: true,
-			fonts: [
-				{
-					name: "TagesschriftCyrillicSC",
-					urls: ["systems/litm-rn/assets/fonts/tagesschrift-cyrillic.ttf"],
-					weight: "300 800",
-					sizeAdjust: "110%",
-				},
-			],
-		});
+		foundry.applications.settings.menus.FontConfig.loadFont(
+			"TagesschriftCyrillic",
+			{
+				editor: true,
+				fonts: [
+					{
+						name: "TagesschriftCyrillic",
+						urls: ["systems/litm-rn/assets/fonts/tagesschrift-cyrillic.ttf"],
+						weight: "300 800",
+					},
+				],
+			},
+		);
+		foundry.applications.settings.menus.FontConfig.loadFont(
+			"TagesschriftCyrillicSC",
+			{
+				editor: true,
+				fonts: [
+					{
+						name: "TagesschriftCyrillicSC",
+						urls: ["systems/litm-rn/assets/fonts/tagesschrift-cyrillic.ttf"],
+						weight: "300 800",
+						sizeAdjust: "110%",
+					},
+				],
+			},
+		);
 		foundry.applications.settings.menus.FontConfig.loadFont("TorukSC", {
 			editor: true,
 			fonts: [

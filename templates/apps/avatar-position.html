@@ -1,0 +1,144 @@
+<div class="litm--avatar-position-content">
+	<div class="litm--avatar-position-workspace">
+		<section class="litm--avatar-preview-panel">
+			<p class="litm--avatar-position-hint">{{localize "Litm.ui.avatar-position-hint"}}</p>
+			<div class="litm--avatar-layer-selector">
+				<button type="button" data-action="selectLayer" data-layer="avatar"
+					class="{{#if (eq activeLayer 'avatar')}}active{{/if}}">
+					{{localize "Litm.ui.avatar-layer"}}
+				</button>
+				<button type="button" data-action="selectLayer" data-layer="back"
+					class="{{#if (eq activeLayer 'back')}}active{{/if}}">
+					{{localize "Litm.ui.avatar-back-layer"}}
+				</button>
+				<button type="button" data-action="selectLayer" data-layer="front"
+					class="{{#if (eq activeLayer 'front')}}active{{/if}}">
+					{{localize "Litm.ui.avatar-front-layer"}}
+				</button>
+			</div>
+			<div class="litm--avatar-position-preview">
+				<img class="litm--avatar-layer litm--avatar-layer--back"
+					src="{{position.backImage}}" alt="" draggable="false"
+					style="height: {{position.backHeight}}px; --litm-layer-scale: {{position.backScale}}; --litm-layer-offset-x: {{position.backOffsetX}}px; --litm-layer-offset-y: {{position.backOffsetY}}px; --litm-layer-opacity: {{position.backOpacity}};" />
+				<img class="litm--avatar-image" src="{{img}}" alt="{{name}}" draggable="false" />
+				<img class="litm--avatar-layer litm--avatar-layer--front"
+					src="{{position.frontImage}}" alt="" draggable="false"
+					style="height: {{position.frontHeight}}px; --litm-layer-scale: {{position.frontScale}}; --litm-layer-offset-x: {{position.frontOffsetX}}px; --litm-layer-offset-y: {{position.frontOffsetY}}px; --litm-layer-opacity: {{position.frontOpacity}};" />
+			</div>
+		</section>
+		<div class="litm--avatar-controls">
+			<fieldset>
+				<legend>{{localize "Litm.ui.avatar-layer"}}</legend>
+				<div class="litm--avatar-position-fields">
+					<label>
+						<span>{{localize "Litm.ui.avatar-scale"}}</span>
+						<input type="number" min="0.25" max="3" step="0.05"
+							value="{{position.scale}}" data-avatar-setting="scale" />
+					</label>
+					<label>
+						<span>{{localize "Litm.ui.avatar-offset-x"}}</span>
+						<input type="number" min="-500" max="500" step="1"
+							value="{{position.offsetX}}" data-avatar-setting="offsetX" />
+					</label>
+					<label>
+						<span>{{localize "Litm.ui.avatar-offset-y"}}</span>
+						<input type="number" min="-500" max="500" step="1"
+							value="{{position.offsetY}}" data-avatar-setting="offsetY" />
+					</label>
+				</div>
+			</fieldset>
+			<div class="litm--avatar-layer-settings">
+		<fieldset>
+			<legend>{{localize "Litm.ui.avatar-back-layer"}}</legend>
+			<div class="litm--avatar-layer-picker">
+				<input type="text" value="{{position.backImage}}" data-layer-path="back" readonly />
+				<button type="button" data-action="chooseLayerImage" data-layer="back"
+					data-tooltip="{{localize 'Litm.ui.choose-image'}}">
+					<i class="fas fa-folder-open"></i>
+				</button>
+				<button type="button" data-action="resetLayerImage" data-layer="back"
+					data-tooltip="{{localize 'Litm.ui.default-image'}}">
+					<i class="fas fa-rotate-left"></i>
+				</button>
+			</div>
+			<div class="litm--avatar-layer-height">
+				<button type="button" data-action="autoLayerHeight" data-layer="back">
+					{{localize "Litm.ui.automatic-height"}}
+				</button>
+				<label>
+					<span>{{localize "Litm.ui.layer-height"}}</span>
+					<input type="number" min="20" max="370" step="1" value="{{position.backHeight}}"
+						data-layer-height="back" />
+				</label>
+			</div>
+			<div class="litm--avatar-layer-transform">
+				<label><span>{{localize "Litm.ui.avatar-scale"}}</span>
+					<input type="number" min="0.25" max="3" step="0.05"
+						value="{{position.backScale}}" data-layer-setting="back.scale" /></label>
+				<label><span>{{localize "Litm.ui.avatar-offset-x"}}</span>
+					<input type="number" min="-500" max="500" step="1"
+						value="{{position.backOffsetX}}" data-layer-setting="back.offsetX" /></label>
+				<label><span>{{localize "Litm.ui.avatar-offset-y"}}</span>
+					<input type="number" min="-500" max="500" step="1"
+						value="{{position.backOffsetY}}" data-layer-setting="back.offsetY" /></label>
+				<label><span>{{localize "Litm.ui.layer-opacity"}}</span>
+					<input type="number" min="0" max="1" step="0.05"
+						value="{{position.backOpacity}}" data-layer-setting="back.opacity" /></label>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>{{localize "Litm.ui.avatar-front-layer"}}</legend>
+			<div class="litm--avatar-layer-picker">
+				<input type="text" value="{{position.frontImage}}" data-layer-path="front" readonly />
+				<button type="button" data-action="chooseLayerImage" data-layer="front"
+					data-tooltip="{{localize 'Litm.ui.choose-image'}}">
+					<i class="fas fa-folder-open"></i>
+				</button>
+				<button type="button" data-action="resetLayerImage" data-layer="front"
+					data-tooltip="{{localize 'Litm.ui.default-image'}}">
+					<i class="fas fa-rotate-left"></i>
+				</button>
+			</div>
+			<div class="litm--avatar-layer-height">
+				<button type="button" data-action="autoLayerHeight" data-layer="front">
+					{{localize "Litm.ui.automatic-height"}}
+				</button>
+				<label>
+					<span>{{localize "Litm.ui.layer-height"}}</span>
+					<input type="number" min="20" max="370" step="1" value="{{position.frontHeight}}"
+						data-layer-height="front" />
+				</label>
+			</div>
+			<div class="litm--avatar-layer-transform">
+				<label><span>{{localize "Litm.ui.avatar-scale"}}</span>
+					<input type="number" min="0.25" max="3" step="0.05"
+						value="{{position.frontScale}}" data-layer-setting="front.scale" /></label>
+				<label><span>{{localize "Litm.ui.avatar-offset-x"}}</span>
+					<input type="number" min="-500" max="500" step="1"
+						value="{{position.frontOffsetX}}" data-layer-setting="front.offsetX" /></label>
+				<label><span>{{localize "Litm.ui.avatar-offset-y"}}</span>
+					<input type="number" min="-500" max="500" step="1"
+						value="{{position.frontOffsetY}}" data-layer-setting="front.offsetY" /></label>
+				<label><span>{{localize "Litm.ui.layer-opacity"}}</span>
+					<input type="number" min="0" max="1" step="0.05"
+						value="{{position.frontOpacity}}" data-layer-setting="front.opacity" /></label>
+			</div>
+		</fieldset>
+			</div>
+		</div>
+	</div>
+	<div class="litm--avatar-position-actions">
+		<button type="button" data-action="reset">
+			<i class="fas fa-rotate-left"></i>
+			{{localize "Reset"}}
+		</button>
+		<button type="button" data-action="save">
+			<i class="fas fa-save"></i>
+			{{localize "Save"}}
+		</button>
+		<button type="button" data-action="saveAndClose">
+			<i class="fas fa-check"></i>
+			{{localize "Litm.ui.save-and-close"}}
+		</button>
+	</div>
+</div>

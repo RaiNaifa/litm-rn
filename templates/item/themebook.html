@@ -1,0 +1,265 @@
+<div class="litm--content-sheet">
+<div class="litm--content-backdrop litm--content-{{previewMight}}"
+	style="--content-transition-src:url('/{{transitionSrc}}');">
+	<img class="litm--content-transition" src="{{transitionSrc}}" alt="" />
+	{{#if hasCustomBackground}}
+	<div class="litm--content-art-mask">
+		<div class="litm--content-custom-art" style="{{backgroundArtStyle}}"></div>
+	</div>
+	{{/if}}
+</div>
+
+<header class="litm--content-header">
+	<div class="litm--content-title-row">
+		<span class="litm--content-might-icon litm--content-might-{{iconMight}}"></span>
+		<div>
+			{{#if canEdit}}
+			<div class="litm--content-header-options">
+			<div class="litm--image-dropdown litm--content-header-might" data-name="system.might">
+				<input type="hidden" name="system.might" value="{{system.might}}" />
+				<div class="selected-image" data-click="open-levels">
+					<span>{{currentMightLabel}}</span>
+					<i class="fas fa-angle-down"></i>
+				</div>
+				<div class="dropdown-options">
+					{{#each mightDropdownOptions as |might|}}
+					<div class="image-option" data-click="select-level" data-value="{{might.key}}">
+						<img src="{{might.icon}}" alt="" />
+						<span>{{might.label}}</span>
+					</div>
+					{{/each}}
+				</div>
+			</div>
+			<label class="litm--content-fellowship-toggle">
+				<span>{{localize "Litm.theme-content.fellowship-themebook"}}</span>
+				<input class="litm--content-fellowship-checkbox" type="checkbox"
+					name="system.isFellowship" data-dtype="Boolean"
+					{{checked system.isFellowship}} />
+			</label>
+			</div>
+			<input class="litm--content-title" type="text" name="name" value="{{document.name}}" />
+			{{else}}
+			<div class="litm--content-header-options">
+				<div class="litm--content-header-might litm--content-header-might-readonly">
+					<span>{{currentMightLabel}}</span>
+				</div>
+				{{#if system.isFellowship}}
+				<span class="litm--content-header-separator" aria-hidden="true">&bull;</span>
+				<span class="litm--content-fellowship-readonly">
+					{{localize "Litm.theme-content.fellowship-themebook"}}
+				</span>
+				{{/if}}
+			</div>
+			<h1 class="litm--content-title litm--content-title-readonly">{{document.name}}</h1>
+			{{/if}}
+		</div>
+	</div>
+</header>
+
+<main class="litm--content-scroll">
+	<section class="litm--content-intro">
+		<div class="litm--content-concept-options">
+			{{#if canEdit}}
+			{{#each system.conceptOptions as |option index|}}
+			{{#if @last}}
+			<span class="litm--content-concept-tail">
+				{{#unless @first}}
+				<button type="button" class="litm--content-concept-remove"
+					data-content-action="remove-concept-option" data-id="{{option.id}}"
+					data-tooltip="{{localize 'Litm.ui.remove'}}">
+					<span class="litm--concept-plus litm--concept-glyph">&#10016;</span>
+					<span class="litm--concept-minus">&minus;</span>
+				</button>
+				{{/unless}}
+				<input type="text" class="litm--content-concept-input"
+					data-array-path="conceptOptions" data-entry-id="{{option.id}}"
+					data-entry-field="text" value="{{option.text}}"
+					placeholder="{{localize 'Litm.theme-content.concept'}}" />
+				<button type="button" class="litm--content-concept-add"
+					data-content-action="add-concept-option"
+					data-tooltip="{{localize 'Litm.theme-content.add-entry'}}">
+					<span class="litm--concept-glyph">&#10016;</span>
+				</button>
+			</span>
+			{{else}}
+				{{#unless @first}}
+				<button type="button" class="litm--content-concept-remove"
+					data-content-action="remove-concept-option" data-id="{{option.id}}"
+					data-tooltip="{{localize 'Litm.ui.remove'}}">
+					<span class="litm--concept-plus litm--concept-glyph">&#10016;</span>
+					<span class="litm--concept-minus">&minus;</span>
+				</button>
+				{{/unless}}
+				<input type="text" class="litm--content-concept-input"
+					data-array-path="conceptOptions" data-entry-id="{{option.id}}"
+					data-entry-field="text" value="{{option.text}}"
+					placeholder="{{localize 'Litm.theme-content.concept'}}" />
+			{{/if}}
+			{{/each}}
+			{{else}}
+			{{#each system.conceptOptions as |option|}}
+				{{#unless @first}}
+				<span class="litm--content-concept-separator litm--concept-glyph">&#10016;</span>
+				{{/unless}}
+				<span class="litm--content-concept-text">{{option.text}}</span>
+			{{/each}}
+			{{/if}}
+		</div>
+		<div class="litm--content-description">
+			{{#if canEdit}}
+			<prose-mirror name="system.description" button="true" toggled="false" editable="true"
+				value="{{system.description}}">
+				{{#if system.description}}
+				{{{system.descriptionEnriched}}}
+				{{else}}
+				<div class="litm--content-description-placeholder">{{{defaultDescription}}}</div>
+				{{/if}}
+			</prose-mirror>
+			{{else}}
+				{{#if system.description}}
+					<div class="litm--content-description-readonly">{{{system.descriptionEnriched}}}</div>
+				{{else}}
+					<div class="litm--content-description-placeholder">{{{defaultDescription}}}</div>
+				{{/if}}
+			{{/if}}
+		</div>
+	</section>
+
+	{{#*inline "promptSection"}}
+	<section class="litm--content-section">
+		<div class="litm--content-section-heading">
+			<h2>{{localize title}}</h2>
+			{{#if @root.canEdit}}
+			<button type="button" data-content-action="add-prompt" data-path="{{path}}"
+				data-tooltip="{{localize 'Litm.theme-content.add-entry'}}">
+				<i class="fa-solid fa-plus"></i>
+			</button>
+			{{/if}}
+		</div>
+		<ol class="litm--content-list{{#if isQuest}} litm--content-quest-list{{/if}}">
+			{{#each entries as |entry index|}}
+			<li class="litm--content-entry" {{#if @root.canEdit}}draggable="true"
+				data-sort-path="{{../path}}" data-sort-id="{{entry.id}}"{{/if}}
+				data-themebook-question>
+				<div class="litm--content-entry-main">
+					{{#if @root.canEdit}}
+					<span class="litm--content-drag"><i class="fa-solid fa-grip-vertical"></i></span>
+					{{/if}}
+					{{#if ../isQuest}}
+					<span class="litm--content-quest-bullet" aria-hidden="true">&bull;</span>
+					{{else}}
+					<span class="litm--content-letter">{{alphaIndex index}}</span>
+					{{/if}}
+					{{#if @root.canEdit}}
+					<textarea data-array-path="{{../path}}" data-entry-id="{{entry.id}}"
+						data-entry-field="text"
+						class="{{#if ../boldFirst}}{{#if @first}}litm--content-primary-question{{/if}}{{/if}}"
+						placeholder="{{localize placeholder}}">{{entry.text}}</textarea>
+					<button type="button" data-content-action="remove-entry" data-path="{{../path}}"
+						data-id="{{entry.id}}" data-tooltip="{{localize 'Litm.ui.remove'}}">
+						<i class="fa-solid fa-times"></i>
+					</button>
+					{{else}}
+					<span class="litm--content-question-text
+						{{#if ../boldFirst}}{{#if @first}}litm--content-primary-question{{/if}}{{/if}}">
+						{{entry.text}}
+					</span>
+					{{/if}}
+				</div>
+				{{#if @root.themeView}}
+					{{#unless ../isQuest}}
+					<div class="litm--content-answer-row">
+						{{#if entry.answer.selected}}
+						<button type="button" class="litm--content-answer-tag litm--content-answer-clear"
+							data-themebook-clear-answer data-answer-id="{{entry.answer.id}}"
+							{{#unless @root.canAnswer}}disabled{{/unless}}
+							data-tooltip="{{localize 'Litm.themebook-player.clear-answer'}}">
+							<i class="fa-solid fa-eraser"></i>
+						</button>
+						{{else}}
+						<button type="button" class="litm--content-answer-tag"
+							data-themebook-add-tag data-kind="{{entry.kind}}"
+							{{#unless @root.canAnswer}}disabled{{/unless}}
+							data-tooltip="{{localize 'Litm.themebook-player.use-as-tag'}}">
+							<i class="fa-solid fa-plus"></i>
+						</button>
+						{{/if}}
+						<input type="text" class="litm--content-answer-input"
+							data-themebook-answer data-answer-id="{{entry.answer.id}}"
+							data-question-id="{{entry.id}}" data-kind="{{entry.kind}}"
+							value="{{entry.answer.value}}"
+							placeholder="{{localize 'Litm.themebook-player.answer'}}"
+							{{#unless @root.canAnswer}}disabled{{/unless}} />
+					</div>
+					{{/unless}}
+				{{/if}}
+			</li>
+			{{else}}
+			<li class="litm--content-empty">{{localize "Litm.theme-content.empty-list"}}</li>
+			{{/each}}
+		</ol>
+	</section>
+	{{/inline}}
+
+	{{> promptSection title="Litm.theme-content.power-questions" path="powerQuestions" entries=system.powerQuestions placeholder="Litm.theme-content.question" boldFirst=true}}
+	{{> promptSection title="Litm.theme-content.weakness-questions" path="weaknessQuestions" entries=system.weaknessQuestions placeholder="Litm.theme-content.question"}}
+	{{> promptSection title="Litm.theme-content.quest-ideas" path="questIdeas" entries=system.questIdeas placeholder="Litm.theme-content.quest" isQuest=true}}
+
+	<section class="litm--content-section">
+		<div class="litm--content-section-heading">
+			<h2>{{localize "Litm.other.specials"}}</h2>
+			{{#if canEdit}}
+			<button type="button" data-content-action="add-special">
+				<i class="fa-solid fa-plus"></i>
+			</button>
+			{{/if}}
+		</div>
+		<div class="litm--content-list">
+			{{#each system.specials as |special|}}
+			<div class="litm--content-special-row{{#if special.isEditing}} is-editing{{/if}}"
+				data-special-id="{{special.id}}">
+				{{#if @root.themeView}}
+				<button type="button" class="litm--content-special-state"
+					data-themebook-add-special data-special-id="{{special.id}}"
+					{{#if special.active}}disabled{{/if}}
+					{{#if special.retired}}disabled{{/if}}
+					data-tooltip="{{#if special.active}}{{localize 'Litm.themebook-player.special-active'}}{{else if special.retired}}{{localize 'Litm.themebook-player.special-retired'}}{{else}}{{localize 'Litm.themebook-player.add-special'}}{{/if}}">
+					<i class="fa-solid {{#if special.active}}fa-check{{else if special.retired}}fa-lock{{else}}fa-plus{{/if}}"></i>
+				</button>
+				{{/if}}
+				{{#if @root.canEdit}}
+				<span class="litm--content-drag" {{#unless special.isEditing}}draggable="true"
+					data-sort-path="specials" data-sort-id="{{special.id}}"{{/unless}}>
+					<i class="fa-solid fa-grip-vertical"></i>
+				</span>
+				{{/if}}
+				<div class="litm--content-special-body">
+					<span class="litm--content-special-name"
+						{{#if special.isEditing}}contenteditable="true" data-special-name{{/if}}>{{special.name}}</span>
+					<span class="litm--content-special-separator">:</span>
+					{{#if special.isEditing}}
+					<span class="litm--content-special-description is-editing"
+						contenteditable="true" data-special-description>{{special.description}}</span>
+					{{else}}
+					<span class="litm--content-special-description">{{{special.enrichedDescription}}}</span>
+					{{/if}}
+				</div>
+				{{#if @root.canEdit}}
+				<div class="litm--content-special-actions">
+					<button type="button" data-content-action="toggle-special-edit" data-id="{{special.id}}">
+						<i class="{{#if special.isEditing}}fas fa-floppy-disk{{else}}fa-regular fa-pen-to-square{{/if}}"></i>
+					</button>
+					<button type="button" data-content-action="remove-entry" data-path="specials" data-id="{{special.id}}">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				{{/if}}
+			</div>
+			{{else}}
+			<div class="litm--content-empty">{{localize "Litm.ui.no-specials"}}</div>
+			{{/each}}
+		</div>
+	</section>
+
+</main>
+</div>

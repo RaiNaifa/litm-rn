@@ -1,0 +1,38 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Biome, JSON, and JavaScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run Biome
+        run: npx -y @biomejs/biome@1.9.4 ci .
+
+      - name: Validate JSON
+        shell: bash
+        run: |
+          while IFS= read -r file; do
+            jq empty "$file"
+          done < <(git ls-files '*.json')
+
+      - name: Parse JavaScript modules
+        shell: bash
+        run: |
+          while IFS= read -r file; do
+            node --input-type=module --check < "$file"
+          done < <(git ls-files '*.js')

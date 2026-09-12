@@ -6,8 +6,13 @@
 	"linter": {
 		"rules": {
 			"complexity": {
+				"noForEach": "off",
 				"noStaticOnlyClass": "off",
-				"noThisInStatic": "off"
+				"noThisInStatic": "off",
+				"useLiteralKeys": "off"
+			},
+			"performance": {
+				"noDelete": "off"
 			}
 		},
 		"ignore": ["diff.js"]

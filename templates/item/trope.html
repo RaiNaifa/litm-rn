@@ -1,0 +1,202 @@
+<div class="litm--trope-sheet{{#unless editable}} is-readonly{{/unless}}">
+	<header class="litm--trope-header">
+		{{#if editable}}
+		<input class="litm--trope-title" type="text" name="name" value="{{document.name}}" />
+		{{else}}
+		<h1 class="litm--trope-title">{{document.name}}</h1>
+		{{/if}}
+	</header>
+
+	<main class="litm--trope-scroll">
+		<section class="litm--trope-description">
+			{{#if editable}}
+			<prose-mirror name="system.description" button="true" toggled="false" editable="true"
+				value="{{system.description}}">
+				{{{system.descriptionEnriched}}}
+			</prose-mirror>
+			{{else}}
+			<div class="litm--trope-description-readonly">{{{system.descriptionEnriched}}}</div>
+			{{/if}}
+		</section>
+
+		<div class="litm--trope-body{{#if hasArt}} has-art art-align-{{artAlign}}{{#if artOnLeft}} art-left{{/if}}{{/if}}">
+			<div class="litm--trope-body-content">
+				<section class="litm--trope-section">
+					<div class="litm--trope-section-heading">
+						<h2>{{localize "Litm.trope.theme-kits"}}</h2>
+					</div>
+					<div class="litm--trope-slots">
+						{{#each system.themeKitSlots as |slot index|}}
+						<div class="litm--trope-slot{{#if slot.isEmpty}} is-empty{{/if}}">
+							{{#if ../editable}}
+							{{#if slot.isEmpty}}
+							<div class="litm--trope-slot-tools">
+								<span>{{localize "Litm.trope.slot" number=(add index 1)}}</span>
+								<div>
+									<button type="button" data-trope-action="open-picker"
+										data-slot-id="{{slot.id}}" data-mode="single">
+										<i class="fa-solid fa-plus"></i>
+										{{localize "Litm.trope.add-kit"}}
+									</button>
+									<button type="button" data-trope-action="open-picker"
+										data-slot-id="{{slot.id}}" data-mode="choice">
+										<i class="fa-solid fa-list-check"></i>
+										{{localize "Litm.trope.add-choice"}}
+									</button>
+								</div>
+							</div>
+							{{/if}}
+							{{/if}}
+							{{#unless slot.isEmpty}}
+							<div class="litm--trope-slot-content">
+							{{#if slot.isChoice}}
+							<div class="litm--trope-choice-label">
+								<i class="fa-solid fa-circle-question"></i>
+								{{localize "Litm.trope.choose-one"}}
+							</div>
+							{{/if}}
+							<div class="litm--trope-kit-list">
+								{{#each slot.options as |kit|}}
+								<div class="litm--trope-kit{{#if kit.selected}} is-selected{{/if}}">
+									{{#if @root.selectionMode}}
+									{{#if slot.isChoice}}
+									<button type="button" class="litm--trope-choice-toggle" data-theme-kit-choice
+										data-trope-action="select-theme-kit" data-slot-id="{{slot.id}}"
+										data-uuid="{{kit.uuid}}" role="radio" aria-checked="{{kit.selected}}">
+										<span class="litm--trope-choice-control"><i class="fa-solid fa-check"></i></span>
+									</button>
+									{{else}}<i class="fa-solid fa-check litm--trope-fixed-choice"></i>{{/if}}
+									{{else if slot.isChoice}}<span class="litm--trope-radio"></span>{{/if}}
+									<a class="litm--trope-kit-link" role="button" tabindex="0"
+										data-trope-action="open-kit" data-uuid="{{kit.uuid}}">
+										{{kit.name}}
+									</a>
+									<span class="litm--trope-kit-source">
+										({{kit.themebookName}}
+										<img src="{{kit.mightIcon}}" alt="" />)
+									</span>
+									{{#if kit.missing}}<i class="fa-solid fa-triangle-exclamation"></i>{{/if}}
+								</div>
+								{{/each}}
+							</div>
+							</div>
+							{{#if ../editable}}
+							<button type="button" class="litm--trope-remove-slot"
+								data-trope-action="remove-slot" data-slot-id="{{slot.id}}"
+								data-tooltip="{{localize 'Litm.trope.remove-selection'}}">
+								<i class="fa-solid fa-times"></i>
+							</button>
+							{{/if}}
+							{{/unless}}
+						</div>
+						{{/each}}
+					</div>
+				</section>
+
+				<section class="litm--trope-section litm--trope-backpack">
+					<div class="litm--trope-section-heading">
+						<h2>{{localize "Litm.trope.backpack"}}</h2>
+						{{#if editable}}
+						<label class="litm--trope-choice-limit">
+							{{localize "Litm.trope.choose-count"}}
+							<input type="number" name="system.backpackChoices" min="0"
+								max="{{system.backpackTags.length}}" value="{{system.backpackChoices}}" />
+						</label>
+						<button type="button" data-trope-action="add-backpack-tag"
+							data-tooltip="{{localize 'Litm.trope.add-backpack-tag'}}">
+							<i class="fa-solid fa-plus"></i>
+						</button>
+						{{/if}}
+					</div>
+					{{#if selectionMode}}
+					<div class="litm--trope-choice-label">
+						<i class="fa-solid fa-circle-question"></i>
+						{{localize "Litm.trope-selection.choose-backpack" count=system.backpackChoices}}
+					</div>
+					{{/if}}
+					<div class="litm--trope-backpack-tags">
+						{{#each system.backpackTags as |tag|}}
+						{{#if ../editable}}
+						<div class="litm--trope-backpack-tag">
+							<input type="text" data-array-field="name" data-id="{{tag.id}}" value="{{tag.name}}" />
+							<button type="button" data-trope-action="remove-backpack-tag" data-id="{{tag.id}}">
+								<i class="fa-solid fa-times"></i>
+							</button>
+						</div>
+						{{else if @root.selectionMode}}
+						<span class="litm--trope-backpack-choice{{#if tag.selected}} is-selected{{/if}}">
+							<button type="button" class="litm--trope-choice-toggle" data-backpack-choice
+								data-trope-action="select-backpack-tag" data-id="{{tag.id}}"
+								role="checkbox" aria-checked="{{tag.selected}}">
+								<span class="litm--trope-choice-control"><i class="fa-solid fa-check"></i></span>
+							</button>
+							<span class="litm--trope-backpack-tag-readonly">{{{tag.enrichedName}}}</span>
+						</span>
+						{{else}}
+						<span class="litm--trope-backpack-tag-readonly">{{{tag.enrichedName}}}</span>
+						{{/if}}
+						{{/each}}
+					</div>
+				</section>
+			</div>
+			{{#if hasArt}}
+			<aside class="litm--trope-art">
+				<img src="{{system.art}}" alt="{{document.name}}" />
+			</aside>
+			{{/if}}
+		</div>
+	</main>
+
+	{{#if selectionMode}}
+	<footer class="litm--trope-selection-footer">
+		<button type="button" data-trope-action="cancel-selection">{{localize "Cancel"}}</button>
+		<button type="button" data-trope-action="confirm-selection" {{#unless selectionComplete}}disabled{{/unless}}>
+			{{localize "Confirm"}}
+		</button>
+	</footer>
+	{{/if}}
+
+	{{#if picker}}
+	<div class="litm--trope-picker-backdrop" data-trope-action="close-picker"></div>
+	<section class="litm--trope-picker" aria-modal="true">
+		<header>
+			<h2>{{#if picker.multiple}}{{localize "Litm.trope.choose-kits"}}{{else}}{{localize "Litm.trope.choose-kit"}}{{/if}}</h2>
+			<button type="button" data-trope-action="close-picker"><i class="fa-solid fa-times"></i></button>
+		</header>
+		<input type="search" data-trope-search autofocus
+			placeholder="{{localize 'Litm.trope.search-kits'}}" />
+		<div class="litm--trope-picker-list">
+			{{#each picker.themeKits as |kit|}}
+			<div class="litm--trope-picker-row{{#if kit.selected}} is-selected{{/if}}"
+				data-picker-row data-search="{{kit.search}}">
+				<button type="button" class="litm--trope-picker-select"
+					data-trope-action="toggle-kit" data-uuid="{{kit.uuid}}"
+					role="{{#if ../picker.multiple}}checkbox{{else}}radio{{/if}}"
+					aria-checked="{{kit.selected}}">
+					<input type="{{#if ../picker.multiple}}checkbox{{else}}radio{{/if}}"
+						{{#if kit.selected}}checked{{/if}} tabindex="-1" />
+					<img src="{{kit.mightIcon}}" alt="" />
+					<span>
+						<strong>{{kit.name}}</strong>
+						<small>{{kit.themebookName}}</small>
+					</span>
+				</button>
+				<i class="fa-solid fa-check litm--trope-picker-check" aria-hidden="true"></i>
+				<button type="button" class="litm--trope-picker-preview litm--content-inline-link"
+					data-trope-action="preview-kit" data-uuid="{{kit.uuid}}"
+					data-tooltip="{{localize 'TYPES.Item.themekit'}}">
+					<i class="fa-solid fa-arrow-up-right-from-square"></i>
+				</button>
+			</div>
+			{{else}}
+			<p class="litm--trope-empty">{{localize "Litm.theme-builder.no-themekits"}}</p>
+			{{/each}}
+		</div>
+		<footer>
+			<button type="button" data-trope-action="close-picker">{{localize "Cancel"}}</button>
+			<button type="button" class="litm--trope-picker-confirm"
+				data-trope-action="confirm-picker">{{localize "Confirm"}}</button>
+		</footer>
+	</section>
+	{{/if}}
+</div>

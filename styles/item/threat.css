@@ -1,36 +1,40 @@
 .litm.litm--threat {
-	background: url(../../assets/media/challenge-bg-neutral.webp) no-repeat top / cover;
-	/* background-color: var(--litm-color-primary);
-	background-blend-mode: luminosity; */
+	--threat-ink: var(--litm-color-primary);
+	--threat-title-bg: #cebeb3;
+	--threat-edit-bg: rgb(0 0 0 / 20%);
+	--threat-editor-bg: rgb(0 0 0 / 5%);
+	--threat-divider: rgb(0 0 0 / 40%);
+	background: url("../../assets/media/paper.webp") left top repeat;
 	max-width: 650px;
 	font-family: var(--litm-font-text);
-	font-size: var(--font-size-16);
-	outline: 2px solid var(--litm-color);
-	outline-offset: -10px;
-	padding: 10px;
+	font-size: var(--font-size-14);
+	outline: none;
+	padding: 0;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 
-	& header {
-		color: var(--litm-color-primary);
+	&:not(.minimized, .minimizing, .maximizing) .window-header {
+		position: relative;
+		z-index: 5;
+		background: rgb(0 0 0 / 20%);
 	}
 
-	& form {
-		color: var(--litm-color-primary);
-		padding: 0px var(--litm-space-3);
+	& .window-content {
+		background: url("../../assets/media/paper.webp") left top repeat;
 	}
 
-	& h2 {
-		text-align: center;
-		border: none;
-		font-family: var(--litm-font-accent);
-		color: var(--litm-color-weakness);
+	& .litm--threat-sheet {
+		color: var(--threat-ink);
+		padding: var(--litm-space-3);
+		overflow-y: auto;
+		flex: 1 1 auto;
+		height: 100%;
 	}
 
-	& .litm--threat-box > span {
-		cursor: text;
-	}
-
-	& .litm--threat-box span:first-child {
-		background-color: #cebeb3;
+	& .litm--threat-box .litm--threat-name {
+		background-color: var(--threat-title-bg);
 		padding: 0.15em 0.6em;
 		border-radius: 0;
 		text-transform: uppercase;
@@ -39,29 +43,14 @@
 		&:not(:focus) {
 			--r: 5px;
 			clip-path: polygon(
-				0 var(--r),
-				calc(var(--r) * 0.383) calc(var(--r) * 0.924),
-				calc(var(--r) * 0.707) calc(var(--r) * 0.707),
-				calc(var(--r) * 0.924) calc(var(--r) * 0.383),
-				var(--r) 0,
-	
-				calc(100% - var(--r)) 0,
-				calc(100% - var(--r) * 0.924) calc(var(--r) * 0.383),
-				calc(100% - var(--r) * 0.707) calc(var(--r) * 0.707),
-				calc(100% - var(--r) * 0.383) calc(var(--r) * 0.924),
-				100% var(--r),
-	
-				100% calc(100% - var(--r)),
-				calc(100% - var(--r) * 0.383) calc(100% - var(--r) * 0.924),
-				calc(100% - var(--r) * 0.707) calc(100% - var(--r) * 0.707),
-				calc(100% - var(--r) * 0.924) calc(100% - var(--r) * 0.383),
-				calc(100% - var(--r)) 100%,
-	
-				var(--r) 100%,
-				calc(var(--r) * 0.924) calc(100% - var(--r) * 0.383),
-				calc(var(--r) * 0.707) calc(100% - var(--r) * 0.707),
-				calc(var(--r) * 0.383) calc(100% - var(--r) * 0.924),
-				0 calc(100% - var(--r))
+				0 var(--r), calc(var(--r) * 0.383) calc(var(--r) * 0.924),
+				calc(var(--r) * 0.707) calc(var(--r) * 0.707), calc(var(--r) * 0.924) calc(var(--r) * 0.383), var(--r) 0,
+				calc(100% - var(--r)) 0, calc(100% - var(--r) * 0.924) calc(var(--r) * 0.383),
+				calc(100% - var(--r) * 0.707) calc(var(--r) * 0.707), calc(100% - var(--r) * 0.383) calc(var(--r) * 0.924), 100% var(--r),
+				100% calc(100% - var(--r)), calc(100% - var(--r) * 0.383) calc(100% - var(--r) * 0.924),
+				calc(100% - var(--r) * 0.707) calc(100% - var(--r) * 0.707), calc(100% - var(--r) * 0.924) calc(100% - var(--r) * 0.383),
+				calc(100% - var(--r)) 100%, var(--r) 100%, calc(var(--r) * 0.924) calc(100% - var(--r) * 0.383),
+				calc(var(--r) * 0.707) calc(100% - var(--r) * 0.707), calc(var(--r) * 0.383) calc(100% - var(--r) * 0.924), 0 calc(100% - var(--r))
 			);
 		}
 	}
@@ -70,84 +59,155 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--litm-space-2);
-		padding-inline-start: var(--litm-space-3);
+		margin: 1rem 0 0;
+		padding-inline-start: 0;
 		list-style: none;
 
 		& li {
-			display: flex;
-			gap: var(--litm-space-1);
+			width: 100%;
 
 			& .litm--consequences-icon {
 				align-self: baseline;
-				width: 24px;
+				width: 28px;
 			}
+
+			& .litm--consequences-content,
+			& .editor-container {
+				margin: 0 0 0 var(--litm-space-1);
+				padding: var(--litm-space-1) var(--litm-space-2);
+				min-height: 30px;
+				width: 100%;
+			}
+
+			& :is(.litm--consequences-content, .editor-content.ProseMirror) :first-child { margin-top: 2px; }
+			& :is(.litm--consequences-content, .editor-content.ProseMirror) :last-child { margin-bottom: 2px; }
 		}
 	}
 
-	& [contenteditable] {
+	& :is(.prosemirror, prose-mirror) .editor-content,
+	& :is(.prosemirror, prose-mirror) .editor-content:not([contenteditable]) {
+		padding: 0;
+	}
+
+	& .litm-consequences-editor-wrapper { display: flex; }
+	& .litm--consequences-content { cursor: pointer; }
+
+	& .litm--consequence-editor {
+		position: relative;
+		width: 100%;
+		min-height: 30px;
+		margin: 0;
+		padding: 0;
+
+		&.active {
+			position: relative;
+			display: block;
+
+			& .editor-container {
+				width: calc(100% - 32px);
+				margin-left: 32px;
+			}
+		}
+
+		& button.toggle {
+			display: none;
+		}
+
+		& menu {
+			position: absolute;
+			top: 2px;
+			left: 0;
+			z-index: 2;
+			padding: 0;
+			background: none;
+			display: block;
+
+			& li { display: none; }
+			& li:has(button[data-action="save"]) { display: block; }
+
+			& li button {
+				width: 28px;
+				height: 28px;
+				padding: 0;
+				color: var(--threat-ink);
+			}
+		}
+
+		& .editor-container {
+			background: var(--threat-editor-bg);
+			color: var(--threat-ink);
+
+			& [contenteditable="true"]:focus { background: var(--threat-editor-bg); }
+		}
+	}
+
+	& .litm--threat-name,
+	& .litm--threat-desc {
 		background-color: transparent;
-		padding: var(--litm-space-1);
+		padding: 0.15em 0.25em;
 		border: none;
 		border-radius: 4px;
 		width: 100%;
+		line-height: 24px;
+		cursor: text;
 
 		&:focus {
-			background-color: rgb(0, 0, 0, 0.2);
+			background-color: var(--threat-edit-bg);
 			outline: none;
 		}
 	}
 
-	& [contenteditable]:has(+#threat) {
-		font-style: italic;
-	}
-
-	& [id^=consequence-] {
-		cursor: text;
-		font-weight: 500;
-		min-width: 50px;
-
-		&:empty {
-			background-color: rgb(0, 0, 0, 0.2);
-		}
-	}
-
-	& [contenteditable]:has(+[id^=consequence-]) {
-		min-height: 20px;
-		cursor: pointer;
-
-		span& {
-			cursor: text;
-		}
-
-		&:empty {
-			background-color: rgb(0, 0, 0, 0.2);
-		}
-	}
+	& [contenteditable]:has(+ #threat),
+	& .litm--threat-desc { font-style: italic; }
 
 	& button[data-click="add-consequence"] {
-		margin-inline: 4px 3rem;
+		margin-inline: 2rem;
 		padding-bottom: var(--litm-space-2);
 		width: auto;
 		border: none;
-		border-radius: 0px;
-		border-top: 1.5px solid rgb(0, 0, 0, 0.4);
-		border-image: url(../../assets/media/tag-divider.webp) 14 / 3;
+		border-radius: 0;
+		border-top: 1.5px solid var(--threat-divider);
 		background-color: transparent;
 		color: var(--litm-color-weakness);
 		font-size: var(--font-size-20);
-		font-family: var(--litm-font-accent);
+		font-family: var(--litm-font-accent) !important;
 		transition: all 0.15s;
 		text-align: left;
 
-		&:hover {
-			box-shadow: none;
-			text-shadow: 0 0 4px rgb(0, 0, 0, 0.5);
-		}
+		&:hover { box-shadow: none; text-shadow: 0 0 4px rgb(0 0 0 / 50%); }
+		& span { color: inherit; font-size: inherit; font-family: inherit; }
+	}
+}
 
-		& span {
-			color: var(--litm-color-weakness);
-			font-size: var(--font-size-20);
-			font-family: var(--litm-font-accent);
-		}
+:is(#interface.theme-light, body.theme-light)
+	.litm.litm--threat:not(.minimized, .minimizing, .maximizing)
+	.window-header {
+	background: rgb(0 0 0 / 52%);
+}
+
+:is(#interface.theme-dark, body.theme-dark) .litm.litm--threat,
+.litm.litm--threat.theme-dark {
+	--threat-ink: var(--litm-color-text-secondary);
+	--threat-title-bg: rgb(116 75 60 / 82%);
+	--threat-edit-bg: rgb(255 255 255 / 10%);
+	--threat-editor-bg: rgb(255 255 255 / 6%);
+	--threat-divider: rgb(225 204 175 / 42%);
+	background-image: url("../../assets/media/paper-dark.webp");
+
+	& .window-content {
+		background-image: url("../../assets/media/paper-dark.webp");
+	}
+
+	& .litm--threat-box .litm--threat-name {
+		background-color: #6f554b;
+		color: #f0e5d6;
+	}
+
+	& .litm--threat-desc {
+		color: #d8cbbb;
+	}
+
+	& button[data-click="add-consequence"] {
+		color: #dfd2c2;
 	}
 }

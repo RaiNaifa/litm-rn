@@ -1,0 +1,349 @@
+<section class="litm--advancement-shell" data-might="{{theme.level}}">
+	<header class="litm--advancement-header">
+		<div>
+			<span class="litm--advancement-kicker">
+				{{#if isImprove}}{{localize "Litm.advancement.improve"}}{{/if}}
+				{{#if isExpand}}{{localize "Litm.advancement.expand"}}{{else if isEvolve}}{{localize "Litm.advancement.evolve"}}{{/if}}
+				{{#if isReplace}}{{localize "Litm.advancement.replace"}}{{/if}}
+			</span>
+			<h1>{{theme.name}}</h1>
+		</div>
+		{{#if isImprove}}
+		<div class="litm--advancement-bank">
+			<span>{{localize "Litm.advancement.available"}}</span>
+			<strong>{{theme.availableImprovements}}</strong>
+		</div>
+		{{/if}}
+	</header>
+
+	<main class="litm--advancement-content">
+		{{#if isImprove}}
+		<p class="litm--advancement-hint">{{localize "Litm.advancement.improve-hint"}}</p>
+		{{#if theme.nascentPowerNeeded}}
+		{{#if nascentReady}}
+		<p class="litm--advancement-notice">{{localize "Litm.advancement.nascent-ready-hint"}}</p>
+		{{else}}
+		<p class="litm--advancement-notice">{{localize "Litm.advancement.nascent-hint" count=nascentOutstanding}}</p>
+		{{/if}}
+		{{/if}}
+		<label>
+			<span>{{localize "Litm.advancement.choice"}}</span>
+			<select name="choice">
+				<option value="power">{{localize "Litm.advancement.add-power"}}</option>
+				{{#unless theme.nascentPowerNeeded}}
+				<option value="weakness">{{localize "Litm.advancement.add-weakness"}}</option>
+				<option value="remove-weakness">{{localize "Litm.advancement.remove-weakness"}}</option>
+				<option value="special">{{localize "Litm.advancement.gain-special"}}</option>
+				<option value="reset-abandon">{{localize "Litm.advancement.reset-abandon"}}</option>
+				<option value="reset-milestone">{{localize "Litm.advancement.reset-milestone"}}</option>
+				<option value="reset-both">{{localize "Litm.advancement.reset-both"}}</option>
+				<option value="promise">{{localize "Litm.advancement.mark-promise"}}</option>
+				{{/unless}}
+			</select>
+		</label>
+		<div class="litm--advancement-field-row" data-improvement-section="tag">
+			<span>{{localize "Litm.advancement.tag-source"}}</span>
+			<div class="litm--advancement-source-picker">
+				<input type="hidden" name="tagSource" value="manual" />
+				<button type="button" class="litm--advancement-source-selected"
+					data-advancement-action="toggle-tag-sources">
+					<i class="fa-solid fa-pen"></i>
+					<span>{{localize "Litm.advancement.source-manual"}}</span>
+					<i class="fa-solid fa-angle-down"></i>
+				</button>
+				<div class="litm--advancement-source-options">
+					<button type="button" data-advancement-action="select-tag-source"
+						data-value="manual" data-name="" data-kind="all">
+						<i class="fa-solid fa-pen"></i>
+						<span>{{localize "Litm.advancement.source-manual"}}</span>
+					</button>
+					{{#each tagSources}}
+					<button type="button" data-advancement-action="select-tag-source"
+						data-value="{{value}}" data-name="{{name}}"
+						data-kind="{{#if isWeakness}}weakness{{else}}power{{/if}}">
+						{{#if (eq sourceType "themebook")}}<i class="fa-solid fa-book-open"></i>
+						{{else if (eq sourceType "themekit")}}<i class="fa-solid fa-scroll"></i>
+						{{else}}<i class="fa-solid fa-tag"></i>{{/if}}
+						<span>{{label}}</span>
+						{{#if used}}<i class="fa-solid fa-rotate-right" data-tooltip="{{localize 'Litm.advancement.used-before'}}"></i>{{/if}}
+					</button>
+					{{/each}}
+				</div>
+			</div>
+		</div>
+		<label data-improvement-section="tag">
+			<span>{{localize "Litm.advancement.tag-name"}}</span>
+			<input name="value" type="text" autocomplete="off" />
+		</label>
+		<label data-improvement-section="special">
+			<span>{{localize "Litm.advancement.special-source"}}</span>
+			<select name="specialSource">
+				<option value="custom">{{localize "Litm.advancement.source-custom-special"}}</option>
+				{{#each specialOptions}}
+				<option value="{{value}}" data-name="{{name}}" data-description="{{description}}"
+					data-source-name="{{sourceName}}" data-enriched-description="{{enrichedDescription}}"
+					{{#if claimed}}disabled{{/if}}>
+					{{name}} · {{sourceName}}{{#if claimed}} · {{localize "Litm.advancement.claimed"}}{{/if}}
+				</option>
+				{{/each}}
+			</select>
+		</label>
+		<div class="litm--advancement-custom-special" data-improvement-section="special-custom">
+			<label>
+				<span>{{localize "Litm.advancement.special-name"}}</span>
+				<input name="customSpecialName" type="text" />
+			</label>
+			<label>
+				<span>{{localize "Litm.advancement.special-description"}}</span>
+				<textarea name="customSpecialDescription"></textarea>
+			</label>
+		</div>
+		<label data-improvement-section="remove-weakness">
+			<span>{{localize "Litm.advancement.remove-weakness"}}</span>
+			<select name="weaknessTarget">
+				<option value="">{{localize "Litm.advancement.choose-weakness"}}</option>
+				{{#each weaknessTags}}<option value="{{id}}">{{name}}</option>{{/each}}
+			</select>
+		</label>
+		<fieldset class="litm--advancement-rewrite">
+			<legend>{{localize "Litm.advancement.optional-rewrite"}}</legend>
+			<select name="rewriteTarget">
+				<option value="">{{localize "Litm.advancement.do-not-rewrite"}}</option>
+				{{#each rewriteTags}}<option value="{{kind}}:{{id}}">{{name}}</option>{{/each}}
+			</select>
+			<input name="rewriteValue" type="text" placeholder="{{localize 'Litm.advancement.new-tag-text'}}" />
+		</fieldset>
+		<div class="litm--advancement-actions">
+			<button type="button" data-advancement-action="apply-improvement" {{#unless canSpend}}disabled{{/unless}}>
+				<i class="fa-solid fa-check"></i> {{localize "Litm.advancement.take-improvement"}}
+			</button>
+			<button type="button" class="danger" data-advancement-action="reset-available" {{#unless canSpend}}disabled{{/unless}}>
+				<i class="fa-solid fa-rotate-left"></i> {{localize "Litm.advancement.reset-available"}}
+			</button>
+		</div>
+		{{/if}}
+
+		{{#if isEvolve}}
+		<p class="litm--advancement-hint">{{localize "Litm.advancement.evolve-hint"}}</p>
+		{{#if isExpand}}
+		<p class="litm--advancement-notice">{{localize "Litm.advancement.expand-hint"}}</p>
+		<label>
+			<span>{{localize "Litm.advancement.expansion-target"}}</span>
+			<select name="expansionTarget">
+				{{#each expansionTargets}}<option value="{{index}}" {{#if (eq index ../expansionTargetIndex)}}selected{{/if}}>{{name}}</option>{{/each}}
+			</select>
+		</label>
+		<label><span>{{localize "Litm.advancement.primary-quest"}}</span><textarea name="primaryQuest">{{primaryQuestDraft}}</textarea></label>
+		<hr />
+		{{/if}}
+		<p class="litm--advancement-promise-gain">
+			<i class="fa-solid fa-sparkles"></i>
+			{{localize "Litm.advancement.evolution-promises"}}
+			<strong data-evolution-promise-count>{{evolutionPromiseGain}}</strong>
+		</p>
+		<div class="litm--advancement-field-row">
+			<span>{{localize "Litm.advancement.theme-type"}}</span>
+			<div class="litm--advancement-themebook-picker">
+				{{#if evolutionThemebook.custom}}
+				<input name="evolutionThemebookName" value="{{evolutionThemebook.name}}"
+					placeholder="{{localize 'Litm.themebook-picker.custom-placeholder'}}" />
+				{{else}}
+				<button type="button" class="litm--advancement-themebook-current"
+					data-advancement-action="preview-evolution-themebook"
+					data-uuid="{{evolutionThemebook.uuid}}">{{evolutionThemebook.name}}</button>
+				{{/if}}
+				<button type="button" class="litm--advancement-themebook-toggle"
+					data-advancement-action="toggle-evolution-themebooks">
+					<i class="fa-solid fa-angle-down"></i>
+				</button>
+				<div class="litm--advancement-themebook-popover">
+					<input type="search" data-replacement-themebook-search
+						placeholder="{{localize 'Litm.themebook-picker.search'}}" />
+					<button type="button" class="litm--advancement-themebook-custom"
+						data-advancement-action="select-evolution-custom">
+						<i class="fa-solid fa-pen"></i>
+						<span>{{localize "Litm.themebook-picker.custom"}}</span>
+					</button>
+					<div class="litm--advancement-themebook-list">
+						{{#each themebookGroups}}
+						<section data-themebook-group><h4>{{label}}</h4>
+							{{#each items}}
+							<div class="litm--advancement-themebook-option"
+								data-themebook-row data-search="{{name}}">
+								<button type="button" data-advancement-action="select-evolution-themebook"
+									data-uuid="{{uuid}}"><img src="{{icon}}" alt="" /><span>{{name}}</span></button>
+								<button type="button" class="litm--advancement-themebook-preview"
+									data-advancement-action="preview-evolution-themebook" data-uuid="{{uuid}}">
+									<i class="fa-solid fa-book-open"></i>
+								</button>
+							</div>
+							{{/each}}
+						</section>
+						{{/each}}
+					</div>
+				</div>
+			</div>
+		</div>
+		<label>
+			<span>{{localize "Litm.advancement.might"}}</span>
+			<select name="level">
+				{{#each mightOptions}}<option value="{{this}}" {{#if (eq this ../evolutionLevel)}}selected{{/if}}>{{localize (concat "Litm.theme-content.might-" this)}}</option>{{/each}}
+			</select>
+		</label>
+		<label><span>{{localize "Litm.advancement.title-tag"}}</span><input name="themeTag" value="{{evolutionTitle}}" /></label>
+		<label><span>{{localize "Litm.advancement.quest"}}</span><textarea name="quest">{{evolutionQuest}}</textarea></label>
+		<fieldset class="litm--advancement-trades">
+			<legend>{{localize "Litm.advancement.trade-title"}}</legend>
+			<p>{{localize "Litm.advancement.trade-hint"}}</p>
+			{{#each tradePowerTags}}
+			<div class="litm--advancement-trade-row {{#if traded}}is-traded{{/if}}">
+				<input type="text" value="{{name}}" data-evolution-tag-name="{{id}}" />
+				<label><input type="checkbox" name="tradePower" value="{{id}}"
+					data-evolution-trade="power" data-limit="{{../tradePowerLimit}}" {{#if traded}}checked{{/if}} />
+					<span>{{localize "Litm.advancement.trade-action"}}</span></label>
+			</div>
+			{{/each}}
+			{{#each tradeWeaknessTags}}
+			<div class="litm--advancement-trade-row {{#if traded}}is-traded{{/if}}">
+				<input type="text" value="{{name}}" data-evolution-tag-name="{{id}}" />
+				<label><input type="checkbox" name="tradeWeakness" value="{{id}}"
+					data-evolution-trade="weakness" data-limit="{{../tradeWeaknessLimit}}" {{#if traded}}checked{{/if}} />
+					<span>{{localize "Litm.advancement.trade-action"}}</span></label>
+			</div>
+			{{/each}}
+			{{#each tradeSpecials}}
+			<div class="litm--advancement-trade-row {{#if traded}}is-traded{{/if}}">
+				<span>{{name}}</span>
+				<label><input type="checkbox" name="tradeSpecial" value="{{id}}"
+					data-evolution-trade="special" data-limit="{{../tradeSlotCount}}" {{#if traded}}checked{{/if}} />
+					<span>{{localize "Litm.advancement.trade-action"}}</span></label>
+			</div>
+			{{/each}}
+		</fieldset>
+		<fieldset class="litm--evolution-allocations" hidden>
+			<legend>{{localize "Litm.advancement.allocate-title"}}</legend>
+			<p data-evolution-allocation-status></p>
+			<p class="litm--evolution-allocation-warning">{{localize "Litm.advancement.allocation-warning"}}</p>
+			{{#each tradeSlots}}
+			<div class="litm--evolution-allocation" data-evolution-allocation="{{index}}" hidden>
+				<h3>{{localize "Litm.advancement.trade-improvement"}} {{add index 1}}</h3>
+				<select data-evolution-allocation-choice>
+					<option value="">{{localize "Litm.advancement.choose-allocation"}}</option>
+					<option value="power" {{#if (eq choice "power")}}selected{{/if}}>{{localize "Litm.advancement.add-power"}}</option>
+					<option value="weakness" {{#if (eq choice "weakness")}}selected{{/if}}>{{localize "Litm.advancement.add-weakness"}}</option>
+					<option value="special" {{#if (eq choice "special")}}selected{{/if}}>{{localize "Litm.advancement.gain-special"}}</option>
+					<option value="promise" {{#if (eq choice "promise")}}selected{{/if}}>{{localize "Litm.advancement.mark-promise"}}</option>
+					<option value="defer" {{#if (eq choice "defer")}}selected{{/if}}>{{localize "Litm.advancement.defer-improvement"}}</option>
+				</select>
+				<div data-allocation-section="tag" hidden>
+					<select data-evolution-source>
+						<option value="manual" {{#if (eq source "manual")}}selected{{/if}}>{{localize "Litm.advancement.source-manual"}}</option>
+						{{#each ../evolutionTagSources}}
+						<option value="{{value}}" data-name="{{name}}"
+							data-kind="{{#if isWeakness}}weakness{{else}}power{{/if}}"
+							{{#if (eq value ../source)}}selected{{/if}}>{{label}}</option>
+						{{/each}}
+					</select>
+					<input type="text" data-evolution-value value="{{value}}" placeholder="{{localize 'Litm.advancement.tag-name'}}" />
+				</div>
+				<div data-allocation-section="special" hidden>
+					<select data-evolution-special-source>
+						<option value="custom" {{#if (eq specialSource "custom")}}selected{{/if}}>{{localize "Litm.advancement.source-custom-special"}}</option>
+						{{#each ../evolutionSpecialOptions}}
+						<option value="{{value}}" data-name="{{name}}" data-description="{{description}}"
+							{{#if (eq value ../specialSource)}}selected{{/if}} {{#if claimed}}disabled{{/if}}>{{name}} · {{sourceName}}</option>
+						{{/each}}
+					</select>
+				</div>
+				<div data-allocation-section="special-custom" hidden>
+					<input type="text" data-evolution-special-name value="{{specialName}}" placeholder="{{localize 'Litm.advancement.special-name'}}" />
+					<textarea data-evolution-special-description placeholder="{{localize 'Litm.advancement.special-description'}}">{{specialDescription}}</textarea>
+				</div>
+			</div>
+			{{/each}}
+		</fieldset>
+		<div class="litm--advancement-actions">
+			{{#if isExpand}}
+			<button type="button" data-advancement-action="show-evolution">{{localize "Litm.advancement.back-to-evolution"}}</button>
+			<button type="button" data-advancement-action="apply-expansion"><i class="fa-solid fa-check"></i> {{localize "Litm.advancement.confirm-expansion"}}</button>
+			{{else}}
+			<button type="button" data-advancement-action="show-expansion"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> {{localize "Litm.advancement.expand-instead"}}</button>
+			<button type="button" data-advancement-action="apply-evolution"><i class="fa-solid fa-seedling"></i> {{localize "Litm.advancement.confirm-evolution"}}</button>
+			{{/if}}
+		</div>
+		{{/if}}
+
+		{{#if isReplace}}
+		<p class="litm--advancement-hint">{{localize "Litm.advancement.replace-hint"}}</p>
+		<p class="litm--advancement-promise-gain">
+			<i class="fa-solid fa-sparkles"></i>
+			{{localize "Litm.advancement.replacement-promises" count=replacementPromiseGain}}
+		</p>
+		<div class="litm--advancement-field-row">
+			<span>{{localize "Litm.advancement.theme-type"}}</span>
+			<div class="litm--advancement-themebook-picker">
+				{{#if replacementThemebook.custom}}
+				<input name="replacementThemebookName" type="text"
+					placeholder="{{localize 'Litm.themebook-picker.custom-placeholder'}}" />
+				{{else}}
+				<button type="button" class="litm--advancement-themebook-current"
+					data-advancement-action="preview-replacement-themebook"
+					data-uuid="{{replacementThemebook.uuid}}">
+					{{replacementThemebook.name}}
+				</button>
+				{{/if}}
+				<button type="button" class="litm--advancement-themebook-toggle"
+					data-advancement-action="toggle-replacement-themebooks"
+					aria-label="{{localize 'Litm.themebook-picker.choose'}}">
+					<i class="fa-solid fa-angle-down"></i>
+				</button>
+				<div class="litm--advancement-themebook-popover">
+					<input type="search" data-replacement-themebook-search
+						placeholder="{{localize 'Litm.themebook-picker.search'}}" />
+					<button type="button" class="litm--advancement-themebook-custom"
+						data-advancement-action="select-replacement-custom">
+						<i class="fa-solid fa-pen"></i>
+						<span>{{localize "Litm.themebook-picker.custom"}}</span>
+					</button>
+					<div class="litm--advancement-themebook-list">
+						{{#each themebookGroups}}
+						<section data-themebook-group>
+							<h4>{{label}}</h4>
+							{{#each items}}
+							<div class="litm--advancement-themebook-option"
+								data-themebook-row data-search="{{name}}">
+								<button type="button"
+									data-advancement-action="select-replacement-themebook"
+									data-uuid="{{uuid}}">
+									<img src="{{icon}}" alt="" />
+									<span>{{name}}</span>
+								</button>
+								<button type="button" class="litm--advancement-themebook-preview"
+									data-advancement-action="preview-replacement-themebook"
+									data-uuid="{{uuid}}"
+									data-tooltip="{{localize 'Litm.themebook-picker.preview'}}">
+									<i class="fa-solid fa-book-open"></i>
+								</button>
+							</div>
+							{{/each}}
+						</section>
+						{{/each}}
+					</div>
+				</div>
+			</div>
+		</div>
+		{{#if replacementFirstQuestion}}
+		<div class="litm--advancement-first-question">
+			<span>{{localize "Litm.advancement.first-power-question"}}</span>
+			<p>{{replacementFirstQuestion}}</p>
+		</div>
+		{{/if}}
+		<label><span>{{localize "Litm.advancement.title-tag"}}</span><input name="themeTag" /></label>
+		<label><span>{{localize "Litm.advancement.weakness-tag"}}</span><input name="weakness" /></label>
+		<label><span>{{localize "Litm.advancement.quest"}}</span><textarea name="quest"></textarea></label>
+		<div class="litm--advancement-actions">
+			<button type="button" data-advancement-action="apply-replacement"><i class="fa-solid fa-arrow-right-arrow-left"></i> {{localize "Litm.advancement.confirm-replacement"}}</button>
+		</div>
+		{{/if}}
+	</main>
+</section>

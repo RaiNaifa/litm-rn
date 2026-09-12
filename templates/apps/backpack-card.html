@@ -1,0 +1,146 @@
+{{#*inline "storyCard" story archived=false}}
+	<li class="litm--bc-story" data-story-id="{{story.id}}">
+		<div class="litm--bc-story-header">
+			<button type="button" class="litm--bc-story-portrait" data-click="open-story" data-id="{{story.id}}">
+				<img src="{{story.img}}" alt="{{story.name}}" />
+			</button>
+			<span class="litm--bc-story-name" draggable="true" data-drag-story="{{story.id}}">{{story.name}}</span>
+			<span class="litm--bc-story-might litm--bc-story-might-{{story.level}}"></span>
+			{{#if archived}}
+				<button type="button" class="litm--bc-story-remove" data-click="restore-story" data-id="{{story.id}}"
+					data-tooltip="{{localize 'Litm.ui.to-backpack'}}"><i class="fas fa-briefcase"></i></button>
+				<button type="button" class="litm--bc-story-remove" data-click="remove-story" data-id="{{story.id}}"
+					data-tooltip="{{localize 'Litm.ui.remove'}}"><i class="fas fa-times"></i></button>
+			{{else}}
+				<button type="button" class="litm--bc-story-remove" data-click="archive-story" data-id="{{story.id}}"
+					data-tooltip="{{localize 'Litm.ui.to-archive'}}"><i class="fas fa-box-archive"></i></button>
+				<button type="button" class="litm--bc-story-remove" data-click="remove-story" data-id="{{story.id}}"
+					data-tooltip="{{localize 'Litm.ui.remove'}}"><i class="fas fa-times"></i></button>
+			{{/if}}
+		</div>
+		<ul class="litm--bc-story-tags">
+			{{#each story.tags as |tag|}}
+				<li class="{{ifThen tag.isWeakness 'weakness' 'power'}}{{#if tag.isScratched}} scratched{{/if}}">
+					<span class="litm--bc-story-tag-marker" aria-hidden="true"></span>
+					<span>{{tag.name}}</span>
+				</li>
+			{{/each}}
+		</ul>
+	</li>
+{{/inline}}
+
+<div class="litm--tc-card litm--hc-card litm--bc-card">
+	<div class="litm--tc-bg litm--hc-bg"
+		style="--tc-transition-src:url('/systems/litm-rn/assets/media/transition-left-brown-dark.webp');"
+		aria-hidden="true"></div>
+
+	<div class="litm--tc-left litm--hc-left">
+		<div class="litm--bc-header">
+			<button type="button" class="{{#unless archiveView}}active{{/unless}}" data-click="toggle-archive"
+				{{#if archiveView}}data-tooltip="{{localize 'Litm.other.backpack'}}"{{/if}}>
+				{{localize "Litm.other.backpack"}}
+			</button>
+			<span aria-hidden="true">/</span>
+			<button type="button" class="{{#if archiveView}}active{{/if}}" data-click="toggle-archive"
+				{{#unless archiveView}}data-tooltip="{{localize 'Litm.other.archive'}}"{{/unless}}>
+				{{localize "Litm.other.archive"}}
+			</button>
+		</div>
+
+		<div class="litm--bc-tags">
+			<div class="litm--tc-section-label">
+				{{localize (ifThen archiveView "Litm.other.archive" "Litm.other.story-tags")}}
+			</div>
+			<ul class="litm--tc-tags">
+				{{#each tags as |tag idx|}}
+					<li class="litm--tc-tag-row" data-id="{{tag.id}}">
+						<button type="button" class="litm--secret-toggle{{#if tag.isPrivate}} active{{/if}}"
+							data-click="toggle-secret" data-id="{{tag.id}}"
+							data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
+							<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+						</button>
+						<span class="litm--tc-tag-name{{#if tag.isScratched}} scratched{{/if}}" contenteditable="true"
+							data-input="tname-{{idx}}" data-placeholder="{{localize 'Litm.ui.name-tag'}}">{{tag.name}}</span>
+						<input type="hidden" name="system.{{@root.tagPath}}.{{idx}}.name"
+							id="tname-{{idx}}" value="{{tag.name}}" />
+						<input type="hidden" name="system.{{@root.tagPath}}.{{idx}}.type" value="{{tag.type}}" />
+						<input type="hidden" name="system.{{@root.tagPath}}.{{idx}}.id" value="{{tag.id}}" />
+						{{#unless @root.archiveView}}
+							<label class="litm--tc-scratch-label">
+								<input class="litm--scratch litm--tc-scratch" type="checkbox"
+									name="system.backpackTags.{{idx}}.isScratched"
+									data-dtype="Boolean" {{checked tag.isScratched}} />
+							</label>
+							<button type="button" class="litm--bc-move-tag" data-click="move-tag-to-tracking"
+								data-id="{{tag.id}}" {{#if tag.isScratched}}disabled{{/if}}
+								data-tooltip="{{localize 'Litm.ui.move-to-tracking-cards'}}">
+								<img class="litm--bc-action-icon"
+									src="systems/litm-rn/assets/media/icons/add-story-tag_icn.svg" alt="" />
+							</button>
+							<button type="button" class="litm--bc-move-tag" data-click="archive-tag" data-id="{{tag.id}}"
+								data-tooltip="{{localize 'Litm.ui.to-archive'}}"><i class="fas fa-box-archive"></i></button>
+						{{else}}
+							<button type="button" class="litm--bc-move-tag" data-click="restore-tag" data-id="{{tag.id}}"
+								data-tooltip="{{localize 'Litm.ui.to-backpack'}}"><i class="fas fa-briefcase"></i></button>
+						{{/unless}}
+						<button type="button" class="litm--tc-remove" data-click="remove-tag" data-id="{{tag.id}}"
+							data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+					</li>
+				{{/each}}
+				{{#if (and enableBackpackDrafts (not archiveView))}}
+					{{#each draftTags as |tag idx|}}
+						<li class="litm--tc-tag-row litm--bc-draft-row" data-id="{{tag.id}}">
+							<span class="litm--tc-tag-name" contenteditable="true" data-input="draft-name-{{idx}}"
+								data-placeholder="{{localize 'Litm.ui.name-tag'}}">{{tag.name}}</span>
+							<input type="hidden" id="draft-name-{{idx}}"
+								name="system.backpackDraftTags.{{idx}}.name" value="{{tag.name}}">
+							<input type="hidden" name="system.backpackDraftTags.{{idx}}.id" value="{{tag.id}}">
+							<button type="button" class="litm--tc-draft-promote" data-click="promote-draft-tag"
+								data-id="{{tag.id}}" data-tooltip="{{localize 'Litm.ui.add-tag'}}"><i class="fas fa-plus"></i></button>
+							<button type="button" class="litm--tc-remove" data-click="remove-draft-tag" data-id="{{tag.id}}"
+								data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+						</li>
+					{{/each}}
+				{{/if}}
+			</ul>
+		</div>
+
+		<div class="litm--tc-progression litm--hc-progression litm--tc-special-add litm--bc-add-tag">
+			<button type="button" data-click="add-tag">
+				<span>{{localize "Litm.ui.add-tag"}}</span>
+			</button>
+			{{#if (and enableBackpackDrafts (not archiveView))}}
+				<button type="button" data-click="add-draft-tag">
+					<span>{{localize "Litm.ui.add-draft-tag"}}</span>
+				</button>
+			{{/if}}
+		</div>
+	</div>
+
+	<div class="litm--tc-right litm--hc-right litm--bc-right">
+		<div class="litm--bc-stories litm--bc-stories-active" data-story-archive="false">
+			<div class="litm--tc-section-label">{{localize "Litm.other.story-themes"}}</div>
+			{{#if stories.length}}
+			<ul class="litm--bc-story-list">
+				{{#each stories as |story|}}
+					{{> storyCard story=story archived=false}}
+				{{/each}}
+			</ul>
+			{{/if}}
+			<div class="litm--tc-special-add">
+				<button type="button" data-click="add-story">{{localize "Litm.ui.add-story-theme"}}</button>
+			</div>
+		</div>
+
+		{{#if archivedStories.length}}
+		<div class="litm--bc-stories litm--bc-stories-archive" data-story-archive="true">
+			<div class="litm--tc-section-label">{{localize "Litm.ui.archived-story-themes"}}</div>
+			<ul class="litm--bc-story-list">
+				{{#each archivedStories as |story|}}
+					{{> storyCard story=story archived=true}}
+				{{/each}}
+			</ul>
+		</div>
+		{{/if}}
+	</div>
+</div>

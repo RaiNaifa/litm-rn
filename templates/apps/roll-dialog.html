@@ -1,245 +1,491 @@
-{{#*inline 'tag' tag level}}
-<li>
-	<label class="litm--roll-dialog-tag litm--{{tag.type}} {{ifThen (eq tag.type 'might') (concat 'litm--' level) ''}}"
-			data-click="toggle-state" for="input-{{tag.id}}">
-		<span class="litm--sro">{{localize "Litm.ui.select"}}</span>
-		<litm-super-checkbox name="{{tag.id}}" id="input-{{tag.id}}" value="{{tag.state}}" data-type="{{tag.type}}"
-			states="{{tag.states}}"></litm-super-checkbox>
-		<span>{{ifThen tag.displayName tag.displayName tag.name}}{{ifThen tag.value (concat "-" tag.value) ""}}</span>
-	</label>
-</li>
+{{#*inline 'tagBlock' tag}}
+<div class="litm--roll-tag {{#if tag.type}}litm--roll-tag-type-{{tag.type}}{{/if}} {{tag._mightValClass}} {{#if tag.isScratched}}litm--scratched{{/if}} {{#if tag.isCrispy}}litm--crispy{{/if}} {{#if tag.isPrivate}}litm--private{{/if}} {{#if tag.state}}litm--selected litm--state-{{tag.state}}{{else}}litm--unselected{{/if}}"
+	data-click="cycle-tag" data-id="{{tag.id}}" data-ref="{{tag._ref}}" data-selection-actor-id="{{tag._selectionActorId}}" data-selection-kind="{{tag._selectionKind}}" data-tooltip="{{ifThen tag.displayName tag.displayName tag.name}}{{#if tag.value}} ({{tag.value}}){{/if}}" role="button" tabindex="0">
+	{{#unless catalog}}<span class="litm--roll-tag-icon">
+		{{#if (eq tag.state 'positive')}}<img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_inactive.svg" alt="+" />
+		{{else if (eq tag.state 'negative')}}<img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_active.svg" alt="-" />
+		{{else if (eq tag.state 'burned')}}<img src="systems/litm-rn/assets/media/burn.svg" alt="*" />
+		{{else}}<img src="systems/litm-rn/assets/media/icons/litm-att-empty-full.svg" alt="" />{{/if}}
+	</span>{{/unless}}
+	<span class="litm--roll-tag-name">{{ifThen tag.displayName tag.displayName tag.name}}</span>
+	{{#if (eq tag.type 'status')}}{{#if tag.value}}<span class="litm--roll-tag-status-val">{{tag.value}}</span>{{/if}}{{/if}}
+	{{#if (eq tag.type 'might')}}{{#if tag._mightIconUrl}}<span class="litm--roll-tag-might-icon" style="background-image:url({{tag._mightIconUrl}})"></span>{{/if}}{{/if}}
+	{{#if tag.isPermanent}}<i class="litm--roll-tag-permanent-icon fas fa-infinity" data-tooltip="{{localize 'Litm.tags.isPermanent'}}"></i>{{/if}}
+	{{#if tag.isCrispy}}{{#if (eq tag.type 'powerCrispy')}}{{else if (eq tag.type 'themeCrispy')}}{{else}}<i class="litm--roll-tag-crispy-icon fas fa-hourglass-half"></i>{{/if}}{{/if}}
+	{{#if selectedView}}{{#unless (eq tag._canRemove false)}}<button type="button" class="litm--roll-tag-remove" data-click="remove-selected-tag" data-id="{{tag.id}}" data-ref="{{tag._ref}}" data-selection-actor-id="{{tag._selectionActorId}}" data-selection-kind="{{tag._selectionKind}}" aria-label="Remove"><i class="fas fa-xmark"></i></button>{{/unless}}{{/if}}
+</div>
+{{/inline}}
+
+{{#*inline 'themeGroup' group}}
+<div class="litm--roll-theme-group">
+	{{> tagBlock tag=group.themeTag catalog=true}}
+	{{#each group.powerTags}}{{> tagBlock tag=this catalog=true}}{{/each}}
+	{{#each group.weaknessTags}}{{> tagBlock tag=this catalog=true}}{{/each}}
+</div>
 {{/inline}}
 
 <form class="{{cssClass}}" autocomplete="off">
 	<input type="hidden" name="actorId" value="{{actorId}}">
-	<input class="title" type="text" name="title" value="{{title}}" />
-	<div class="litm--roll-dialog-type">
-		<h3 class="litm--sro">{{concat (localize "Litm.other.roll") " " (localize "Type")}}</h3>
-		<div class="litm--roll-dialog-type-choices">{{radioBoxes "type" rollTypes checked=type localize=true}}
+
+	{{#if isGmDialog}}
+	{{!-- GM actor tabs --}}
+	<nav class="litm--roll-actor-tabs">
+		{{#each actorTabs}}
+		<button type="button" class="litm--roll-actor-tab {{#if (eq id ../actorId)}}active{{/if}}" data-actor-tab="{{id}}">
+			{{#if img}}<img class="litm--roll-actor-tab-img" src="{{img}}" alt="" />{{/if}}
+			<span>{{name}}</span>
+		</button>
+		{{/each}}
+	</nav>
+	{{/if}}
+
+	{{!-- Subtabs (always visible) --}}
+	{{#unless isCamp}}
+	<nav class="litm--roll-subtabs">
+		<button type="button" class="litm--roll-tab {{#if (and (eq currentTab 'quick') (not subtab))}}active{{/if}}"
+			data-tab="quick">{{localize "Litm.ui.roll-quick"}}</button>
+		<button type="button" class="litm--roll-tab {{#if (and (eq currentTab 'detailed') (not subtab))}}active{{/if}}"
+			data-tab="detailed">{{localize "Litm.ui.roll-tracked"}}</button>
+		<button type="button" class="litm--roll-tab {{#if (eq subtab 'reaction')}}active{{/if}}"
+			data-tab="detailed" data-subtab="reaction">{{localize "Litm.ui.subtab-reaction"}}</button>
+		<button type="button" class="litm--roll-tab {{#if (eq currentTab 'group')}}active{{/if}}"
+			data-tab="group">{{localize "Litm.ui.roll-group"}}</button>
+		<button type="button" class="litm--roll-tab {{#if (eq subtab 'sacrifice')}}active{{/if}}"
+			data-tab="quick" data-subtab="sacrifice">{{localize "Litm.ui.subtab-sacrifice"}}</button>
+	</nav>
+	{{else}}
+	<div class="litm--roll-subtabs litm--roll-camp-banner"><i class="fas fa-campground"></i> {{localize "Litm.camp.roll-label"}}</div>
+	{{/unless}}
+
+	{{#*inline 'rollColumnHero'}}
+		{{!-- Hero Column --}}
+		<div class="litm--roll-column litm--roll-column-hero">
+			<div class="litm--roll-column-header">{{localize "Litm.ui.hero"}}</div>
+			<div class="litm--roll-column-body">
+			{{#each heroGroups}}
+				{{#if (eq type "theme")}}{{> themeGroup group=this}}{{/if}}
+				{{#if (eq type "storyTheme")}}{{> themeGroup group=this}}{{/if}}
+				{{#if (eq type "backpack")}}{{#if hasItems}}{{#each tags}}{{> tagBlock tag=this}}{{/each}}{{/if}}{{/if}}
+				{{#if (eq type "relationships")}}{{#if hasItems}}{{#each tags}}{{> tagBlock tag=this}}{{/each}}{{/if}}{{/if}}
+				{{#if (eq type "personal")}}{{#if hasItems}}{{#each tags}}{{> tagBlock tag=this}}{{/each}}{{/if}}{{/if}}
+			{{/each}}
+			</div>
 		</div>
-	</div>
-	<div class="litm--roll-dialog-tags-summary">
-		<hr />
-		<ul>
-			<!-- Tags selected on Character Sheet -->
-			{{#each characterTags as |tag|}}
-			{{> tag tag=tag}}
-			{{/each}}
-		</ul>
-		<hr />
-		<ul>
-			<!-- Personal (leaf) Statuses -->
-			{{#each statuses as |status|}}
-			{{> tag tag=status}}
-			{{/each}}
-			<!-- Personal (leaf) Story Tags -->
-			{{#each tags as |tag|}}
-			{{> tag tag=tag}}
-			{{/each}}
-		</ul>
-		<hr />
-		<ul>
-			<!-- Selected Story Statuses -->
-			{{#each storyStatuses as |status|}}
-			{{> tag tag=status}}
-			{{/each}}
-			<!-- Selected Story Tags -->
-			{{#each storyTags as |tag|}}
-			{{> tag tag=tag}}
-			{{/each}}
-			<!-- Selected Story Might -->
-			{{#each storyMights as |might|}}
-			{{> tag tag=might level=(ifThen (eq might.value 0) 'origin' (ifThen (eq might.value 3) 'adventure' 'greatness')) }}
-			{{/each}}
-			<!-- Tags selected to help on Character Sheet -->
-			{{#each helpingTags as |tag|}}
-			{{> tag tag=tag}}
-			{{/each}}
-		</ul>
-		<hr />
-		<div class="litm--roll-dialog-might-container">
-			<div class="litm--might-name-wrapper">
-        <span class="litm--roll-dialog-might-name">
-					{{localize "Litm.other.might"}}
-        </span>
-        <div class="litm--might-tooltip">
-					<p>{{localize "Litm.might-scale.action-scale"}}</p>
-					<table class="litm--might-table">
-						<thead>
-							<tr>
-								<th>{{localize "Litm.other.might"}}</th>
-								<th>{{localize "Litm.might-scale.scale"}}</th>
-								<th>{{localize "Litm.might-scale.area"}}</th>
-								<th>{{localize "Litm.might-scale.size"}}</th>
-								<th>{{localize "Litm.might-scale.group"}}</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td rowspan="2" class="litm--might-table-img">
-									<img src="systems/litm-rn/assets/media/icons/origin-color_litm_icn.svg" />
-									<span>{{localize "origin"}}</span>
-								</td>
-								<td>0</td>
-								<td>{{localize "Litm.might-scale.area-0"}}</td>
-								<td>{{localize "Litm.might-scale.size-0"}}</td>
-								<td>{{localize "Litm.might-scale.group-0"}}</td>
-							</tr>
-							<tr>
-								<td>1</td>
-								<td>{{localize "Litm.might-scale.area-1"}}</td>
-								<td>{{localize "Litm.might-scale.size-1"}}</td>
-								<td>{{localize "Litm.might-scale.group-1"}}</td>
-							</tr>
-							<tr>
-								<td rowspan="3" class="litm--might-table-img">
-									<img src="systems/litm-rn/assets/media/icons/adventure-color_litm_icn.svg" />
-									<span>{{localize "adventure"}}</span>
-								</td>
-								<td>2</td>
-								<td>{{localize "Litm.might-scale.area-2"}}</td>
-								<td>{{localize "Litm.might-scale.size-2"}}</td>
-								<td>{{localize "Litm.might-scale.group-2"}}</td>
-							</tr>
-							<tr>
-								<td>3</td>
-								<td>{{localize "Litm.might-scale.area-3"}}</td>
-								<td>{{localize "Litm.might-scale.size-3"}}</td>
-								<td>{{localize "Litm.might-scale.group-3"}}</td>
-							</tr>
-							<tr>
-								<td>4</td>
-								<td>{{localize "Litm.might-scale.area-4"}}</td>
-								<td>{{localize "Litm.might-scale.size-4"}}</td>
-								<td>{{localize "Litm.might-scale.group-4"}}</td>
-							</tr>
-							<tr>
-								<td rowspan="2" class="litm--might-table-img">
-									<img src="systems/litm-rn/assets/media/icons/greatness-color_litm_icn.svg" />
-									<span>{{localize "greatness"}}</span>
-								</td>
-								<td>5</td>
-								<td>{{localize "Litm.might-scale.area-5"}}</td>
-								<td>{{localize "Litm.might-scale.size-5"}}</td>
-								<td>{{localize "Litm.might-scale.group-5"}}</td>
-							</tr>
-							<tr>
-								<td>6</td>
-								<td>{{localize "Litm.might-scale.area-6"}}</td>
-								<td>{{localize "Litm.might-scale.size-6"}}</td>
-								<td>{{localize "Litm.might-scale.group-6"}}</td>
-							</tr>
-						</tbody>
-					</table>
+{{/inline}}
+
+{{#*inline 'rollColumnFellowship'}}
+		{{!-- Fellowship Column --}}
+		<div class="litm--roll-column litm--roll-column-fellowship">
+			<div class="litm--roll-column-header">{{localize "Litm.other.fellowship"}}</div>
+			<div class="litm--roll-column-body">
+			{{#each fellowGroups}}
+				<div class="litm--roll-theme-group">
+					{{#if themeTag}}{{> tagBlock tag=themeTag}}
+					{{else}}<div class="litm--roll-section-header">{{name}}</div>
+					{{/if}}
+					{{#each powerTags}}{{> tagBlock tag=this}}{{/each}}
+					{{#each weaknessTags}}{{> tagBlock tag=this}}{{/each}}
 				</div>
-			</div>
-			<div class="litm--roll-dialog-might">
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="-6" {{checked (eq might -6)}}>
-					<span>-6</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="-5" {{checked (eq might -5)}}>
-					<span>-5</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="-4" {{checked (eq might -4)}}>
-					<span>-4</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="-3" {{checked (eq might -3)}}>
-					<span>-3</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="-2" {{checked (eq might -2)}}>
-					<span>-2</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="-1" {{checked (eq might -1)}}>
-					<span>-1</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="0" {{checked (eq might 0)}}>
-					<span>0</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="1" {{checked (eq might 1)}}>
-					<span>1</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="2" {{checked (eq might 2)}}>
-					<span>2</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="3" {{checked (eq might 3)}}>
-					<span>3</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="4" {{checked (eq might 4)}}>
-					<span>4</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="5" {{checked (eq might 5)}}>
-					<span>5</span>
-				</label>
-				<label class="litm--might-option">
-					<input type="radio" name="might" value="6" {{checked (eq might 6)}}>
-					<span>6</span>
-				</label>
+			{{else}}
+				<p class="litm--roll-empty">{{localize "Litm.ui.no-fellowship"}}</p>
+			{{/each}}
+			{{#each fellowMembers}}
+				<div class="litm--roll-member">
+					<div class="litm--roll-member-header">
+						<img class="litm--roll-member-avatar" src="{{img}}" alt="" />
+						<span class="litm--roll-member-name">{{name}}</span>
+					</div>
+					{{#each tags}}{{> tagBlock tag=this}}{{/each}}
+				</div>
+			{{/each}}
 			</div>
 		</div>
-	</div>
-	<div class="litm--roll-dialog-modifier">
-		<label for="modifier-input">
-			<span>{{localize "Litm.ui.modifier"}}: </span>
-			<input id="modifier-input" type="number" name="modifier" value="{{modifier}}" data-update="modifier" />
-		</label>
-	</div>
-	<div class="litm--tags-summary-total-wrapper">
-		<div class="litm--tags-summary-total{{#if (eq type 'tracked')}} litm--summary-tracked{{/if}}">
-			{{#if (eq type 'tracked')}}
-			<button type="button" class="litm--trade-btn litm--trade-caution {{#if (eq tradeMode 'caution')}}active{{/if}}"
-				data-click="trade-caution"
-				data-tooltip="{{localize 'Litm.ui.throw-caution-tooltip'}}"
-				{{#unless canThrowCaution}}disabled{{/unless}}>
-				<span>
-					{{{localize "Litm.ui.throw-caution"}}}
-				</span>
-			</button>
-			{{/if}}
-			<div class="litm--tags-total-center">
-				<span>{{localize "Litm.ui.total-power"}}: </span>
-				<span data-update="totalPower">{{totalPower}}</span>
+{{/inline}}
+
+{{#*inline 'rollColumnStory'}}
+		{{!-- Story Tags Column --}}
+		<div class="litm--roll-column litm--roll-column-story">
+			<div class="litm--roll-column-header">{{localize "Litm.other.story-tags"}}</div>
+			<div class="litm--roll-column-body">
+			{{#each storyGroups}}{{#each tags}}{{> tagBlock tag=this}}{{/each}}{{/each}}
+			<div class="litm--roll-story-theme-groups">
+			{{#each storyThemeGroups}}
+				<div class="litm--roll-theme-group">
+					{{#if themeTag}}{{> tagBlock tag=themeTag}}
+					{{else}}<div class="litm--roll-section-header">{{name}}</div>
+					{{/if}}
+					{{#each powerTags}}{{> tagBlock tag=this}}{{/each}}
+					{{#each weaknessTags}}{{> tagBlock tag=this}}{{/each}}
+				</div>
+			{{/each}}
 			</div>
-			{{#if (eq type 'tracked')}}
-			<button type="button" class="litm--trade-btn litm--trade-hedge {{#if (eq tradeMode 'hedge')}}active{{/if}}"
-				data-click="trade-hedge"
-				data-tooltip="{{localize 'Litm.ui.hedge-risks-tooltip'}}"
-				{{#unless canHedgeRisks}}disabled{{/unless}}>
-				<span>
-					{{{localize "Litm.ui.hedge-risks"}}}
-				</span>
-			</button>
+			{{#each storyMembers}}
+				<div class="litm--roll-member">
+					<div class="litm--roll-member-header">
+						<img class="litm--roll-member-avatar" src="{{img}}" alt="" />
+						<span class="litm--roll-member-name">{{name}}</span>
+					</div>
+					{{#each tags}}{{> tagBlock tag=this}}{{/each}}
+				</div>
+			{{/each}}
+			{{#each sceneActors}}
+				<div class="litm--roll-member">
+					<div class="litm--roll-member-header">
+						<img class="litm--roll-member-avatar" src="{{img}}" alt="" />
+						<span class="litm--roll-member-name">{{name}}</span>
+					</div>
+					{{#each tags}}{{> tagBlock tag=this}}{{/each}}
+				</div>
+			{{/each}}
+			</div>
+		</div>
+{{/inline}}
+
+{{#if isSacrifice}}
+	<div class="litm--roll-tab-body litm--sacrifice">
+		<h3 class="litm--sacrifice-level-title">{{localize "Litm.ui.sacrifice-level-title"}}</h3>
+		<div class="litm--sacrifice-levels">
+			<label class="litm--sacrifice-level {{#if (eq sacrifice.level 'painful')}}active{{/if}}">
+				<input type="radio" name="sacrificeLevel" value="painful" data-sacrifice-input
+					{{checked (eq sacrifice.level "painful")}}>
+				<span class="litm--sacrifice-level-name">{{localize "Litm.ui.sacrifice-painful"}}</span>
+				<span>{{localize "Litm.ui.sacrifice-painful-consequence"}}</span>
+			</label>
+			<label class="litm--sacrifice-level {{#if (eq sacrifice.level 'scarring')}}active{{/if}}">
+				<input type="radio" name="sacrificeLevel" value="scarring" data-sacrifice-input
+					{{checked (eq sacrifice.level "scarring")}}>
+				<span class="litm--sacrifice-level-name">{{localize "Litm.ui.sacrifice-scarring"}}</span>
+				<span>{{localize "Litm.ui.sacrifice-scarring-consequence"}}</span>
+			</label>
+			<label class="litm--sacrifice-level {{#if (eq sacrifice.level 'grave')}}active{{/if}}">
+				<input type="radio" name="sacrificeLevel" value="grave" data-sacrifice-input
+					{{checked (eq sacrifice.level "grave")}}>
+				<span class="litm--sacrifice-level-name">{{localize "Litm.ui.sacrifice-grave"}}</span>
+				<span>{{localize "Litm.ui.sacrifice-grave-consequence"}}</span>
+			</label>
+		</div>
+
+		<div class="litm--sacrifice-details">
+			<div class="litm--sacrifice-fields">
+				<label class="litm--sacrifice-field">
+					<span>{{localize "Litm.ui.sacrifice-theme"}}</span>
+					<select name="sacrificeThemeId" data-sacrifice-input>
+						<option value="">{{localize "Litm.ui.sacrifice-select-theme"}}</option>
+						{{#each sacrificeThemes}}
+						<option value="{{id}}" {{#if (eq id ../sacrifice.themeId)}}selected{{/if}}>{{name}}</option>
+						{{/each}}
+					</select>
+				</label>
+
+				{{#if (eq sacrifice.level "grave")}}
+				<label class="litm--sacrifice-field">
+					<span>{{localize "Litm.ui.sacrifice-status-name"}}</span>
+					<input type="text" name="sacrificeStatusName" value="{{sacrifice.statusName}}"
+						data-sacrifice-input placeholder="{{localize 'Litm.ui.sacrifice-status-placeholder'}}">
+				</label>
+				{{else}}
+				<input type="hidden" name="sacrificeStatusName" value="{{sacrifice.statusName}}">
+				{{/if}}
+
+				<label class="litm--sacrifice-field">
+					<span>{{localize "Litm.ui.sacrifice-achievement"}}</span>
+					<textarea name="sacrificeAchievement" data-sacrifice-input
+						placeholder="{{localize (concat 'Litm.ui.sacrifice-achievement-placeholder-' sacrifice.level)}}">{{sacrifice.achievement}}</textarea>
+				</label>
+
+				{{#if sacrificeApproved}}
+				<div class="litm--sacrifice-state approved"><i class="fas fa-circle-check"></i>
+					{{localize "Litm.ui.sacrifice-approved-indicator"}}</div>
+				{{else if sacrificePending}}
+				<div class="litm--sacrifice-state pending"><i class="fas fa-clock"></i>
+					{{localize "Litm.ui.sacrifice-pending-indicator"}}</div>
+				{{else if sacrificeChanged}}
+				<div class="litm--sacrifice-state changed"><i class="fas fa-triangle-exclamation"></i>
+					{{localize "Litm.ui.sacrifice-changed-indicator"}}</div>
+				{{/if}}
+			</div>
+
+			<aside class="litm--sacrifice-outcomes">
+				<h3>{{localize "Litm.ui.sacrifice-outcomes-title"}}</h3>
+				<div class="litm--sacrifice-outcome">
+					<span class="litm--sacrifice-outcome-title">{{localize "Litm.ui.sacrifice-miracle-range"}}</span>
+					<p>{{localize "Litm.ui.sacrifice-outcome-miracle-description"}}
+						{{localize "Litm.ui.sacrifice-miracle-painful-note"}}</p>
+				</div>
+				<div class="litm--sacrifice-outcome">
+					<span class="litm--sacrifice-outcome-title">{{localize "Litm.ui.sacrifice-fate-range"}}</span>
+					<p>{{localize "Litm.ui.sacrifice-outcome-fate-description"}}</p>
+				</div>
+				<div class="litm--sacrifice-outcome">
+					<span class="litm--sacrifice-outcome-title">{{localize "Litm.ui.sacrifice-in-vain-range"}}</span>
+					<p>{{localize "Litm.ui.sacrifice-outcome-in-vain-description"}}</p>
+				</div>
+			</aside>
+		</div>
+	</div>
+{{else}}
+{{#if (eq currentTab 'group')}}
+	<div class="litm--roll-tab-body">
+		{{!-- Top block: selected tags in 3 columns --}}
+		<div class="litm--roll-group-selected">
+			{{#if groupEmpty}}
+			<div class="litm--roll-group-empty-hint">{{localize "Litm.ui.group-empty-hint"}}</div>
+			{{else}}
+			{{#if groupWarning}}<div class="litm--roll-group-warning">{{groupWarning}}</div>{{/if}}
+			<div class="litm--roll-column litm--roll-group-hero">
+				<div class="litm--roll-column-header">{{localize "Litm.other.heroes"}}</div>
+				{{#each groupSelected.heroes}}
+				<div class="litm--roll-group-member">
+					<div class="litm--roll-member-header">
+						<span class="litm--roll-member-name">{{name}}</span>
+					</div>
+					{{#each tags}}{{> tagBlock tag=this selectedView=true}}{{/each}}
+				</div>
+				{{else}}
+				<p class="litm--roll-empty">{{localize "Litm.ui.no-selected-tags"}}</p>
+				{{/each}}
+			</div>
+			<div class="litm--roll-column litm--roll-group-fellowship">
+				<div class="litm--roll-column-header">{{localize "Litm.other.fellowship"}}</div>
+				{{#each groupSelected.fellowship}}{{> tagBlock tag=this selectedView=true}}{{/each}}
+				{{#unless groupSelected.fellowship.length}}<p class="litm--roll-empty">{{localize "Litm.ui.no-selected-tags"}}</p>{{/unless}}
+			</div>
+			<div class="litm--roll-column litm--roll-group-story">
+				<div class="litm--roll-column-header">{{localize "Litm.ui.story-column"}}</div>
+				{{#each groupSelected.story}}{{> tagBlock tag=this selectedView=true}}{{/each}}
+				{{#unless groupSelected.story.length}}<p class="litm--roll-empty">{{localize "Litm.ui.no-selected-tags"}}</p>{{/unless}}
+			</div>
 			{{/if}}
 		</div>
-		{{#if (and tradeMode (eq type 'tracked'))}}
-		<div class="litm--trade-info">
-			<span>{{localize "Litm.ui.spend-power"}}: </span>
-			<span data-update="spendPower">{{spendPower}}</span>
+
+		{{!-- Bottom catalog: GM sees Story directly; players switch between all sources. --}}
+		{{#if isGM}}
+		<div class="litm--roll-columns litm--roll-catalog">
+			<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.other.story-tags"}}</div>{{#each gmStoryCatalogTags}}{{#if _isTheme}}<div class="litm--roll-section-header litm--roll-theme-title">{{name}}<span class="litm--roll-theme-might-{{themeLevel}}"></span></div><div class="litm--roll-theme-group">{{#if themeTag}}{{> tagBlock tag=themeTag catalog=true}}{{/if}}{{#each powerTags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{#each weaknessTags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{else}}{{> tagBlock tag=this catalog=true}}{{/if}}{{/each}}</div>
+			<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.ui.story-actors"}}</div>{{#each gmStoryCatalogMembers}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><span>{{name}}</span></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+			<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.ui.scene-actors"}}</div>{{#each gmSceneCatalogActors}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><span>{{name}}</span></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+		</div>
+		{{else}}
+		<nav class="litm--roll-source-tabs">
+			<button type="button" class="litm--roll-tab {{#if (eq sourceTab 'hero')}}active{{/if}}" data-source-tab="hero">{{localize "Litm.other.hero"}}</button>
+			<button type="button" class="litm--roll-tab {{#if (eq sourceTab 'fellowship')}}active{{/if}}" data-source-tab="fellowship">{{localize "Litm.other.fellowship"}}</button>
+			<button type="button" class="litm--roll-tab {{#if (eq sourceTab 'story')}}active{{/if}}" data-source-tab="story">{{localize "Litm.other.story-tags"}}</button>
+		</nav>
+		<div class="litm--roll-columns litm--roll-catalog">
+			{{#if (eq sourceTab 'hero')}}
+			<div class="litm--roll-column">{{#each heroGroups}}{{#if (eq type 'theme')}}<div class="litm--roll-section-header litm--roll-theme-title">{{localize "Litm.hero-creation.theme-number" number=(add @index 1)}}<span class="litm--roll-theme-might-{{themeLevel}}"></span></div>{{> themeGroup group=this}}{{/if}}{{/each}}</div>
+			<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.other.backpack"}}</div>{{#each heroGroups}}{{#if (eq type 'backpack')}}{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{/if}}{{/each}}<div class="litm--roll-section-header">{{localize "Litm.other.story-tags"}}</div>{{#each heroGroups}}{{#if (eq type 'personal')}}{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{/if}}{{/each}}</div>
+			<div class="litm--roll-column">{{#each heroGroups}}{{#if (eq type 'storyTheme')}}<div class="litm--roll-section-header litm--roll-theme-title">{{name}}<span class="litm--roll-theme-might-{{themeLevel}}"></span></div>{{> themeGroup group=this}}{{/if}}{{/each}}{{#unless hasHeroStoryThemes}}<div class="litm--roll-section-header">{{localize "Litm.other.story-themes"}}</div><p class="litm--roll-empty">{{localize "Litm.ui.roll-no-story-themes"}}</p>{{/unless}}</div>
+			{{else if (eq sourceTab 'fellowship')}}
+			<div class="litm--roll-column">{{#each fellowGroups}}<div class="litm--roll-section-header litm--roll-theme-title">{{name}}{{#if themeLevel}}<span class="litm--roll-theme-might-{{themeLevel}}"></span>{{/if}}</div><div class="litm--roll-theme-group">{{#if themeTag}}{{> tagBlock tag=themeTag catalog=true}}{{/if}}{{#each powerTags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{#each weaknessTags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+			<div class="litm--roll-fellow-members">{{#each fellowMembers}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><div class="litm--roll-member-info"><b>{{name}}</b>{{#if relationshipTag}}{{> tagBlock tag=relationshipTag catalog=true}}{{/if}}</div></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+			{{else}}
+			<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.other.story-tags"}}</div>{{#each storyGroups}}{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{/each}}{{#each storyThemeGroups}}<div class="litm--roll-section-header litm--roll-theme-title">{{name}}<span class="litm--roll-theme-might-{{themeLevel}}"></span></div>{{> themeGroup group=this}}{{/each}}</div>
+			<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.ui.story-actors"}}</div>{{#each storyMembers}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><span>{{name}}</span></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+			<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.ui.scene-actors"}}</div>{{#each sceneActors}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><span>{{name}}</span></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+			{{/if}}
 		</div>
 		{{/if}}
 	</div>
-	<input type="hidden" name="tradeMode" value="{{tradeMode}}" />
-	<button type="button" data-click="add-tag">
-		<span>{{localize "Litm.other.add"}} {{localize "Litm.other.tags"}}</span>
-	</button>
-	<div class="litm--roll-dialog-buttons">
-		<label class="litm--roll-dialog-skip-moderation">
-			<span>{{localize "Litm.ui.skip-moderation"}}</span>
-			<input class="litm--checkbox" type="checkbox" name="shouldRoll" {{checked skipModeration}} />
-		</label>
-		<button type="submit">
-			<span>{{localize "Litm.ui.roll"}}</span>
-		</button>
+	{{else}}
+	<div class="litm--roll-tab-body">
+
+	<div class="litm--roll-selected-tags">
+		{{#each flatSelectedTags}}{{> tagBlock tag=this selectedView=true}}{{/each}}
+		{{#unless flatSelectedTags.length}}<p class="litm--roll-empty">{{localize "Litm.ui.no-selected-tags"}}</p>{{/unless}}
+	</div>
+
+	<nav class="litm--roll-source-tabs">
+		<button type="button" class="litm--roll-tab {{#if (eq sourceTab 'hero')}}active{{/if}}" data-source-tab="hero">{{localize "Litm.other.hero"}}</button>
+		<button type="button" class="litm--roll-tab {{#if (eq sourceTab 'fellowship')}}active{{/if}}" data-source-tab="fellowship">{{localize "Litm.other.fellowship"}}</button>
+		<button type="button" class="litm--roll-tab {{#if (eq sourceTab 'story')}}active{{/if}}" data-source-tab="story">{{localize "Litm.other.story-tags"}}</button>
+	</nav>
+
+	<div class="litm--roll-columns litm--roll-catalog">
+		{{#if (eq sourceTab 'hero')}}
+		<div class="litm--roll-column">
+			{{#each heroGroups}}{{#if (eq type 'theme')}}<div class="litm--roll-section-header litm--roll-theme-title">{{localize "Litm.hero-creation.theme-number" number=(add @index 1)}}<span class="litm--roll-theme-might-{{themeLevel}}"></span></div>{{> themeGroup group=this}}{{/if}}{{/each}}
+		</div>
+		<div class="litm--roll-column">
+			<div class="litm--roll-section-header">{{localize "Litm.other.backpack"}}</div>
+			{{#each heroGroups}}{{#if (eq type 'backpack')}}{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{/if}}{{/each}}
+			<div class="litm--roll-section-header">{{localize "Litm.other.story-tags"}}</div>
+			{{#each heroGroups}}{{#if (eq type 'personal')}}{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{/if}}{{/each}}
+		</div>
+		<div class="litm--roll-column">
+			{{#each heroGroups}}{{#if (eq type 'storyTheme')}}<div class="litm--roll-section-header litm--roll-theme-title">{{name}}<span class="litm--roll-theme-might-{{themeLevel}}"></span></div>{{> themeGroup group=this}}{{/if}}{{/each}}
+			{{#unless hasHeroStoryThemes}}<div class="litm--roll-section-header">{{localize "Litm.other.story-themes"}}</div><p class="litm--roll-empty">{{localize "Litm.ui.roll-no-story-themes"}}</p>{{/unless}}
+		</div>
+		{{else if (eq sourceTab 'fellowship')}}
+		<div class="litm--roll-column">
+			{{#each fellowGroups}}<div class="litm--roll-section-header litm--roll-theme-title">{{name}}{{#if themeLevel}}<span class="litm--roll-theme-might-{{themeLevel}}"></span>{{/if}}</div><div class="litm--roll-theme-group">{{#if themeTag}}{{> tagBlock tag=themeTag catalog=true}}{{/if}}{{#each powerTags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{#each weaknessTags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}
+		</div>
+		<div class="litm--roll-fellow-members">
+			{{#each fellowMembers}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><div class="litm--roll-member-info"><b>{{name}}</b>{{#if relationshipTag}}{{> tagBlock tag=relationshipTag catalog=true}}{{/if}}</div></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}
+		</div>
+		{{else}}
+		<div class="litm--roll-column">{{#if isCamp}}<div class="litm--roll-section-header"><i class="fas fa-campground"></i> {{localize "Litm.camp.camp-tags"}}</div>{{#each campTags}}{{> tagBlock tag=this catalog=true}}{{else}}<p class="litm--roll-empty">{{localize "Litm.camp.no-tags"}}</p>{{/each}}{{/if}}<div class="litm--roll-section-header">{{localize "Litm.other.story-tags"}}</div>{{#each storyGroups}}{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}{{/each}}{{#each storyThemeGroups}}<div class="litm--roll-section-header litm--roll-theme-title">{{name}}<span class="litm--roll-theme-might-{{themeLevel}}"></span></div>{{> themeGroup group=this}}{{/each}}</div>
+		<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.ui.story-actors"}}</div>{{#each storyMembers}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><span>{{name}}</span></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+		<div class="litm--roll-column"><div class="litm--roll-section-header">{{localize "Litm.ui.scene-actors"}}</div>{{#each sceneActors}}<div class="litm--roll-member"><div class="litm--roll-member-header"><img class="litm--roll-member-avatar" src="{{img}}" alt="" /><span>{{name}}</span></div>{{#each tags}}{{> tagBlock tag=this catalog=true}}{{/each}}</div>{{/each}}</div>
+		{{/if}}
+	</div>
+	</div>
+	{{/if}}
+{{/if}}
+
+	{{!-- Sticky bottom --}}
+	<div class="litm--roll-sticky">
+		<div class="litm--roll-sticky-row">
+			{{#unless isSacrifice}}
+			<div class="litm--roll-dialog-might-container">
+				<div class="litm--might-name-wrapper">
+					<span class="litm--roll-dialog-might-name"><i class="far fa-circle-question"></i>{{localize "Litm.other.might"}}</span>
+					<div class="litm--might-tooltip">
+						<p>{{localize "Litm.might-scale.action-scale"}}</p>
+						<table class="litm--might-table">
+							<thead>
+								<tr>
+									<th>{{localize "Litm.other.might"}}</th>
+									<th>{{localize "Litm.might-scale.scale"}}</th>
+									<th>{{localize "Litm.might-scale.area"}}</th>
+									<th>{{localize "Litm.might-scale.size"}}</th>
+									<th>{{localize "Litm.might-scale.group"}}</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td rowspan="2" class="litm--might-table-img"><img src="systems/litm-rn/assets/media/icons/origin-color-light_litm_icn.svg" /><span>{{localize "origin"}}</span></td>
+									<td>0</td><td>{{localize "Litm.might-scale.area-0"}}</td><td>{{localize "Litm.might-scale.size-0"}}</td><td>{{localize "Litm.might-scale.group-0"}}</td>
+								</tr>
+								<tr><td>1</td><td>{{localize "Litm.might-scale.area-1"}}</td><td>{{localize "Litm.might-scale.size-1"}}</td><td>{{localize "Litm.might-scale.group-1"}}</td></tr>
+								<tr>
+									<td rowspan="3" class="litm--might-table-img"><img src="systems/litm-rn/assets/media/icons/adventure-color-light_litm_icn.svg" /><span>{{localize "adventure"}}</span></td>
+									<td>2</td><td>{{localize "Litm.might-scale.area-2"}}</td><td>{{localize "Litm.might-scale.size-2"}}</td><td>{{localize "Litm.might-scale.group-2"}}</td>
+								</tr>
+								<tr><td>3</td><td>{{localize "Litm.might-scale.area-3"}}</td><td>{{localize "Litm.might-scale.size-3"}}</td><td>{{localize "Litm.might-scale.group-3"}}</td></tr>
+								<tr><td>4</td><td>{{localize "Litm.might-scale.area-4"}}</td><td>{{localize "Litm.might-scale.size-4"}}</td><td>{{localize "Litm.might-scale.group-4"}}</td></tr>
+								<tr>
+									<td rowspan="2" class="litm--might-table-img"><img src="systems/litm-rn/assets/media/icons/greatness-color-light_litm_icn.svg" /><span>{{localize "greatness"}}</span></td>
+									<td>5</td><td>{{localize "Litm.might-scale.area-5"}}</td><td>{{localize "Litm.might-scale.size-5"}}</td><td>{{localize "Litm.might-scale.group-5"}}</td>
+								</tr>
+								<tr><td>6</td><td>{{localize "Litm.might-scale.area-6"}}</td><td>{{localize "Litm.might-scale.size-6"}}</td><td>{{localize "Litm.might-scale.group-6"}}</td></tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="litm--roll-dialog-might">
+					<label class="litm--might-option"><input type="radio" name="might" value="-6" {{checked (eq might -6)}}><span>-6</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="-5" {{checked (eq might -5)}}><span>-5</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="-4" {{checked (eq might -4)}}><span>-4</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="-3" {{checked (eq might -3)}}><span>-3</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="-2" {{checked (eq might -2)}}><span>-2</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="-1" {{checked (eq might -1)}}><span>-1</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="0" {{checked (eq might 0)}}><span>0</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="1" {{checked (eq might 1)}}><span>1</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="2" {{checked (eq might 2)}}><span>2</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="3" {{checked (eq might 3)}}><span>3</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="4" {{checked (eq might 4)}}><span>4</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="5" {{checked (eq might 5)}}><span>5</span></label>
+					<label class="litm--might-option"><input type="radio" name="might" value="6" {{checked (eq might 6)}}><span>6</span></label>
+				</div>
+			</div>
+			{{/unless}}
+
+			<div class="litm--roll-summary-controls {{#if isSacrifice}}is-sacrifice{{/if}}{{#if isCamp}} is-camp{{/if}}">
+				<div class="litm--roll-modifier-stack">
+				<div class="litm--roll-modifier">
+					<label for="modifier-input">{{localize "Litm.ui.modifier"}}:</label>
+					<button type="button" class="litm--roll-mod-btn icon" data-click="mod-dec" aria-label="−">
+						<i class="fa-solid fa-minus" aria-hidden="true"></i>
+					</button>
+					<input id="modifier-input" type="number" name="modifier" value="{{modifier}}" data-update="modifier" />
+					<button type="button" class="litm--roll-mod-btn icon" data-click="mod-inc" aria-label="+">
+						<i class="fa-solid fa-plus" aria-hidden="true"></i>
+					</button>
+				</div>
+				{{#if isCamp}}<div class="litm--roll-camp-bonus"><i class="fas fa-campground"></i> {{localize "Litm.camp.sojourn-bonus"}}: +{{campBonus}}</div>{{/if}}
+				</div>
+
+				{{#unless isSacrifice}}
+				<div class="litm--roll-sticky-actions">
+					{{#if (and (eq currentTab "detailed") (or isCamp (eq type "tracked")) (ne subtab "reaction"))}}
+					<button type="button" class="litm--trade-btn litm--trade-caution {{#if (eq tradeMode 'caution')}}active{{/if}}"
+						data-click="trade-caution" aria-label="{{localize 'Litm.ui.trade-caution'}}"
+						data-tooltip="<strong>{{localize 'Litm.ui.trade-caution'}}</strong><br>{{localize 'Litm.ui.throw-caution-tooltip'}}" {{#unless canThrowCaution}}disabled{{/unless}}>
+						<i class="fa-solid fa-wind" aria-hidden="true"></i>
+					</button>
+					{{/if}}
+
+					<div class="litm--roll-power-display">
+						<span>{{localize "Litm.ui.total-power"}}: </span>
+						<span data-update="totalPower">{{totalPower}}</span>
+					</div>
+
+					{{#if (and (eq currentTab "detailed") (or isCamp (eq type "tracked")) (ne subtab "reaction"))}}
+					<button type="button" class="litm--trade-btn litm--trade-hedge {{#if (eq tradeMode 'hedge')}}active{{/if}}"
+						data-click="trade-hedge" aria-label="{{localize 'Litm.ui.trade-hedge'}}"
+						data-tooltip="<strong>{{localize 'Litm.ui.trade-hedge'}}</strong><br>{{localize 'Litm.ui.hedge-risks-tooltip'}}" {{#unless canHedgeRisks}}disabled{{/unless}}>
+						<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+					</button>
+					{{/if}}
+				</div>
+
+				<div class="litm--roll-trade-info {{#if (or (eq subtab 'reaction') (and tradeMode (eq currentTab 'detailed') (or isCamp (eq type 'tracked'))))}}is-visible{{/if}}">
+					{{#if (eq subtab "reaction")}}
+					<span>{{localize "Litm.ui.reaction-hint"}}</span>
+					{{else}}
+					<span>{{localize "Litm.ui.spend-power"}}: </span>
+					<span data-update="spendPower">{{spendPower}}</span>
+					{{/if}}
+				</div>
+				{{/unless}}
+			</div>
+		</div>
+
+		<div class="litm--roll-sticky-row litm--roll-sticky-buttons">
+			{{#if isSacrifice}}
+			{{#if isGM}}
+				<button type="button" class="litm--roll-submit" data-click="propose-sacrifice">
+					<i class="fas fa-circle-check"></i>
+					<span>{{localize "Litm.ui.sacrifice-approve"}}</span>
+				</button>
+			{{else}}
+				{{#unless isGM}}
+				<button type="button" class="litm--roll-submit"
+					data-click="propose-sacrifice" {{#if sacrificePending}}disabled{{/if}}>
+					<i class="fas fa-envelope"></i>
+					<span>{{localize "Litm.ui.sacrifice-propose"}}</span>
+				</button>
+				{{/unless}}
+			{{/if}}
+			<button type="button" class="litm--roll-submit litm--sacrifice-roll {{#if sacrificeApproved}}approved{{/if}}"
+				data-click="roll-sacrifice" {{#if sacrificeRollBlocked}}disabled{{/if}}>
+				<i class="fas fa-dice"></i>
+				<span>{{localize "Litm.ui.sacrifice-roll"}}</span>
+			</button>
+			{{else}}
+			<input type="hidden" name="tradeMode" value="{{tradeMode}}" />
+			{{#if rollApproved}}
+			<div class="litm--roll-submit litm--roll-approval-status">
+				<i class="fas fa-circle-check"></i><span>{{localize "Litm.ui.roll-approved"}}</span>
+			</div>
+			{{else}}
+			<button type="button" class="litm--roll-submit" data-click="moderate-roll">
+				<i class="fas {{#if isGM}}fa-circle-check{{else}}fa-envelope{{/if}}"></i>
+				<span>{{localize (ifThen isGM "Litm.ui.approve-roll" "Litm.ui.send-to-narrator")}}</span>
+			</button>
+			{{/if}}
+			<button type="button" class="litm--roll-submit litm--roll-button {{#if rollApproved}}approved{{/if}}" data-click="roll"
+				{{#if rollBlocked}}disabled{{/if}}>
+				<i class="fas fa-dice"></i>
+				<span>{{localize "Litm.ui.roll"}}</span>
+			</button>
+			{{#if isCamp}}
+			<button type="button" class="litm--roll-submit litm--camp-without-roll" data-click="camp-without-roll" {{#unless canCampSpend}}disabled{{/unless}}>
+				<i class="fas fa-shield-heart"></i><span>{{localize "Litm.camp.without-roll"}} (<span data-update="campSpendPower">{{campSpendPower}}</span>)</span>
+			</button>
+			{{/if}}
+			{{/if}}
+		</div>
 	</div>
 </form>

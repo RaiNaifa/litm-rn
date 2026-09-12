@@ -1,0 +1,33 @@
+<div class="litm--story-profile-settings-content">
+  <p>{{localize "Litm.settings.story-profiles-description"}}</p>
+
+  <div class="litm--story-profile-list">
+    {{#each profiles}}
+    <div class="litm--story-profile-row{{#if active}} active{{/if}}">
+      <input type="text" value="{{name}}" data-profile-name="{{id}}" aria-label="{{localize 'Litm.settings.story-profile-name'}}" />
+      {{#if active}}
+      <span class="litm--story-profile-active"><i class="fas fa-check"></i> {{localize "Litm.settings.active-story-profile"}}</span>
+      {{else}}
+      <button type="button" data-action="activate-profile" data-profile-id="{{id}}">
+        {{localize "Litm.settings.activate-story-profile"}}
+      </button>
+      {{/if}}
+      <button type="button" data-action="rename-profile" data-profile-id="{{id}}"
+        data-tooltip="{{localize 'Litm.settings.rename-story-profile'}}">
+        <i class="fas fa-save"></i>
+      </button>
+      <button type="button" data-action="delete-profile" data-profile-id="{{id}}"
+        {{#if active}}disabled{{/if}} data-tooltip="{{localize 'Litm.settings.delete-story-profile'}}">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+    {{/each}}
+  </div>
+
+  <div class="litm--story-profile-create">
+    <input type="text" name="newProfileName" placeholder="{{localize 'Litm.settings.new-story-profile'}}" />
+    <button type="button" data-action="create-profile">
+      <i class="fas fa-plus"></i> {{localize "Litm.settings.create-story-profile"}}
+    </button>
+  </div>
+</div>

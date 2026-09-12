@@ -1,0 +1,140 @@
+<div class="standard-form litm--reference-appearance-shell">
+<nav class="sheet-tabs tabs litm--reference-appearance-tabs">
+	<button type="button" class="{{#if mainActive}}active{{/if}}" data-tab="main" data-appearance-tab="main"><i class="fas fa-file-lines"></i> {{localize "Litm.reference.appearance-main"}}</button>
+	<button type="button" class="{{#if tabActive}}active{{/if}}" data-tab="tab" data-appearance-tab="tab"><i class="fas fa-bookmark"></i> {{localize "Litm.reference.appearance-inactive-tab"}}</button>
+	<button type="button" class="{{#if activeTabActive}}active{{/if}}" data-tab="activeTab" data-appearance-tab="activeTab"><i class="fas fa-bookmark"></i> {{localize "Litm.reference.appearance-selected-tab"}}</button>
+</nav>
+
+<section class="litm--reference-appearance-content">
+	{{#if mainActive}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-image-setting.html" label=(localize "Litm.reference.appearance-background") name="mainBackground" value=appearance.mainBackground}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-background-color") name="mainBackgroundColor" value=appearance.mainBackgroundColor pickerValue=colorPickers.mainBackgroundColor}}
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-background-blend">{{localize "Litm.reference.appearance-background-blend"}}</label>
+			<div class="form-fields"><select id="reference-appearance-background-blend" name="mainBackgroundBlend">
+				<option value="normal" {{#if (eq appearance.mainBackgroundBlend "normal")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-normal"}}</option>
+				<option value="multiply" {{#if (eq appearance.mainBackgroundBlend "multiply")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-multiply"}}</option>
+				<option value="overlay" {{#if (eq appearance.mainBackgroundBlend "overlay")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-overlay"}}</option>
+				<option value="soft-light" {{#if (eq appearance.mainBackgroundBlend "soft-light")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-soft-light"}}</option>
+			</select></div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-background-size">{{localize "Litm.reference.appearance-background-size"}}</label>
+			<div class="form-fields"><select id="reference-appearance-background-size" name="mainBackgroundSize">
+				<option value="cover" {{#if (eq appearance.mainBackgroundSize "cover")}}selected{{/if}}>{{localize "Litm.reference.appearance-size-cover"}}</option>
+				<option value="contain" {{#if (eq appearance.mainBackgroundSize "contain")}}selected{{/if}}>{{localize "Litm.reference.appearance-size-contain"}}</option>
+				<option value="auto" {{#if (eq appearance.mainBackgroundSize "auto")}}selected{{/if}}>{{localize "Litm.reference.appearance-size-auto"}}</option>
+			</select></div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-background-position">{{localize "Litm.reference.appearance-background-position"}}</label>
+			<div class="form-fields"><select id="reference-appearance-background-position" name="mainBackgroundPosition">
+				<option value="center" {{#if (eq appearance.mainBackgroundPosition "center")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-center"}}</option>
+				<option value="top" {{#if (eq appearance.mainBackgroundPosition "top")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-top"}}</option>
+				<option value="bottom" {{#if (eq appearance.mainBackgroundPosition "bottom")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-bottom"}}</option>
+				<option value="left" {{#if (eq appearance.mainBackgroundPosition "left")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-left"}}</option>
+				<option value="right" {{#if (eq appearance.mainBackgroundPosition "right")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-right"}}</option>
+			</select></div>
+		</div>
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-text-color") name="textColor" value=appearance.textColor pickerValue=colorPickers.textColor}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-heading-color") name="headingColor" value=appearance.headingColor pickerValue=colorPickers.headingColor}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-tabs-background-color") name="tabsBackgroundColor" value=appearance.tabsBackgroundColor pickerValue=colorPickers.tabsBackgroundColor}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-image-setting.html" label=(localize "Litm.reference.appearance-tabs-background") name="tabsBackground" value=appearance.tabsBackground}}
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-tabs-background-blend">{{localize "Litm.reference.appearance-background-blend"}}</label>
+			<div class="form-fields"><select id="reference-appearance-tabs-background-blend" name="tabsBackgroundBlend">
+				<option value="normal" {{#if (eq appearance.tabsBackgroundBlend "normal")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-normal"}}</option>
+				<option value="multiply" {{#if (eq appearance.tabsBackgroundBlend "multiply")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-multiply"}}</option>
+				<option value="overlay" {{#if (eq appearance.tabsBackgroundBlend "overlay")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-overlay"}}</option>
+				<option value="soft-light" {{#if (eq appearance.tabsBackgroundBlend "soft-light")}}selected{{/if}}>{{localize "Litm.reference.appearance-blend-soft-light"}}</option>
+			</select></div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-tabs-background-size">{{localize "Litm.reference.appearance-background-size"}}</label>
+			<div class="form-fields"><select id="reference-appearance-tabs-background-size" name="tabsBackgroundSize">
+				<option value="cover" {{#if (eq appearance.tabsBackgroundSize "cover")}}selected{{/if}}>{{localize "Litm.reference.appearance-size-cover"}}</option>
+				<option value="contain" {{#if (eq appearance.tabsBackgroundSize "contain")}}selected{{/if}}>{{localize "Litm.reference.appearance-size-contain"}}</option>
+				<option value="auto" {{#if (eq appearance.tabsBackgroundSize "auto")}}selected{{/if}}>{{localize "Litm.reference.appearance-size-auto"}}</option>
+			</select></div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-tabs-background-position">{{localize "Litm.reference.appearance-background-position"}}</label>
+			<div class="form-fields"><select id="reference-appearance-tabs-background-position" name="tabsBackgroundPosition">
+				<option value="center" {{#if (eq appearance.tabsBackgroundPosition "center")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-center"}}</option>
+				<option value="top" {{#if (eq appearance.tabsBackgroundPosition "top")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-top"}}</option>
+				<option value="bottom" {{#if (eq appearance.tabsBackgroundPosition "bottom")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-bottom"}}</option>
+				<option value="left" {{#if (eq appearance.tabsBackgroundPosition "left")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-left"}}</option>
+				<option value="right" {{#if (eq appearance.tabsBackgroundPosition "right")}}selected{{/if}}>{{localize "Litm.reference.appearance-position-right"}}</option>
+			</select></div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-font">{{localize "Litm.reference.appearance-font"}}</label>
+			<div class="form-fields">
+				<select id="reference-appearance-font" name="fontFamily">
+					<option value="">{{localize "Litm.reference.appearance-font-default"}}</option>
+					{{#each contentFonts as |font|}}<option value="{{font.name}}" {{#if font.selected}}selected{{/if}}>{{font.name}}</option>{{/each}}
+				</select>
+			</div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-font-size">{{localize "Litm.reference.appearance-font-size"}}</label>
+			<div class="form-fields litm--reference-font-size-field">
+				<input type="range" min="10" max="36" step="1" value="{{appearance.fontSize}}" data-size-target="fontSize">
+				<input id="reference-appearance-font-size" type="number" name="fontSize" min="10" max="36" step="1" value="{{appearance.fontSize}}" data-size-number="fontSize">
+			</div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-heading-font">{{localize "Litm.reference.appearance-heading-font"}}</label>
+			<div class="form-fields"><select id="reference-appearance-heading-font" name="headingFontFamily">
+				<option value="">{{localize "Litm.reference.appearance-font-default"}}</option>
+				{{#each headingFonts as |font|}}<option value="{{font.name}}" {{#if font.selected}}selected{{/if}}>{{font.name}}</option>{{/each}}
+			</select></div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-heading-font-size">{{localize "Litm.reference.appearance-heading-font-size"}}</label>
+			<div class="form-fields litm--reference-font-size-field">
+				<input type="range" min="14" max="56" step="1" value="{{appearance.headingFontSize}}" data-size-target="headingFontSize">
+				<input id="reference-appearance-heading-font-size" type="number" name="headingFontSize" min="14" max="56" step="1" value="{{appearance.headingFontSize}}" data-size-number="headingFontSize">
+			</div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-controls-tone">{{localize "Litm.reference.appearance-controls-tone"}}</label>
+			<div class="form-fields"><select id="reference-appearance-controls-tone" name="controlsTone">
+				<option value="auto" {{#if (eq appearance.controlsTone "auto")}}selected{{/if}}>{{localize "Litm.reference.appearance-controls-auto"}}</option>
+				<option value="light" {{#if (eq appearance.controlsTone "light")}}selected{{/if}}>{{localize "Litm.reference.appearance-controls-light"}}</option>
+				<option value="dark" {{#if (eq appearance.controlsTone "dark")}}selected{{/if}}>{{localize "Litm.reference.appearance-controls-dark"}}</option>
+			</select></div>
+		</div>
+	{{/if}}
+	{{#if tabActive}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-image-setting.html" label=(localize "Litm.reference.appearance-background") name="tabBackground" value=appearance.tabBackground}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-background-color") name="tabBackgroundColor" value=appearance.tabBackgroundColor pickerValue=colorPickers.tabBackgroundColor}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-text-color") name="tabTextColor" value=appearance.tabTextColor pickerValue=colorPickers.tabTextColor}}
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-tab-font">{{localize "Litm.reference.appearance-tab-font"}}</label>
+			<div class="form-fields"><select id="reference-appearance-tab-font" name="tabFontFamily">
+				<option value="">{{localize "Litm.reference.appearance-font-default"}}</option>
+				{{#each tabFonts as |font|}}<option value="{{font.name}}" {{#if font.selected}}selected{{/if}}>{{font.name}}</option>{{/each}}
+			</select></div>
+		</div>
+		<div class="form-group litm--reference-appearance-row">
+			<label for="reference-appearance-tab-font-size">{{localize "Litm.reference.appearance-tab-font-size"}}</label>
+			<div class="form-fields litm--reference-font-size-field">
+				<input type="range" min="10" max="28" step="1" value="{{appearance.tabFontSize}}" data-size-target="tabFontSize">
+				<input id="reference-appearance-tab-font-size" type="number" name="tabFontSize" min="10" max="28" step="1" value="{{appearance.tabFontSize}}" data-size-number="tabFontSize">
+			</div>
+		</div>
+	{{/if}}
+	{{#if activeTabActive}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-image-setting.html" label=(localize "Litm.reference.appearance-background") name="activeTabBackground" value=appearance.activeTabBackground}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-background-color") name="activeTabBackgroundColor" value=appearance.activeTabBackgroundColor pickerValue=colorPickers.activeTabBackgroundColor}}
+		{{> "systems/litm-rn/templates/apps/parts/reference-color-setting.html" label=(localize "Litm.reference.appearance-text-color") name="activeTabTextColor" value=appearance.activeTabTextColor pickerValue=colorPickers.activeTabTextColor}}
+	{{/if}}
+	<p class="hint">{{localize "Litm.reference.appearance-hint"}}</p>
+</section>
+
+<footer class="form-footer litm--reference-appearance-footer">
+	<button type="button" data-appearance-action="reset"><i class="fas fa-rotate-left"></i> {{localize "Litm.reference.appearance-restore-defaults"}}</button>
+	<button type="button" data-appearance-action="save"><i class="fas fa-save"></i> {{localize "Litm.reference.save"}}</button>
+</footer>
+</div>

@@ -1,28 +1,31 @@
 .litm--popout {
+	/*
+	 * The character sheet intentionally renders its portrait panel 256px to
+	 * the left of the AppV2 frame. PopOut! v13 anchors that frame at x=0,
+	 * unlike the v14 detached-window workspace, so reserve the missing gutter.
+	 * Preserve the AppV2 default dimensions so resizing the browser viewport
+	 * does not stretch the absolutely positioned card composition.
+	 */
 	&.litm--character {
-		width: 250px !important;
-		height: 350px !important;
 		position: relative;
-		left: 270px;
-		top: 80px;
-	}
-
-	&.litm--challenge {
-		width: 320px !important;
+		left: 440px;
+		width: 625px !important;
+		min-width: 625px !important;
+		max-width: 625px !important;
 		height: 700px !important;
-	}
-
-	&.litm--backpack {
-		width: 400px !important;
-		height: 450px !important;
-	}
-
-	&.litm--hero {
-		width: 400px !important;
-		height: 450px !important;
+		min-height: 700px !important;
+		max-height: 700px !important;
 	}
 
 	& + .litm--roll .window-content form {
 		overflow: auto;
 	}
+}
+
+/* PopOut! uses a standalone document whose viewport may be narrower than the
+ * complete character composition. Keep every off-frame card reachable. */
+body:has(.litm--popout.litm--character) {
+	min-width: 1280px;
+	min-height: 820px;
+	overflow: auto;
 }

@@ -1,88 +1,57 @@
 {
 	"$schema": "https://json.schemastore.org/foundryvtt-system-manifest.json",
 	"id": "litm-rn",
-	"version": 10.9,
+	"version": "11.1.0",
 	"license": "LICENSE",
-	"title": "Legend in the Mist",
+	"title": "Legend in the Mist (RN)",
 	"description": "A <strong>Rustic Fantasy</strong> Game for Foundry Virtual Tabletop.",
+	"url": "https://github.com/RaiNaifa/litm-rn",
+	"manifest": "https://github.com/RaiNaifa/litm-rn/releases/latest/download/system.json",
+	"download": "https://github.com/RaiNaifa/litm-rn/releases/download/v11.1.0/litm-rn.zip",
 	"authors": [
-		{
-			"name": "Filip Ambrosius",
-			"discord": "aMediocreDad#2483",
-			"email": "hello@amediocre.dev",
-			"ko-fi": "amediocredad"
-		},
 		{
 			"name": "RaiNaifa",
 			"discord": "rainaifa"
 		}
 	],
-	"esmodules": [
-		"litm-rn.js"
-	],
-	"styles": [
-		"litm-rn.css"
-	],
+	"esmodules": ["litm-rn.js"],
+	"styles": ["litm-rn.css"],
 	"documentTypes": {
 		"Actor": {
 			"character": {
-				"htmlFields": [
-					"note"
-				]
+				"htmlFields": ["note"]
 			},
 			"challenge": {
-				"htmlFields": [
-					"note",
-					"special"
-				]
+				"htmlFields": ["note", "special"]
 			}
 		},
 		"Item": {
 			"backpack": {},
 			"fellowship": {
-				"htmlFields": [
-					"note"
-				]
+				"htmlFields": ["note"]
 			},
 			"hero": {},
 			"story": {
-				"htmlFields": [
-					"note"
-				]
+				"htmlFields": ["note"]
 			},
-			"theme": {
-				"htmlFields": [
-					"note"
-				]
+			"theme": {},
+			"themebook": {
+				"htmlFields": ["description"]
+			},
+			"themekit": {
+				"htmlFields": ["description"]
+			},
+			"trope": {
+				"htmlFields": ["description"]
 			},
 			"threat": {}
 		}
 	},
 	"languages": [
 		{
-			"lang": "cn",
-			"name": "中文",
-			"path": "lang/cn.json"
-		},
-		{
-			"lang": "de",
-			"name": "Deutsch",
-			"path": "lang/de.json"
-		},
-		{
 			"lang": "en",
 			"name": "English",
 			"path": "lang/en.json"
-		},
-		{
-			"lang": "es",
-			"name": "Español",
-			"path": "lang/es.json"
-		},
-		{
-			"lang": "no",
-			"name": "Norsk",
-			"path": "lang/no.json"
 		},
 		{
 			"lang": "ru",
@@ -92,25 +61,14 @@
 	],
 	"socket": true,
 	"compatibility": {
-		"minimum": 12,
-		"verified": 13,
-		"maximum": 13
+		"minimum": 13,
+		"verified": 14,
+		"maximum": 14
 	},
 	"flags": {
 		"hotReload": {
-			"extensions": [
-				"css",
-				"html",
-				"js",
-				"json"
-			],
-			"paths": [
-				"styles",
-				"templates",
-				"lang",
-				"litm.css",
-				"litm.js"
-			]
+			"extensions": ["css", "html", "js", "json"],
+			"paths": ["styles", "templates", "lang", "litm.css", "litm.js"]
 		}
 	},
 	"relationships": {
@@ -121,5 +79,5 @@
 			}
 		]
 	},
-	"background": "systems/litm-rn/assets/media/litm_splash.webp"
+	"background": "systems/litm-rn/assets/media/litm-custom-logo.webp"
 }

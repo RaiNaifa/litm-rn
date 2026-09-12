@@ -1,10 +1,10 @@
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
 export class ToggledInput extends HTMLElement {
-	#input = Object.assign(document.createElement("textarea"), {
+	#input = Object.assign(this.ownerDocument.createElement("textarea"), {
 		style: "resize: none;",
 	});
-	#renderedTags = Object.assign(document.createElement("div"), {
+	#renderedTags = Object.assign(this.ownerDocument.createElement("div"), {
 		class: "litm--sro",
 		role: "presentation",
 	});
@@ -48,7 +48,7 @@ export class ToggledInput extends HTMLElement {
 			},
 			{
 				event: "keydown",
-				object: window,
+				object: this.ownerDocument.defaultView,
 				handler: (event) => {
 					if (event.key === "Shift") {
 						this.toggleAttribute("editing", true);
@@ -57,9 +57,12 @@ export class ToggledInput extends HTMLElement {
 			},
 			{
 				event: "keyup",
-				object: window,
+				object: this.ownerDocument.defaultView,
 				handler: (event) => {
-					if (event.key === "Shift" && document.activeElement !== this.#input)
+					if (
+						event.key === "Shift" &&
+						this.ownerDocument.activeElement !== this.#input
+					)
 						this.toggleAttribute("editing", false);
 				},
 			},

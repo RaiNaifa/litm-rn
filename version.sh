@@ -1,11 +1,17 @@
-#! /bin/sh
+#!/bin/sh
+set -eu
 
-VERSION=$(jq '.version + 1' system.json)
+VERSION=${1:-}
+if ! printf '%s\n' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+	echo "Usage: $0 <major.minor.patch>" >&2
+	exit 1
+fi
 
-npx -y @biomejs/biome check . --write || exit 1
+npx -y @biomejs/biome@1.9.4 check . --write
 
-jq --tab --arg version "$VERSION" '.version = ($version | tonumber) | .download |= gsub("v[0-9]+"; "v" + $version)' system.json > temp.json
+jq --tab --arg version "$VERSION" '.version = $version | .download = ("https://github.com/RaiNaifa/litm-rn/releases/download/v" + $version + "/litm-rn.zip")' system.json > temp.json
 mv temp.json system.json
 
-git commit -am "Release v$VERSION"
+git add -A
+git commit -m "Release v$VERSION"
 git tag "v$VERSION" -m "v$VERSION"

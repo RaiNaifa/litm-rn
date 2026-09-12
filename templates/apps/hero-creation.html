@@ -1,0 +1,47 @@
+<section class="litm--hero-creation-shell">
+	<p class="litm--hero-creation-hint">
+		<i class="fa-solid fa-circle-info"></i>
+		{{localize "Litm.hero-creation.hint"}}
+	</p>
+
+	<section class="litm--hero-creation-trope">
+		<i class="fa-solid fa-masks-theater"></i>
+		<div>
+			<h2>{{localize "Litm.hero-creation.trope"}}</h2>
+			<p>{{#if tropeDraft}}{{tropeDraft.tropeName}}{{else}}{{localize "Litm.hero-creation.trope-hint"}}{{/if}}</p>
+		</div>
+		<button type="button" data-creation-action="choose-trope">
+			{{localize (ifThen tropeDraft "Litm.hero-creation.replace-trope" "Litm.hero-creation.choose-trope")}}
+		</button>
+	</section>
+
+	<div class="litm--hero-creation-themes">
+		{{#each themes}}
+		<article class="litm--hero-creation-theme{{#if empty}} empty{{/if}}" data-might="{{level}}">
+			<span>{{localize "Litm.hero-creation.theme-number" number=number}}</span>
+			<h2>{{#if empty}}{{localize "Litm.hero-creation.empty-theme"}}{{else}}{{name}}{{/if}}</h2>
+			{{#unless empty}}<small>{{localize (concat "Litm.theme-content.might-" level)}}{{#if themebook}} · {{themebook}}{{/if}}</small>{{/unless}}
+			<button type="button" data-creation-action="edit-theme" data-theme-index="{{index}}">
+				<i class="fa-solid {{#if empty}}fa-plus{{else}}fa-pen{{/if}}"></i>
+				{{#if pending}}{{localize "Litm.hero-creation.continue-creation"}}{{else if empty}}{{localize "Litm.hero-creation.create"}}{{else}}{{localize "Litm.hero-creation.replace"}}{{/if}}
+			</button>
+		</article>
+		{{/each}}
+	</div>
+
+	<section class="litm--hero-creation-options">
+		<h2>{{localize "Litm.hero-creation.options"}}</h2>
+		<label>
+			<input type="checkbox" data-character-option="enableBackpackDrafts"
+				{{checked characterOptions.enableBackpackDrafts}}>
+			<span class="litm--hero-option-toggle" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+			<span>{{localize "Litm.hero-creation.enable-backpack-drafts"}}</span>
+		</label>
+		<label>
+			<input type="checkbox" data-character-option="showDraftTags"
+				{{checked characterOptions.showDraftTags}}>
+			<span class="litm--hero-option-toggle" aria-hidden="true"><i class="fa-solid fa-check"></i></span>
+			<span>{{localize "Litm.hero-creation.show-draft-tags"}}</span>
+		</label>
+	</section>
+</section>

@@ -1,0 +1,30 @@
+<section class="litm--archive-shell">
+	<header>
+		<span>{{localize "Litm.archive.eyebrow"}}</span>
+		<h1>{{localize "Litm.archive.title"}}</h1>
+		<p>{{localize "Litm.archive.hint"}}</p>
+	</header>
+	<div class="litm--archive-list">
+		{{#each archive}}
+		<article class="litm--archive-entry" data-might="{{theme.level}}">
+			<div class="litm--archive-entry-heading">
+				<div>
+					<small>{{date}} · {{localize (concat "Litm.archive.reason-" reason)}}</small>
+					<h2>{{theme.themeTag.name}}</h2>
+					<span>{{theme.name}} · {{localize (concat "Litm.theme-content.might-" theme.level)}}</span>
+				</div>
+				<button type="button" data-delete-archive="{{id}}" data-tooltip="{{localize 'Litm.archive.delete'}}">
+					<i class="fa-solid fa-xmark"></i>
+				</button>
+			</div>
+			<div class="litm--archive-tags">
+				{{#each theme.powerTags}}<span>{{name}}</span>{{/each}}
+				{{#each theme.weaknessTags}}<span class="weakness">{{name}}</span>{{/each}}
+			</div>
+			<p>{{theme.motivation}}</p>
+		</article>
+		{{else}}
+		<p class="litm--archive-empty">{{localize "Litm.archive.empty"}}</p>
+		{{/each}}
+	</div>
+</section>
