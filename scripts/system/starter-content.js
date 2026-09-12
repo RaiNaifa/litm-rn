@@ -53,13 +53,11 @@ export class StarterContent {
 		if (scene) return scene;
 		if (game.scenes.size > 0) return null;
 
-		scene = await CONFIG.Scene.documentClass.create({
+		const backgroundSrc = "systems/litm-rn/assets/media/litm-custom-logo.webp";
+		const sceneData = {
 			name: "Legend in the Mist",
 			navigation: true,
 			navName: "Legend in the Mist",
-			background: {
-				src: "systems/litm-rn/assets/media/litm-custom-logo.webp",
-			},
 			width: 1920,
 			height: 1080,
 			padding: 0.25,
@@ -93,7 +91,20 @@ export class StarterContent {
 					},
 				},
 			},
-		});
+		};
+
+		if (game.release.generation >= 14) {
+			sceneData.levels = [
+				{
+					name: "Legend in the Mist",
+					background: { src: backgroundSrc },
+				},
+			];
+		} else {
+			sceneData.background = { src: backgroundSrc };
+		}
+
+		scene = await CONFIG.Scene.documentClass.create(sceneData);
 
 		const { thumb } = await scene.createThumbnail();
 		await scene.update({ thumb });
