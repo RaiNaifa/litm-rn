@@ -1742,7 +1742,14 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			...foundry.utils.deepClone(tag),
 			id: shareId,
 			sourceTagId: tag.id,
-			type: isWeakness ? "weaknessTag" : tag.type || "tag",
+			// A status keeps its roll semantics even when it is hindering. Converting
+			// it to a weakness tag would make the shared copy burnable and award XP.
+			type:
+				tag.type === "status"
+					? "status"
+					: isWeakness
+						? "weaknessTag"
+						: tag.type || "tag",
 			isHindering: isWeakness,
 			senderActorId: this.actor.id,
 			targetActorId: targetActor.id,

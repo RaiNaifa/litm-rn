@@ -522,9 +522,24 @@ Hooks.once("init", () => {
 				}
 
 				if (!scratched) {
+					const relationships = foundry.utils.duplicate(
+						actor.system.relationships ?? [],
+					);
+					const relationship = relationships.find(
+						(tag) => tag.id === sourceTagId,
+					);
+					if (relationship) {
+						relationship.isScratched = true;
+						scratched = true;
+						await actor.update({ "system.relationships": relationships });
+					}
+				}
+
+				if (!scratched) {
 					const effect = actor.effects.get(sourceTagId);
-					if (effect) {
-						await effect.update({ "flags.litm-rn.isScratched": true });
+					if (effect && effect.flags?.["litm-rn"]?.type !== "status") {
+						// Tracked story tags are ActiveEffects and are consumed when burned.
+						await effect.delete();
 						scratched = true;
 					}
 				}
