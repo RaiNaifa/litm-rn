@@ -17,7 +17,7 @@ export function registerDataInputSync(form, sheet) {
 		el.addEventListener("input", (event) => {
 			const t = event.currentTarget;
 			const targetId = t.dataset.input;
-			const value = t.textContent || t.value;
+			const value = t.isContentEditable ? (t.textContent ?? "") : (t.value ?? "");
 			const input =
 				t.parentElement.querySelector(`input#${targetId}`) ??
 				form.querySelector(`input#${targetId}`);

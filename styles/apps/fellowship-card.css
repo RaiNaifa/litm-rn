@@ -86,6 +86,12 @@
 		cursor: text;
 		caret-color: currentColor;
 
+		&[data-placeholder]:empty::before {
+			content: attr(data-placeholder);
+			opacity: 0.5;
+			pointer-events: none;
+		}
+
 		&:focus {
 			outline: none;
 			background-color: rgb(0 0 0 / 0.15);

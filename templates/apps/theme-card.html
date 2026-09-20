@@ -85,7 +85,8 @@
 				<i class="{{ifThen theme.themeTag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
 			</button>
 			<span class="litm--tc-title-name{{#if theme.themeTag.isScratched}} scratched{{/if}}" contenteditable="true"
-				data-input="title-{{themeIndex}}">{{theme.themeTag.name}}</span>
+				data-input="title-{{themeIndex}}"
+				data-placeholder="{{localize 'Litm.ui.name-power'}}">{{theme.themeTag.name}}</span>
 			<input type="hidden" name="system.themes.{{themeIndex}}.themeTag.name"
 				id="title-{{themeIndex}}" value="{{theme.themeTag.name}}" />
 			<input type="hidden" name="system.themes.{{themeIndex}}.themeTag.id" value="{{theme.themeTag.id}}">

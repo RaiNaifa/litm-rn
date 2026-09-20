@@ -917,7 +917,10 @@ export class ThemeCard extends CardReader {
 			el.addEventListener("input", (event) => {
 				const t = event.currentTarget;
 				const input = t.parentElement.querySelector(`input#${t.dataset.input}`);
-				if (input) input.value = t.textContent || t.value;
+				if (input)
+					input.value = t.isContentEditable
+						? (t.textContent ?? "")
+						: (t.value ?? "");
 				t.classList.toggle("empty", !t.innerText.trim());
 			});
 			el.addEventListener("blur", (event) => {
