@@ -17,6 +17,22 @@ const TAG_MANAGER_TARGET = "data-litm-tag-manager-tour-target";
 const HINTS_TARGET = "data-litm-hints-tour-target";
 const STARTER_TOUR_PROMPT_FLAG = "starterTourPromptedV1";
 
+/** Report a recoverable tour-step failure without aborting the whole tour. */
+function logTourStepFailure(tour, error) {
+	console.error(
+		`Legend in the Mist | Could not prepare tour step ${tour.key}:${tour.currentStep?.id ?? "unknown"}. Falling back to an unfocused step.`,
+		error,
+	);
+}
+
+/** Report a failure while restoring interface state after a tour exits. */
+function logTourCleanupFailure(tour, error) {
+	console.error(
+		`Legend in the Mist | Could not fully clean up tour ${tour.key}.`,
+		error,
+	);
+}
+
 const STARTER_TOUR_PROMPT_COPY = {
 	en: {
 		title: "Welcome to Legend in the Mist",
@@ -346,21 +362,36 @@ class HeroSheetBasicsTour extends foundry.nue.Tour {
 
 	/** Prepare the live sheet and its controls before each step is displayed. */
 	async _preStep() {
-		await super._preStep();
-		await this.#ensureSheet();
-		this.#clearEmphasis();
-		const stepId = this.currentStep?.id;
+		try {
+			document.body.classList.remove("litm--tour-unfocused");
+			await this.#ensureSheet();
+			this.#clearEmphasis();
+			const stepId = this.currentStep?.id;
 
-		if (stepId === "intro") this.#expandNotes();
-		if (stepId === "flip-cards") await this.#setCardsFlipped(true);
-		if (["tracking-and-notes", "select-tag", "context-menu"].includes(stepId)) {
-			await this.#setCardsFlipped(false);
+			if (stepId === "intro") this.#expandNotes();
+			if (stepId === "flip-cards") await this.#setCardsFlipped(true);
+			if (
+				["tracking-and-notes", "select-tag", "context-menu"].includes(stepId)
+			) {
+				await this.#setCardsFlipped(false);
+			}
+			if (stepId === "tracking-and-notes") await this.#expandTrackingCards();
+
+			this.#markTag();
+			this.#emphasizeStep(stepId);
+			this.#updateAnchor();
+			if (
+				["select-tag", "context-menu"].includes(stepId) &&
+				!this.#sheet.element.querySelector(`[${TAG_TARGET}]`)
+			) {
+				this.#anchor.setAttribute(TAG_TARGET, "");
+			}
+			await super._preStep();
+		} catch (error) {
+			logTourStepFailure(this, error);
+			this.#targetViewport();
+			await super._preStep();
 		}
-		if (stepId === "tracking-and-notes") await this.#expandTrackingCards();
-
-		this.#markTag();
-		this.#emphasizeStep(stepId);
-		this.#updateAnchor();
 	}
 
 	/** Remove temporary emphasis when moving away from a step. */
@@ -373,7 +404,7 @@ class HeroSheetBasicsTour extends foundry.nue.Tour {
 	/** Clean temporary tour markers when the user exits early. */
 	exit() {
 		const result = super.exit();
-		this.#cleanup();
+		this.#cleanup().catch((error) => logTourCleanupFailure(this, error));
 		return result;
 	}
 
@@ -427,7 +458,7 @@ class HeroSheetBasicsTour extends foundry.nue.Tour {
 				"Hero Sheet Basics requires an accessible character Actor.",
 			);
 		this.#sheet = this.#actor.sheet;
-		if (!this.#sheet.rendered) this.#sheet.render({ force: true });
+		if (!this.#sheet.rendered) await this.#sheet.render({ force: true });
 		await this.#waitFor(
 			() => this.#sheet?.rendered && this.#sheet.element?.isConnected,
 		);
@@ -526,6 +557,7 @@ class HeroSheetBasicsTour extends foundry.nue.Tour {
 		if (this.#finishing) return;
 		this.#finishing = true;
 		this.#clearEmphasis();
+		document.body.classList.remove("litm--tour-unfocused");
 		this.#anchor?.remove();
 		this.#anchor = null;
 		this.#sheet?.element?.removeAttribute(SHEET_TARGET);
@@ -554,7 +586,7 @@ class HeroSheetBasicsTour extends foundry.nue.Tour {
 		const rects = [...elements]
 			.map((element) => element.getBoundingClientRect())
 			.filter((rect) => rect.width > 0 && rect.height > 0);
-		if (!rects.length) return;
+		if (!rects.length) return this.#targetViewport();
 		const left = Math.min(...rects.map((rect) => rect.left));
 		const top = Math.min(...rects.map((rect) => rect.top));
 		const right = Math.max(...rects.map((rect) => rect.right));
@@ -563,8 +595,27 @@ class HeroSheetBasicsTour extends foundry.nue.Tour {
 			position: "fixed",
 			left: `${left}px`,
 			top: `${top}px`,
+			right: "auto",
+			bottom: "auto",
 			width: `${right - left}px`,
 			height: `${bottom - top}px`,
+			pointerEvents: "none",
+		});
+	}
+
+	#targetViewport() {
+		document.body.classList.add("litm--tour-unfocused");
+		this.#anchor ??= document.body.appendChild(document.createElement("div"));
+		this.#anchor.setAttribute(ANCHOR_TARGET, "");
+		this.#anchor.setAttribute(TAG_TARGET, "");
+		Object.assign(this.#anchor.style, {
+			position: "fixed",
+			left: "0",
+			top: "0",
+			right: "0",
+			bottom: "0",
+			width: "auto",
+			height: "auto",
 			pointerEvents: "none",
 		});
 	}
@@ -610,14 +661,20 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 
 	/** Prepare the requested sidebar, sheet, or member picker. */
 	async _preStep() {
-		await super._preStep();
-		document.body.classList.remove("litm--tour-unfocused");
-		this.#clearTargets();
-		const stepId = this.currentStep?.id;
-		if (stepId === "fellowship-sheet") await this.#showFellowshipSheet();
-		else if (stepId === "tag-manager") await this.#showTagManager();
-		else if (stepId === "add-members") await this.#showMemberPicker();
-		else if (stepId === "relationships") await this.#showRelationshipsHint();
+		try {
+			document.body.classList.remove("litm--tour-unfocused");
+			this.#clearTargets();
+			const stepId = this.currentStep?.id;
+			if (stepId === "fellowship-sheet") await this.#showFellowshipSheet();
+			else if (stepId === "tag-manager") await this.#showTagManager();
+			else if (stepId === "add-members") await this.#showMemberPicker();
+			else if (stepId === "relationships") await this.#showRelationshipsHint();
+			await super._preStep();
+		} catch (error) {
+			logTourStepFailure(this, error);
+			this.#targetViewport();
+			await super._preStep();
+		}
 	}
 
 	/** Allow Foundry to clean the current step before removing custom markers. */
@@ -630,7 +687,7 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 	/** Restore temporary UI state if the tour is closed early. */
 	exit() {
 		const result = super.exit();
-		this.#finish();
+		this.#finish().catch((error) => logTourCleanupFailure(this, error));
 		return result;
 	}
 
@@ -697,6 +754,7 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 		ui.sidebar.expand();
 		ui.combat.activate();
 		await this.#waitFor(() => ui.combat?.element?.isConnected);
+		this.#scrollTagManagerTop();
 		let target = ui.combat.element.querySelector(
 			".litm--tm-fellowship-header, .litm--tm-fellowship-select-row",
 		);
@@ -717,8 +775,17 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 				);
 			}
 		}
+		this.#scrollTagManagerTop();
 		target?.setAttribute(FELLOWSHIP_TARGET, "");
 		target?.classList.add("litm--tour-emphasis");
+		if (!target) this.#updateAnchor([ui.combat.element]);
+	}
+
+	#scrollTagManagerTop() {
+		const content = ui.combat?.element?.querySelector(".litm--tm-content");
+		if (!content) return;
+		content.scrollTop = 0;
+		content.scrollLeft = 0;
 	}
 
 	async #showMemberPicker() {
@@ -729,8 +796,18 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 			'[data-click="add-fellowship-member"]',
 		);
 		add?.classList.add("litm--tour-emphasis");
-		if (!document.querySelector(".litm--fc-member-pick") && add) add.click();
-		await this.#waitFor(() => document.querySelector(".litm--fc-member-pick"));
+		if (!add) {
+			this.#updateAnchor([this.#sheet.element]);
+			return;
+		}
+		if (!document.querySelector(".litm--fc-member-pick")) add.click();
+		const opened = await this.#waitForOptional(() =>
+			document.querySelector(".litm--fc-member-pick"),
+		);
+		if (!opened) {
+			this.#updateAnchor([add]);
+			return;
+		}
 		this.#dialog =
 			document
 				.querySelector(".litm--fc-member-pick")
@@ -775,7 +852,7 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 		const rects = elements
 			.map((element) => element?.getBoundingClientRect())
 			.filter((rect) => rect?.width > 0 && rect?.height > 0);
-		if (!rects.length) return;
+		if (!rects.length) return this.#targetViewport();
 		this.#anchor ??= document.body.appendChild(document.createElement("div"));
 		this.#anchor.setAttribute(FELLOWSHIP_TARGET, "");
 		const left = Math.min(...rects.map((rect) => rect.left));
@@ -786,8 +863,26 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 			position: "fixed",
 			left: `${left}px`,
 			top: `${top}px`,
+			right: "auto",
+			bottom: "auto",
 			width: `${right - left}px`,
 			height: `${bottom - top}px`,
+			pointerEvents: "none",
+		});
+	}
+
+	#targetViewport() {
+		document.body.classList.add("litm--tour-unfocused");
+		this.#anchor ??= document.body.appendChild(document.createElement("div"));
+		this.#anchor.setAttribute(FELLOWSHIP_TARGET, "");
+		Object.assign(this.#anchor.style, {
+			position: "fixed",
+			left: "0",
+			top: "0",
+			right: "0",
+			bottom: "0",
+			width: "auto",
+			height: "auto",
 			pointerEvents: "none",
 		});
 	}
@@ -831,6 +926,15 @@ class FellowshipBasicsTour extends foundry.nue.Tour {
 			await new Promise((resolve) => setTimeout(resolve, 25));
 		}
 	}
+
+	async #waitForOptional(condition, timeout = 3000) {
+		try {
+			await this.#waitFor(condition, timeout);
+			return true;
+		} catch {
+			return false;
+		}
+	}
 }
 
 /** A tour of the Tag Manager's common controls and drag-and-drop workflow. */
@@ -839,7 +943,6 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 	#initialSidebarExpanded = false;
 	#sidebarCaptured = false;
 	#popout = null;
-	#popoutWasOpen = false;
 	#temporaryTagId = null;
 	#anchor = null;
 	#finishing = false;
@@ -854,7 +957,6 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 		this.#finishing = false;
 		this.#temporaryTagId = null;
 		this.#captureSidebar();
-		this.#popoutWasOpen = Boolean(ui.combat.popout?.rendered);
 		await this.#removeStaleTemporaryTags();
 		return super.start();
 	}
@@ -898,22 +1000,25 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 			}
 			await super._preStep();
 		} catch (error) {
-			await this.#finish();
-			throw error;
+			logTourStepFailure(this, error);
+			this.#clearTarget();
+			this.#targetViewport();
+			await super._preStep();
 		}
 	}
 
 	/** Remove temporary UI and data after the final step. */
 	async _postStep() {
-		await super._postStep();
+		const isFinalStep = !this.hasNext;
 		this.#closeContextMenu();
-		if (!this.hasNext) await this.#finish();
+		if (isFinalStep) await this.#finish();
+		await super._postStep();
 	}
 
 	/** Restore temporary UI and data when the tour is closed early. */
 	exit() {
 		const result = super.exit();
-		this.#finish();
+		this.#finish().catch((error) => logTourCleanupFailure(this, error));
 		return result;
 	}
 
@@ -953,12 +1058,13 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 
 	async #showTagMenu() {
 		let tag = this.#findManageableTag();
-		if (!tag) {
+		const canCreateTemporaryTag =
+			game.user.isGM || game.users.some((user) => user.isGM && user.active);
+		if (!tag && canCreateTemporaryTag) {
 			await this.#createTemporaryTag();
 			tag = this.#findManageableTag();
 		}
-		if (!tag)
-			throw new Error("Tag Manager Basics could not prepare a manageable tag.");
+		if (!tag) return this.#targetElements([this.#popout.element]);
 		tag.classList.add("litm--tour-emphasis");
 		const rect = tag.getBoundingClientRect();
 		tag.dispatchEvent(
@@ -969,8 +1075,9 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 				clientY: rect.top,
 			}),
 		);
-		await this.#waitFor(() =>
-			document.querySelector(".litm--character-tag-menu"),
+		await this.#waitForOptional(
+			() => document.querySelector(".litm--character-tag-menu"),
+			750,
 		);
 		this.#targetElements([
 			tag,
@@ -982,7 +1089,9 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 		return (
 			this.#popout?.element?.querySelector(
 				'[data-context-tag]:not([data-readonly="true"])[data-tag-id]',
-			) ?? null
+			) ??
+			this.#popout?.element?.querySelector("[data-context-tag][data-tag-id]") ??
+			null
 		);
 	}
 
@@ -1014,12 +1123,13 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 				tagData,
 			});
 		}
-		await this.#waitFor(
+		if (game.user.isGM) await this.#popout.render({ force: true });
+		await this.#waitForOptional(
 			() =>
 				this.#popout.element.querySelector(
 					`[data-ref="story"][data-tag-id="${tagData.id}"]`,
 				),
-			10000,
+			3000,
 		);
 	}
 
@@ -1049,15 +1159,11 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 
 	#targetElements(elements) {
 		const visible = elements.filter((element) => element?.isConnected);
-		if (!visible.length) return;
-		if (visible.length === 1) {
-			visible[0].setAttribute(TAG_MANAGER_TARGET, "");
-			return;
-		}
+		if (!visible.length) return this.#targetViewport();
 		const rects = visible
 			.map((element) => element.getBoundingClientRect())
 			.filter((rect) => rect.width > 0 && rect.height > 0);
-		if (!rects.length) return;
+		if (!rects.length) return this.#targetViewport();
 		this.#anchor ??= document.body.appendChild(document.createElement("div"));
 		this.#anchor.setAttribute(TAG_MANAGER_TARGET, "");
 		const left = Math.min(...rects.map((rect) => rect.left));
@@ -1068,8 +1174,26 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 			position: "fixed",
 			left: `${left}px`,
 			top: `${top}px`,
+			right: "auto",
+			bottom: "auto",
 			width: `${right - left}px`,
 			height: `${bottom - top}px`,
+			pointerEvents: "none",
+		});
+	}
+
+	#targetViewport() {
+		document.body.classList.add("litm--tour-unfocused");
+		this.#anchor ??= document.body.appendChild(document.createElement("div"));
+		this.#anchor.setAttribute(TAG_MANAGER_TARGET, "");
+		Object.assign(this.#anchor.style, {
+			position: "fixed",
+			left: "0",
+			top: "0",
+			right: "0",
+			bottom: "0",
+			width: "auto",
+			height: "auto",
 			pointerEvents: "none",
 		});
 	}
@@ -1081,10 +1205,14 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 	}
 
 	#clearTarget() {
+		document.body.classList.remove("litm--tour-unfocused");
 		document.querySelectorAll(`[${TAG_MANAGER_TARGET}]`).forEach((element) => {
 			element.removeAttribute(TAG_MANAGER_TARGET);
 			element.classList.remove("litm--tour-emphasis");
 		});
+		this.#popout?.element
+			?.querySelectorAll(".litm--tour-emphasis")
+			.forEach((element) => element.classList.remove("litm--tour-emphasis"));
 		this.#anchor?.remove();
 		this.#anchor = null;
 	}
@@ -1114,12 +1242,33 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 		this.#closeContextMenu();
 		this.#clearTarget();
 		await this.#removeTemporaryTag();
-		if (!this.#popoutWasOpen && this.#popout?.rendered)
-			await this.#popout.close();
-		if (this.#initialSidebarTab) ui[this.#initialSidebarTab]?.activate();
-		ui.sidebar.toggleExpanded(this.#initialSidebarExpanded);
+		if (this.#initialSidebarTab)
+			await ui[this.#initialSidebarTab]?.activate();
+		await ui.sidebar.toggleExpanded(this.#initialSidebarExpanded);
+		await this.#settleInterface();
+		const popout =
+			this.#popout ?? game.litm?._tmPopOut ?? ui.combat?.popout ?? null;
+		if (typeof popout?.render === "function") await popout.render();
+		if (typeof popout?.close === "function") {
+			try {
+				await popout.close({ force: true });
+			} catch (error) {
+				console.warn(
+					"Legend in the Mist | Could not close the Tag Manager pop-out.",
+					error,
+				);
+			}
+		}
+		if (game.litm?._tmPopOut === popout) game.litm._tmPopOut = null;
 		this.#popout = null;
 		this.#sidebarCaptured = false;
+	}
+
+	async #settleInterface() {
+		await new Promise((resolve) =>
+			requestAnimationFrame(() => requestAnimationFrame(resolve)),
+		);
+		await new Promise((resolve) => setTimeout(resolve, 100));
 	}
 
 	async #waitFor(condition, timeout = 3000) {
@@ -1129,6 +1278,15 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 				throw new Error("Timed out while preparing the Tag Manager tour.");
 			}
 			await new Promise((resolve) => setTimeout(resolve, 25));
+		}
+	}
+
+	async #waitForOptional(condition, timeout = 3000) {
+		try {
+			await this.#waitFor(condition, timeout);
+			return true;
+		} catch {
+			return false;
 		}
 	}
 }
@@ -1145,6 +1303,8 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 	#temporaryTokenId = null;
 	#temporaryTokenSceneId = null;
 	#temporaryMarker = null;
+	#pendingHeaderControl = null;
+	#restoredHeaderMenu = null;
 
 	/** Reset per-run state before showing the first hint. */
 	async start() {
@@ -1155,6 +1315,8 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 		this.#temporaryTokenId = null;
 		this.#temporaryTokenSceneId = null;
 		this.#temporaryMarker = foundry.utils.randomID();
+		this.#pendingHeaderControl = null;
+		this.#restoredHeaderMenu = null;
 		return super.start();
 	}
 
@@ -1181,25 +1343,29 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 			else if (stepId === "keybindings") await this.#showKeybindings();
 			await super._preStep();
 		} catch (error) {
-			await this.#finish();
-			throw error;
+			logTourStepFailure(this, error);
+			this.#clearTarget();
+			this.#targetViewport();
+			await super._preStep();
 		}
 	}
 
 	/** Open the Token HUD palette after Foundry has installed the step overlay. */
 	async _renderStep() {
 		await super._renderStep();
-		if (this.currentStep?.id !== "token-hud") return;
-		const hud = document.querySelector("#token-hud");
-		const effects = hud?.querySelector(
-			'[data-action="togglePalette"][data-palette="effects"]',
-		);
-		const palette = hud?.querySelector(
-			'.palette.status-effects[data-palette="effects"]',
-		);
-		if (!effects || !palette?.classList.contains("active")) effects?.click();
-		await this.#settle();
-		this.#focusTokenHudControls(hud);
+		if (this.currentStep?.id === "token-hud") {
+			const hud = document.querySelector("#token-hud");
+			const effects = hud?.querySelector(
+				'[data-action="togglePalette"][data-palette="effects"]',
+			);
+			const palette = hud?.querySelector(
+				'.palette.status-effects[data-palette="effects"]',
+			);
+			if (!effects || !palette?.classList.contains("active")) effects?.click();
+			await this.#settle();
+			this.#focusTokenHudControls(hud);
+			return;
+		}
 	}
 
 	/** Restore temporary interface state after the final step. */
@@ -1221,7 +1387,7 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 	/** Restore temporary interface state when the tour is closed early. */
 	exit() {
 		const result = super.exit();
-		this.#finish();
+		this.#finish().catch((error) => logTourCleanupFailure(this, error));
 		return result;
 	}
 
@@ -1349,7 +1515,6 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 		);
 		visibility?.classList.add("litm--tour-emphasis");
 		effects?.classList.add("litm--tour-emphasis");
-		palette?.classList.add("litm--tour-emphasis");
 		this.#targetElements([visibility, effects, palette].filter(Boolean));
 	}
 
@@ -1357,7 +1522,10 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 		canvas?.tokens?.hud?.close();
 		const app = await game.litm.reference.open("quickRules");
 		if (app) this.#openedApps.add(app);
-		await this.#waitFor(() => document.querySelector(".litm--reference-shell"));
+		const opened = await this.#waitForOptional(() =>
+			document.querySelector(".litm--reference-shell"),
+		);
+		if (!opened) return this.#showUnfocusedStep();
 		const root =
 			document
 				.querySelector(".litm--reference-shell")
@@ -1397,40 +1565,89 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 		if (!sheet.rendered) await sheet.render({ force: true });
 		this.#openedApps.add(sheet);
 		await this.#waitFor(() => sheet.element?.isConnected);
-		const button = await this.#openHeaderControl(
-			sheet,
-			"configureAvatarPosition",
+		const isV14 = game.release.generation >= 14;
+		const button = isV14
+			? null
+			: await this.#openHeaderControl(sheet, "configureAvatarPosition");
+		if (isV14) {
+			this.#captureHeaderControl(sheet, "configureAvatarPosition");
+			if (!this.#invokeHeaderAction(sheet, "configureAvatarPosition"))
+				return this.#showUnfocusedStep();
+		} else {
+			if (!button) return this.#showUnfocusedStep();
+			button.click();
+		}
+		const opened = await this.#waitForOptional(() =>
+			document.querySelector(".litm--avatar-position"),
 		);
-		button?.click();
-		await this.#waitFor(() => document.querySelector(".litm--avatar-position"));
+		if (!opened) return this.#showUnfocusedStep();
 		const settingsContent = document.querySelector(".litm--avatar-position");
 		const settings =
 			settingsContent?.closest(".application") ?? settingsContent;
 		this.#placeBelowControl(settings, button);
 		this.#openedApps.add(settings?.application ?? settings);
-		const visibleButton = await this.#reopenHeaderControl(
-			sheet,
-			"configureAvatarPosition",
-		);
+		const visibleButton =
+			game.release.generation < 14
+				? await this.#reopenHeaderControl(sheet, "configureAvatarPosition")
+				: null;
 		visibleButton?.classList.add("litm--tour-emphasis");
-		this.#targetElements([settings, visibleButton].filter(Boolean));
+		this.#targetElements([settings]);
+		if (isV14) await this.#showPendingHeaderControl();
 	}
 
 	async #showProgressionSettings() {
 		await this.#closeOpenedApps();
 		const fellowship = game.items.find(
-			(item) => item.type === "fellowship" && item.visible,
+			(item) =>
+				item.type === "fellowship" &&
+				item.visible &&
+				(game.user.isGM || item.isOwner),
 		);
-		if (!fellowship) return this.#showUnfocusedStep();
-		const sheet = fellowship.sheet;
+		const character = this.#findOwnedCharacter();
+		const themeIndex = character?.system.themes?.findIndex(
+			(theme) => !theme.isEmpty,
+		);
+		const themeCard =
+			character && themeIndex >= 0
+				? new game.litm.ThemeCard(character.uuid, { themeIndex })
+				: null;
+		const sheet = game.user.isGM
+			? (fellowship?.sheet ?? themeCard)
+			: (themeCard ?? fellowship?.sheet);
+		if (!sheet) return this.#showUnfocusedStep();
 		if (!sheet.rendered) await sheet.render({ force: true });
 		this.#openedApps.add(sheet);
 		await this.#waitFor(() => sheet.element?.isConnected);
-		const button = await this.#openHeaderControl(sheet, "configureProgression");
-		button?.click();
-		await this.#waitFor(() =>
-			document.querySelector(".litm--progression-settings"),
+		const isV14 = game.release.generation >= 14;
+		const button = isV14
+			? null
+			: await this.#openHeaderControl(sheet, "configureProgression");
+		if (isV14) {
+			this.#captureHeaderControl(sheet, "configureProgression");
+			if (!this.#invokeHeaderAction(sheet, "configureProgression"))
+				return this.#targetElements([sheet.element]);
+		} else if (!button) {
+			console.warn(
+				"Legend in the Mist | The progression control is unavailable; targeting its source card instead.",
+			);
+			return this.#targetElements([sheet.element]);
+		} else {
+			button.click();
+		}
+		const opened = await this.#waitForOptional(
+			() => document.querySelector(".litm--progression-settings"),
 		);
+		if (!opened) {
+			console.warn(
+				"Legend in the Mist | The progression dialog did not open; targeting its header control instead.",
+			);
+			const visibleButton = await this.#reopenHeaderControl(
+				sheet,
+				"configureProgression",
+			);
+			visibleButton?.classList.add("litm--tour-emphasis");
+			return this.#targetElements([visibleButton ?? sheet.element]);
+		}
 		const settingsContent = document.querySelector(
 			".litm--progression-settings",
 		);
@@ -1438,16 +1655,16 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 			settingsContent?.closest(".application") ?? settingsContent;
 		this.#placeBelowControl(settings, button);
 		this.#openedApps.add(settings?.application ?? settings);
-		const visibleButton = await this.#reopenHeaderControl(
-			sheet,
-			"configureProgression",
-		);
+		const visibleButton =
+			game.release.generation < 14
+				? await this.#reopenHeaderControl(sheet, "configureProgression")
+				: null;
 		visibleButton?.classList.add("litm--tour-emphasis");
-		this.#targetElements([settings, visibleButton].filter(Boolean));
+		this.#targetElements([settings]);
+		if (isV14) await this.#showPendingHeaderControl();
 	}
 
 	async #showKeybindings() {
-		await this.#closeOpenedApps();
 		const ControlsConfig = foundry.applications.sidebar.apps.ControlsConfig;
 		const controls = new ControlsConfig();
 		this.#controlsConfig = controls;
@@ -1476,27 +1693,99 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 		);
 	}
 
+	#findOwnedCharacter() {
+		const assigned = game.user.character;
+		if (
+			assigned?.type === "character" &&
+			assigned.visible &&
+			assigned.isOwner
+		)
+			return assigned;
+		return (
+			game.actors.find(
+				(actor) => actor.type === "character" && actor.visible && actor.isOwner,
+			) ?? null
+		);
+	}
+
 	async #openHeaderControl(app, action) {
-		let control = app.element.querySelector(`[data-action="${action}"]`);
+		let control = this.#findHeaderControl(app, action);
 		if (control && this.#isVisible(control)) return control;
 		const toggle = app.element.querySelector('[data-action="toggleControls"]');
 		toggle?.click();
 		await this.#waitFor(() => {
-			const candidate = app.element.querySelector(`[data-action="${action}"]`);
+			const candidate = this.#findHeaderControl(app, action);
 			return candidate && this.#isVisible(candidate);
 		}).catch(() => {});
-		control = app.element.querySelector(`[data-action="${action}"]`);
+		control = this.#findHeaderControl(app, action);
 		return control && this.#isVisible(control) ? control : null;
 	}
 
 	async #reopenHeaderControl(app, action) {
-		const toggle = app.element.querySelector('[data-action="toggleControls"]');
-		toggle?.click();
-		await this.#waitFor(() => {
-			const control = app.element.querySelector(`[data-action="${action}"]`);
-			return control && this.#isVisible(control);
-		}).catch(() => {});
-		return app.element.querySelector(`[data-action="${action}"]`);
+		return this.#openHeaderControl(app, action);
+	}
+
+	#invokeHeaderAction(app, action) {
+		const handler = app.options.actions?.[action];
+		if (typeof handler !== "function") return false;
+		try {
+			const result = handler.call(app);
+			if (result && typeof result.catch === "function")
+				result.catch((error) => logTourStepFailure(this, error));
+			return true;
+		} catch (error) {
+			logTourStepFailure(this, error);
+			return false;
+		}
+	}
+
+	#captureHeaderControl(app, action) {
+		if (game.release.generation < 14) return;
+		this.#pendingHeaderControl = { app, action };
+	}
+
+	async #showPendingHeaderControl() {
+		const pending = this.#pendingHeaderControl;
+		this.#pendingHeaderControl = null;
+		if (!pending?.app.element?.isConnected) return;
+		try {
+			const toggle = pending.app.element.querySelector(
+				'[data-action="toggleControls"]',
+			);
+			await this.#waitFor(
+				() => !toggle?.classList.contains("context") && !ui.context,
+				1000,
+			).catch(() => {});
+			const control = await this.#openHeaderControl(
+				pending.app,
+				pending.action,
+			);
+			if (!control) return;
+			control.classList.add("litm--tour-emphasis");
+			this.#restoredHeaderMenu = control.closest(
+				'nav#context-menu[popover="manual"]',
+			);
+		} catch (error) {
+			console.warn(
+				"Legend in the Mist | Could not restore a v14 header-controls menu for the tour.",
+				error,
+			);
+		}
+	}
+
+	#findHeaderControl(app, action) {
+		if (game.release.generation < 14)
+			return app.element.querySelector(`[data-action="${action}"]`);
+		const descriptor = app
+			._getHeaderControls()
+			.find((control) => control.action === action);
+		if (!descriptor?.label) return null;
+		const label = game.i18n.localize(descriptor.label).trim();
+		return [...document.querySelectorAll("nav#context-menu li.context-item")].find(
+			(item) =>
+				this.#isVisible(item) &&
+				item.querySelector("span")?.textContent.trim() === label,
+		);
 	}
 
 	#isVisible(element) {
@@ -1538,7 +1827,12 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 		this.#targetAnchor.setAttribute(HINTS_TARGET, "");
 		Object.assign(this.#targetAnchor.style, {
 			position: "fixed",
-			inset: "0",
+			left: "0",
+			top: "0",
+			right: "0",
+			bottom: "0",
+			width: "auto",
+			height: "auto",
 			pointerEvents: "none",
 		});
 	}
@@ -1566,6 +1860,8 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 			position: "fixed",
 			left: `${left}px`,
 			top: `${top}px`,
+			right: "auto",
+			bottom: "auto",
 			width: `${right - left}px`,
 			height: `${bottom - top}px`,
 			pointerEvents: "none",
@@ -1573,6 +1869,10 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 	}
 
 	#clearTarget() {
+		this.#pendingHeaderControl = null;
+		if (this.#restoredHeaderMenu?.matches(":popover-open"))
+			this.#restoredHeaderMenu.hidePopover();
+		this.#restoredHeaderMenu = null;
 		document.body.classList.remove("litm--tour-unfocused");
 		document
 			.querySelectorAll(`[${HINTS_TARGET}]`)
@@ -1674,6 +1974,15 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 			await new Promise((resolve) => setTimeout(resolve, 25));
 		}
 	}
+
+	async #waitForOptional(condition, timeout = 3000) {
+		try {
+			await this.#waitFor(condition, timeout);
+			return true;
+		} catch {
+			return false;
+		}
+	}
 }
 
 /** Register the system's guided tours for the current Foundry user. */
@@ -1724,12 +2033,18 @@ export class StarterTours {
 					fellowshipCopy.steps.sheet,
 					`[${FELLOWSHIP_TARGET}]`,
 				],
-				["tag-manager", fellowshipCopy.steps.manager, `[${FELLOWSHIP_TARGET}]`],
+				[
+					"tag-manager",
+					fellowshipCopy.steps.manager,
+					`[${FELLOWSHIP_TARGET}]`,
+					"LEFT",
+				],
 				["add-members", fellowshipCopy.steps.members, `[${FELLOWSHIP_TARGET}]`],
 				["relationships", fellowshipCopy.steps.relationships, null],
-			].map(([id, text, selector]) => ({
+			].map(([id, text, selector, tooltipDirection]) => ({
 				id,
 				...(selector ? { selector } : {}),
+				...(tooltipDirection ? { tooltipDirection } : {}),
 				title: text.title,
 				content: text.content,
 			}));
@@ -1860,6 +2175,13 @@ export class StarterTours {
 		if (!accepted) return;
 
 		await tour.reset();
-		tour.start();
+		try {
+			await tour.start();
+		} catch (error) {
+			console.error(
+				"Legend in the Mist | Could not start the introductory system tour.",
+				error,
+			);
+		}
 	}
 }
