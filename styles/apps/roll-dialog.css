@@ -604,6 +604,7 @@ body.theme-dark .litm.litm--roll {
 	& .litm--roll-selected-tags {
 		flex-shrink: 0;
 		max-height: 50%;
+		min-height: 65px;
 		display: flex;
 		align-content: flex-start;
 		align-items: flex-start;
@@ -1540,7 +1541,7 @@ body.theme-dark .litm.litm--roll {
 		padding: var(--litm-space-1) var(--litm-space-3);
 		text-align: center;
 		font-family: var(--litm-font-sc);
-		font-size: var(--font-size-12);
+		font-size: var(--font-size-14);
 		color: var(--color-warning);
 		background: rgba(255, 200, 0, 0.1);
 		border-top: 1px solid rgba(255, 200, 0, 0.3);

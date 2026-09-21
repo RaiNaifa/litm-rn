@@ -394,6 +394,7 @@ button.litm--tc-themebook-custom-option {
 .application.litm.litm--theme-card .litm--tc-level .image-option,
 .application.litm.litm--theme-card .litm--tc-level .image-option span {
 	font-family: var(--litm-font-primary) !important;
+	font-size: var(--font-size-16);
 }
 
 .application.litm.litm--theme-card .litm--tc-level .image-option {
@@ -427,9 +428,10 @@ button.litm--tc-themebook-custom-option {
 
 /* Card-local selectors keep the Might menu independent from window and module button styles. */
 .litm--tc-card .litm--tc-level .dropdown-options {
-	width: max-content !important;
-	min-width: 230px !important;
-	padding: 10px !important;
+	box-sizing: border-box;
+	width: 230px !important;
+	min-width: 0 !important;
+	padding: 6px !important;
 	gap: 2px !important;
 	border: 1px solid rgb(72 52 40 / 35%) !important;
 	border-radius: 6px !important;
@@ -439,9 +441,10 @@ button.litm--tc-themebook-custom-option {
 }
 
 .litm--tc-card .litm--tc-level .image-option {
+	box-sizing: border-box;
 	width: 100% !important;
-	min-height: 38px;
-	padding: 5px 8px !important;
+	min-height: 34px;
+	padding: 3px 6px !important;
 	font-family: var(--litm-font-primary) !important;
 }
 

@@ -164,6 +164,9 @@ export class FellowshipThemeSheet extends HandlebarsApplicationMixin(
 		const fallbackSrc = ["origin", "adventure", "greatness"].includes(level)
 			? level
 			: "origin";
+		const darkTheme = document.body.classList.contains("theme-dark");
+		const iconSrc = (might) =>
+			`${CONFIG.litm.themeicon_src[might]}${darkTheme ? "-color-light" : "-color"}_litm_icn.svg`;
 		context.transitionSrc = `systems/litm-rn/assets/media/transition-left-${fallbackSrc}-dark.webp`;
 		context.currentLevelLabel = game.i18n.localize(
 			`Litm.levels.${fallbackSrc}`,
@@ -171,6 +174,9 @@ export class FellowshipThemeSheet extends HandlebarsApplicationMixin(
 		context.themeiconsrc =
 			CONFIG.litm.themeicon_src[system.level] ||
 			`systems/litm-rn/assets/media/icons/${fallbackSrc}`;
+		context.mightDropdownOptions = Object.entries(system.levels).map(
+			([key, label]) => ({ key, label, icon: iconSrc(key) }),
+		);
 
 		const themebooks = (await ThemeSources.getThemebooks({ fellowship: true }))
 			.map((item) => {

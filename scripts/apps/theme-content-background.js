@@ -4,11 +4,7 @@ const FilePicker = foundry.applications.apps.FilePicker.implementation;
 const CONTENT_ART_WIDTH = 320;
 const JOURNEY_ART_WIDTH = 800;
 const JOURNEY_DEFAULT_BACKGROUND =
-	"systems/litm-rn/assets/media/transition-left-grey-dark.webp";
-
-function journeyBaseRotation(isJourney, background) {
-	return isJourney && background === JOURNEY_DEFAULT_BACKGROUND ? 90 : 0;
-}
+	"systems/litm-rn/assets/media/litm-journey.webp";
 
 function numberOrDefault(value, fallback) {
 	const number = Number(value);
@@ -39,8 +35,6 @@ const DEFAULTS = Object.freeze({
  * @param {object} settings Stored background settings.
  * @param {object} [options={}] Positioning options.
  * @param {number} [options.referenceWidth=0] Unscaled surface width used by stored offsets.
- * @param {number} [options.baseRotation=0] Display-only rotation added to the stored value.
- * @param {boolean} [options.stretchAfterQuarterTurn=false] Stretch a quarter-turned image to the surface.
  * @param {Function|null} [options.onPosition=null] Receives the painted image bounds after positioning.
  * @returns {{apply: Function, disconnect: Function} | null} Position controller.
  */
@@ -49,8 +43,6 @@ export function positionThemeContentArt(
 	settings,
 	{
 		referenceWidth = 0,
-		baseRotation = 0,
-		stretchAfterQuarterTurn = false,
 		onPosition = null,
 	} = {},
 ) {
@@ -64,19 +56,10 @@ export function positionThemeContentArt(
 		if (!width || !height || !image.naturalWidth || !image.naturalHeight)
 			return;
 		const scale = Number(settings.backgroundScale) || 1;
-		const rotation =
-			(Number(settings.backgroundRotation) || 0) + Number(baseRotation || 0);
+		const rotation = Number(settings.backgroundRotation) || 0;
 		let baseWidth = width;
 		let baseHeight = height;
-		const quarterTurn = Math.abs(Math.sin((rotation * Math.PI) / 180)) > 0.999;
-		if (
-			stretchAfterQuarterTurn &&
-			quarterTurn &&
-			settings.backgroundFit === "stretch"
-		) {
-			baseWidth = height;
-			baseHeight = width;
-		} else if (settings.backgroundFit === "native") {
+		if (settings.backgroundFit === "native") {
 			baseWidth = image.naturalWidth;
 			baseHeight = image.naturalHeight;
 		} else if (settings.backgroundFit !== "stretch") {
@@ -379,16 +362,7 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 		this.#artObserver = positionThemeContentArt(
 			this.element.querySelector(".litm--background-preview-art"),
 			this.#settings,
-			{
-				referenceWidth: context.previewArtWidth,
-				baseRotation: journeyBaseRotation(
-					this.#isJourney,
-					this.#settings.background,
-				),
-				stretchAfterQuarterTurn:
-					this.#isJourney &&
-					this.#settings.background === JOURNEY_DEFAULT_BACKGROUND,
-			},
+			{ referenceWidth: context.previewArtWidth },
 		);
 		const preview = this.element.querySelector(".litm--background-preview");
 		preview?.addEventListener("pointerdown", (event) =>

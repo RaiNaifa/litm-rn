@@ -35,6 +35,7 @@ export class LitmHooks {
 		LitmHooks.#customizeDiceSoNice();
 		LitmHooks.#addTagManagerToTokenHUD();
 		LitmHooks.#popOutCompatiblity();
+		LitmHooks.#moveV13PopOutControlToMenu();
 		StarterContent.register();
 		StarterTours.register();
 		LitmHooks.#renderWelcomeScreen();
@@ -1311,6 +1312,57 @@ export class LitmHooks {
 		Hooks.on("PopOut:popin", (app) => {
 			const el = app.element;
 			el.classList.remove("litm--popout");
+		});
+	}
+
+	/** Move PopOut!'s v13 AppV2 header button into Foundry's controls menu. */
+	static #moveV13PopOutControlToMenu() {
+		Hooks.once("ready", () => {
+			if (game.release.generation !== 13) return;
+			if (!game.modules.get("popout")?.active) return;
+
+			const moveControl = (button) => {
+				if (!(button instanceof HTMLElement)) return;
+				const app = button.closest(".application.litm, .app.litm");
+				const application = app
+					? foundry.applications.instances.get(app.id)
+					: null;
+				const { ActorSheetV2, ItemSheetV2 } = foundry.applications.sheets;
+				if (
+					!(application instanceof ActorSheetV2) &&
+					!(application instanceof ItemSheetV2)
+				) {
+					return;
+				}
+				const menu = app?.querySelector(".controls-dropdown");
+				if (!menu || button.parentElement === menu) return;
+
+				button.classList.remove("icon");
+				const label = button.dataset.tooltip || game.i18n.localize("POPOUT.PopOut");
+				if (!button.querySelector("span")) {
+					const text = document.createElement("span");
+					text.textContent = label;
+					button.appendChild(text);
+				}
+				menu.appendChild(button);
+			};
+
+			const moveControlsWithin = (node) => {
+				if (!(node instanceof HTMLElement)) return;
+				if (node.matches(".popout-module-button")) moveControl(node);
+				node
+					.querySelectorAll(".popout-module-button")
+					.forEach(moveControl);
+			};
+
+			document
+				.querySelectorAll(".popout-module-button")
+				.forEach(moveControl);
+			new MutationObserver((mutations) => {
+				for (const mutation of mutations) {
+					mutation.addedNodes.forEach(moveControlsWithin);
+				}
+			}).observe(document.body, { childList: true, subtree: true });
 		});
 	}
 

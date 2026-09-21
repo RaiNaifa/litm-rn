@@ -45,6 +45,7 @@
 	src: url("../assets/fonts/fraunces.ttf") format("truetype");
 	font-style: normal;
 	font-weight: 300 800;
+	size-adjust: 110%%;
 }
 
 @font-face {
@@ -52,6 +53,7 @@
 	src: url("../assets/fonts/fraunces-i.ttf") format("truetype");
 	font-style: italic;
 	font-weight: 300 800;
+	size-adjust: 110%%;
 }
 
 @font-face {

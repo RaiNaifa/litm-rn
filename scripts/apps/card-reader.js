@@ -656,6 +656,9 @@ export class ThemeCard extends CardReader {
 		const fallbackSrc = ["origin", "adventure", "greatness"].includes(level)
 			? level
 			: "origin";
+		const darkTheme = document.body.classList.contains("theme-dark");
+		const iconSrc = (might) =>
+			`${CONFIG.litm.themeicon_src[might]}${darkTheme ? "-color-light" : "-color"}_litm_icn.svg`;
 		ctx.transitionSrc = `systems/litm-rn/assets/media/transition-left-${fallbackSrc}-dark.webp`;
 		ctx.currentLevelLabel = game.i18n.localize(`Litm.levels.${fallbackSrc}`);
 		const draftTags = theme.draftTags || [];
@@ -685,6 +688,9 @@ export class ThemeCard extends CardReader {
 			acc[k] = game.i18n.localize(`Litm.levels.${k}`);
 			return acc;
 		}, {});
+		ctx.mightDropdownOptions = Object.entries(ctx.themeLevels).map(
+			([key, label]) => ({ key, label, icon: iconSrc(key) }),
+		);
 		const customThemebooks =
 			CONFIG.litm.theme_levels[level] ??
 			CONFIG.litm.theme_levels[fallbackSrc] ??

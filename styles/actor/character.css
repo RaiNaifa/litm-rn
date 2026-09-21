@@ -20,8 +20,9 @@
 		}
 
 		& .window-title {
+			font-family: var(--litm-font-text);
 			font-size: 11px;
-			line-height: 1;
+			line-height: 2;
 			padding-top: 4px;
 		}
 	}
@@ -1535,7 +1536,7 @@
 	& :is(.litm--theme-bottom, .litm--hero-bottom) {
 		box-sizing: border-box;
 		margin-inline: 0;
-		padding-inline: 4px 12px;
+		padding-inline: 4px;
 	}
 
 	& .litm--character-hero {

@@ -927,6 +927,7 @@
 	color: var(--litm-roll-highlight-border);
 	font-family: var(--litm-font-text) !important;
 	font-size: var(--font-size-11);
+	line-height: 2;
 }
 .litm--camp-activity-summary .litm--camp-third-request {
 	min-height: 15px;

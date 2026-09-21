@@ -221,6 +221,7 @@
 					overflow: visible;
 					text-overflow: clip;
 					white-space: nowrap;
+					font-size: var(--font-size-16);
 				}
 			}
 		}

@@ -52,12 +52,14 @@ export class Fonts {
 					name: "Fraunces",
 					urls: ["systems/litm-rn/assets/fonts/fraunces.ttf"],
 					weight: "300 800",
+					sizeAdjust: "110%",
 				},
 				{
 					name: "Fraunces",
 					urls: ["systems/litm-rn/assets/fonts/fraunces-i.ttf"],
 					style: "italic",
 					weight: "300 800",
+					sizeAdjust: "110%",
 				},
 			],
 		});

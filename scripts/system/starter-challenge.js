@@ -16,22 +16,22 @@ const CHALLENGE = {
 		tags: ["shambling", "dead flesh"],
 		threats: [
 			{
-				name: "Lumber forwards threateningly",
+				name: "Lumber forwards",
 				consequences: [
-					"Swing at the nearest person with a rusty sword (slashed-2)",
+					"Swing at the nearest person with a rusty sword ([@s slashed-2])",
 				],
 			},
 			{
-				name: "Squelch and ooze putrid water as it moves",
+				name: "Squelch and ooze",
 				consequences: [
-					"Horrify onlookers (terrified-3 or nauseated-3)",
-					"Infect someone with the cursed miasma (poisoned-1)",
+					"Horrify onlookers ([@s terrified-3] or [@s nauseated-3])",
+					"Infect someone with the cursed miasma ([@s poisoned-1])",
 				],
 			},
 			{
-				name: "Stop suddenly and gaze at its sword, as if recalling its old days",
+				name: "Stop suddenly",
 				consequences: [
-					"Remember how to parry or feign (give itself parry or feign)",
+					"Remember how to parry or feign (give itself [@t parry] or [@t feign])",
 				],
 			},
 		],
@@ -50,20 +50,20 @@ const CHALLENGE = {
 			{
 				name: "Угрожающе надвигаться",
 				consequences: [
-					"Замахнуться ржавым мечом на ближайшего человека (порез-2)",
+					"Замахнуться ржавым мечом на ближайшего человека ([@s порез-2])",
 				],
 			},
 			{
 				name: "Источать гнилую воду",
 				consequences: [
-					"Ужаснуть очевидцев (напуган-3 или тошнота-3)",
-					"Заразить кого-нибудь проклятыми испарениями (отравлен-1)",
+					"Ужаснуть очевидцев ([@s напуган-3] или [@s тошнота-3])",
+					"Заразить кого-нибудь проклятыми испарениями ([@s отравлен-1])",
 				],
 			},
 			{
 				name: "Внезапно остановиться",
 				consequences: [
-					"Вспомнить, как парировать или делать финт (получает парирование или финт)",
+					"Вспомнить, как парировать или делать финт (получает [@t парирование] или [@t финт])",
 				],
 			},
 		],

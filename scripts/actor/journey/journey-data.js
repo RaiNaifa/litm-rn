@@ -17,7 +17,7 @@ export class JourneyData extends foundry.abstract.TypeDataModel {
 			),
 			background: new fields.FilePathField({
 				categories: ["IMAGE"],
-				initial: "systems/litm-rn/assets/media/transition-left-grey-dark.webp",
+				initial: "systems/litm-rn/assets/media/litm-journey.webp",
 			}),
 			backgroundFit: new fields.StringField({
 				initial: "cover",

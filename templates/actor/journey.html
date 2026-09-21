@@ -3,7 +3,7 @@
 		{{#if (and story @root.isEditable)}}
 		<button class="litm--journey-move{{#if active}} active{{/if}}" type="button"
 			data-click="move-to-story" aria-pressed="{{ifThen active 'true' 'false'}}"
-			data-tooltip="{{localize (ifThen active 'Litm.ui.remove-from-story' 'Litm.ui.move-to-story')}}">
+			data-tooltip="{{localize (ifThen active 'Litm.ui.remove-journey-from-story' 'Litm.ui.move-journey-to-story')}}">
 			<i class="{{ifThen active 'fas' 'far'}} fa-tags"></i>
 		</button>
 		{{/if}}

@@ -55,9 +55,15 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		)
 			? system.level
 			: "origin";
+		const darkTheme = document.body.classList.contains("theme-dark");
+		const iconSrc = (might) =>
+			`${CONFIG.litm.themeicon_src[might]}${darkTheme ? "-color-light" : "-color"}_litm_icn.svg`;
 		context.themeiconsrc =
 			CONFIG.litm.themeicon_src[system.level] ||
 			`systems/litm-rn/assets/media/icons/${fallbackSrc}`;
+		context.mightDropdownOptions = Object.entries(system.levels).map(
+			([key, label]) => ({ key, label, icon: iconSrc(key) }),
+		);
 		context.transitionSrc = `systems/litm-rn/assets/media/transition-left-${fallbackSrc}-dark.webp`;
 		context.currentLevelLabel = game.i18n.localize(
 			`Litm.levels.${fallbackSrc}`,

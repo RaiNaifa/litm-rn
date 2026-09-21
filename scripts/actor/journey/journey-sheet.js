@@ -12,8 +12,6 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 const FilePicker = foundry.applications.apps.FilePicker.implementation;
 const DEFAULT_ICON = "systems/litm-rn/assets/media/icons/treasure-map.svg";
-const DEFAULT_BACKGROUND =
-	"systems/litm-rn/assets/media/transition-left-grey-dark.webp";
 
 /** Independent ApplicationV2 sheet for Journey actors. */
 export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
@@ -267,13 +265,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		this.#artObserver = positionThemeContentArt(
 			this.element.querySelector(".litm--journey-art"),
 			this.actor.system,
-			{
-				referenceWidth: 800,
-				baseRotation:
-					this.actor.system.background === DEFAULT_BACKGROUND ? 90 : 0,
-				stretchAfterQuarterTurn:
-					this.actor.system.background === DEFAULT_BACKGROUND,
-			},
+			{ referenceWidth: 800 },
 		);
 		this.#storyTagsHookId ??= Hooks.on(
 			"litmStoryTagsUpdated",
@@ -553,7 +545,9 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		const config = game.settings.get("litm-rn", "storytags") || { actors: [] };
 		const active = this.#isStoryActor(config.actors || []);
 		const label = t(
-			active ? "Litm.ui.remove-from-story" : "Litm.ui.move-to-story",
+			active
+				? "Litm.ui.remove-journey-from-story"
+				: "Litm.ui.move-journey-to-story",
 		);
 		button.classList.toggle("active", active);
 		button.setAttribute("aria-pressed", String(active));
