@@ -2,6 +2,8 @@ import { ChallengeData } from "./scripts/actor/challenge/challenge-data.js";
 import { ChallengeSheet } from "./scripts/actor/challenge/challenge-sheet.js";
 import { CharacterData } from "./scripts/actor/character/character-data.js";
 import { CharacterSheet } from "./scripts/actor/character/character-sheet.js";
+import { JourneyData } from "./scripts/actor/journey/journey-data.js";
+import { JourneySheet } from "./scripts/actor/journey/journey-sheet.js";
 import { CampDialog } from "./scripts/apps/camp-dialog.js";
 import {
 	BackpackCard,
@@ -796,6 +798,7 @@ Hooks.once("init", () => {
 	info("Initializing Config...");
 	CONFIG.Actor.dataModels.character = CharacterData;
 	CONFIG.Actor.dataModels.challenge = ChallengeData;
+	CONFIG.Actor.dataModels.journey = JourneyData;
 	CONFIG.Actor.trackableAttributes.character =
 		CharacterData.getTrackableAttributes();
 	CONFIG.Dice.terms[DENOMINATION] = DoubleSix;
@@ -817,6 +820,10 @@ Hooks.once("init", () => {
 			makeDefault: true,
 		},
 	);
+	foundry.documents.collections.Actors.registerSheet("litm-rn", JourneySheet, {
+		types: ["journey"],
+		makeDefault: true,
+	});
 	foundry.documents.collections.Actors.registerSheet(
 		"litm-rn",
 		CharacterSheet,

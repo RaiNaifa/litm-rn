@@ -28,6 +28,7 @@ export class LitmHooks {
 		LitmHooks.#attachGMIndicatorToMessage();
 		LitmHooks.#attachRollPortraitToMessage();
 		LitmHooks.#prepareCharacterOnCreate();
+		LitmHooks.#preventJourneyLimits();
 		LitmHooks.#prepareThemeOnCreate();
 		LitmHooks.#listenToTagDragTransfer();
 		LitmHooks.#addTagDropToSelectedTokens();
@@ -432,8 +433,12 @@ export class LitmHooks {
 
 	static #prepareCharacterOnCreate() {
 		Hooks.on("preCreateActor", (actor, data) => {
-			const isCharacter = data.type === "character";
-			const hasImage = actor.img !== "icons/svg/mystery-man.svg";
+			const actorType = data.type || actor.type;
+			const isCharacter = actorType === "character";
+			const hasImage =
+				typeof actor.img === "string" &&
+				actor.img !== "icons/svg/mystery-man.svg" &&
+				/\.(?:avif|gif|jpe?g|png|svg|webp)(?:[?#].*)?$/i.test(actor.img);
 
 			const base = "icons/svg/";
 			let img = base;
@@ -444,8 +449,11 @@ export class LitmHooks {
 				case !hasImage && isCharacter:
 					img = "icons/svg/mystery-man.svg";
 					break;
-				case !hasImage && data.type === "challenge":
+				case !hasImage && actorType === "challenge":
 					img += "skull.svg";
+					break;
+				case !hasImage && actorType === "journey":
+					img = "systems/litm-rn/assets/media/icons/treasure-map.svg";
 					break;
 				default:
 					img = "icons/svg/mystery-man.svg";
@@ -505,6 +513,24 @@ export class LitmHooks {
 				note: "",
 			}));
 			if (!hasPreparedThemes) await actor.update({ "system.themes": themes });
+		});
+	}
+
+	/** Reject Limit ActiveEffects on Journey actors at the document layer. */
+	static #preventJourneyLimits() {
+		const isJourneyLimit = (effect, data) => {
+			const type =
+				data.flags?.["litm-rn"]?.type ??
+				data["flags.litm-rn.type"] ??
+				effect.flags?.["litm-rn"]?.type;
+			return effect.parent?.type === "journey" && type === "limit";
+		};
+
+		Hooks.on("preCreateActiveEffect", (effect, data) => {
+			if (isJourneyLimit(effect, data)) return false;
+		});
+		Hooks.on("preUpdateActiveEffect", (effect, changes) => {
+			if (isJourneyLimit(effect, changes)) return false;
 		});
 	}
 
@@ -577,6 +603,15 @@ export class LitmHooks {
 				}
 				if (!target.closest(".litm--tag, .litm--status, .litm--might")) return;
 				const text = target.textContent.replaceAll("\u2060", "");
+				const journeyRoot = target.closest("[data-journey-actor-uuid]");
+				const journeyBlock = target.closest("[data-journey-drop-block]");
+				const journeySource =
+					journeyRoot && journeyBlock
+						? {
+								sourceActorUuid: journeyRoot.dataset.journeyActorUuid,
+								sourceJourneyBlock: journeyBlock.dataset.journeyDropBlock,
+							}
+						: {};
 
 				if (
 					target.classList.contains("litm--tag") ||
@@ -595,6 +630,7 @@ export class LitmHooks {
 							type: isWeakness ? "weaknessTag" : "tag",
 							isScratched: false,
 							isHindering: isWeakness,
+							...journeySource,
 						};
 						event.dataTransfer.setData("text/plain", JSON.stringify(data));
 					} else {
@@ -610,6 +646,7 @@ export class LitmHooks {
 								),
 							isScratched: false,
 							value: status || 0,
+							...journeySource,
 						};
 						event.dataTransfer.setData("text/plain", JSON.stringify(data));
 					}
@@ -628,6 +665,7 @@ export class LitmHooks {
 						id: foundry.utils.randomID(),
 						type: "might",
 						level,
+						...journeySource,
 					};
 
 					if (match) {

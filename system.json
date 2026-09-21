@@ -23,6 +23,9 @@
 			},
 			"challenge": {
 				"htmlFields": ["note", "special"]
+			},
+			"journey": {
+				"htmlFields": ["note"]
 			}
 		},
 		"Item": {

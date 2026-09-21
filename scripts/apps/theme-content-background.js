@@ -2,6 +2,18 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const { fromUuid } = foundry.utils;
 const FilePicker = foundry.applications.apps.FilePicker.implementation;
 const CONTENT_ART_WIDTH = 320;
+const JOURNEY_ART_WIDTH = 800;
+const JOURNEY_DEFAULT_BACKGROUND =
+	"systems/litm-rn/assets/media/transition-left-grey-dark.webp";
+
+function journeyBaseRotation(isJourney, background) {
+	return isJourney && background === JOURNEY_DEFAULT_BACKGROUND ? 90 : 0;
+}
+
+function numberOrDefault(value, fallback) {
+	const number = Number(value);
+	return Number.isFinite(number) ? number : fallback;
+}
 
 const DEFAULTS = Object.freeze({
 	background: "",
@@ -14,6 +26,11 @@ const DEFAULTS = Object.freeze({
 	backgroundFit: "cover",
 	backgroundAnchorX: "center",
 	backgroundAnchorY: "center",
+	backgroundShadeEnabled: false,
+	backgroundShadeHeight: 45,
+	backgroundShadeStrength: 55,
+	backgroundFadeEnabled: false,
+	backgroundFadeHeight: 20,
 });
 
 /**
@@ -22,12 +39,20 @@ const DEFAULTS = Object.freeze({
  * @param {object} settings Stored background settings.
  * @param {object} [options={}] Positioning options.
  * @param {number} [options.referenceWidth=0] Unscaled surface width used by stored offsets.
+ * @param {number} [options.baseRotation=0] Display-only rotation added to the stored value.
+ * @param {boolean} [options.stretchAfterQuarterTurn=false] Stretch a quarter-turned image to the surface.
+ * @param {Function|null} [options.onPosition=null] Receives the painted image bounds after positioning.
  * @returns {{apply: Function, disconnect: Function} | null} Position controller.
  */
 export function positionThemeContentArt(
 	element,
 	settings,
-	{ referenceWidth = 0 } = {},
+	{
+		referenceWidth = 0,
+		baseRotation = 0,
+		stretchAfterQuarterTurn = false,
+		onPosition = null,
+	} = {},
 ) {
 	if (!element || !settings.background) return null;
 	const surface = element.parentElement;
@@ -39,66 +64,176 @@ export function positionThemeContentArt(
 		if (!width || !height || !image.naturalWidth || !image.naturalHeight)
 			return;
 		const scale = Number(settings.backgroundScale) || 1;
+		const rotation =
+			(Number(settings.backgroundRotation) || 0) + Number(baseRotation || 0);
 		let baseWidth = width;
 		let baseHeight = height;
-		if (settings.backgroundFit !== "stretch") {
+		const quarterTurn = Math.abs(Math.sin((rotation * Math.PI) / 180)) > 0.999;
+		if (
+			stretchAfterQuarterTurn &&
+			quarterTurn &&
+			settings.backgroundFit === "stretch"
+		) {
+			baseWidth = height;
+			baseHeight = width;
+		} else if (settings.backgroundFit === "native") {
+			baseWidth = image.naturalWidth;
+			baseHeight = image.naturalHeight;
+		} else if (settings.backgroundFit !== "stretch") {
+			const radians = (rotation * Math.PI) / 180;
+			const rotatedNaturalWidth =
+				Math.abs(image.naturalWidth * Math.cos(radians)) +
+				Math.abs(image.naturalHeight * Math.sin(radians));
+			const rotatedNaturalHeight =
+				Math.abs(image.naturalWidth * Math.sin(radians)) +
+				Math.abs(image.naturalHeight * Math.cos(radians));
 			const coverScale = Math.max(
-				width / image.naturalWidth,
-				height / image.naturalHeight,
+				width / rotatedNaturalWidth,
+				height / rotatedNaturalHeight,
 			);
 			baseWidth = image.naturalWidth * coverScale;
 			baseHeight = image.naturalHeight * coverScale;
 		}
-		const offsetScale = referenceWidth > 0 ? width / referenceWidth : 1;
-		const rotation = Number(settings.backgroundRotation) || 0;
+		const offsetScale =
+			settings.backgroundFit === "native"
+				? 1
+				: referenceWidth > 0
+					? width / referenceWidth
+					: 1;
 		const flipX = settings.backgroundFlipX ? -1 : 1;
 		const flipY = settings.backgroundFlipY ? -1 : 1;
 		const paintedWidth = baseWidth * scale;
 		const paintedHeight = baseHeight * scale;
-		const offsetExtent =
-			Math.max(
-				Math.abs(Number(settings.backgroundOffsetX) || 0),
-				Math.abs(Number(settings.backgroundOffsetY) || 0),
-			) * offsetScale;
-		const paintedSize = Math.max(paintedWidth, paintedHeight);
-		const canvasSize =
-			Math.max(Math.hypot(width, height), paintedSize) + (offsetExtent + 8) * 2;
+		const radians = (rotation * Math.PI) / 180;
+		const cos = Math.cos(radians);
+		const sin = Math.sin(radians);
+		const rotatedWidth =
+			Math.abs(paintedWidth * cos) + Math.abs(paintedHeight * sin);
+		const rotatedHeight =
+			Math.abs(paintedWidth * sin) + Math.abs(paintedHeight * cos);
 		const anchoredStart = (surfaceSize, imageSize, anchor) => {
-			const surfaceStart = (canvasSize - surfaceSize) / 2;
-			if (["left", "top"].includes(anchor)) return surfaceStart;
+			if (["left", "top"].includes(anchor)) return 0;
 			if (["right", "bottom"].includes(anchor)) {
-				return surfaceStart + surfaceSize - imageSize;
+				return surfaceSize - imageSize;
 			}
-			return surfaceStart + (surfaceSize - imageSize) / 2;
+			return (surfaceSize - imageSize) / 2;
 		};
-		const imageX =
+		const desiredLeft =
 			anchoredStart(
 				width,
-				paintedWidth,
+				rotatedWidth,
 				settings.backgroundAnchorX || "center",
 			) +
 			(Number(settings.backgroundOffsetX) || 0) * offsetScale;
-		const imageY =
+		const desiredTop =
 			anchoredStart(
 				height,
-				paintedHeight,
+				rotatedHeight,
 				settings.backgroundAnchorY || "center",
 			) +
 			(Number(settings.backgroundOffsetY) || 0) * offsetScale;
+		const elementLeft = desiredLeft + (rotatedWidth - paintedWidth) / 2;
+		const elementTop = desiredTop + (rotatedHeight - paintedHeight) / 2;
+		const gradientX = Math.sin(radians) / flipY;
+		const gradientY = Math.cos(radians) / flipY;
+		const gradientAngle =
+			(Math.atan2(gradientX, -gradientY) * 180) / Math.PI;
+		const shadeHeight = Math.max(
+			0,
+			Math.min(100, Number(settings.backgroundShadeHeight) || 0),
+		);
+		const shadeStrength = Math.max(
+			0,
+			Math.min(100, Number(settings.backgroundShadeStrength) || 0),
+		);
+		const shadeStartY = height * (1 - shadeHeight / 100);
+		const shadeTransitionHeight = (height * shadeHeight * 0.45) / 100;
+		const shadeStop = (screenY) =>
+			`${((screenY - desiredTop) / rotatedHeight) * 100}%`;
+		const fadeHeight = Math.max(
+			0,
+			Math.min(100, Number(settings.backgroundFadeHeight) || 0),
+		);
+		const maskSource = foundry.utils.getRoute
+			? foundry.utils.getRoute(settings.background)
+			: settings.background.startsWith("/")
+				? settings.background
+				: `/${settings.background}`;
 		element.style.inset = "auto";
-		element.style.left = "50%";
-		element.style.top = "50%";
-		element.style.width = `${canvasSize}px`;
-		element.style.height = `${canvasSize}px`;
-		element.style.marginLeft = `${-canvasSize / 2}px`;
-		element.style.marginTop = `${-canvasSize / 2}px`;
-		element.style.backgroundSize = `${paintedWidth}px ${paintedHeight}px`;
-		element.style.backgroundPosition = `${imageX}px ${imageY}px`;
+		element.style.left = `${elementLeft}px`;
+		element.style.top = `${elementTop}px`;
+		element.style.width = `${paintedWidth}px`;
+		element.style.height = `${paintedHeight}px`;
+		element.style.marginLeft = "0";
+		element.style.marginTop = "0";
+		element.style.backgroundSize = "100% 100%";
+		element.style.backgroundPosition = "center";
 		element.style.transform = [
 			`scaleX(${flipX})`,
 			`scaleY(${flipY})`,
 			`rotate(${rotation}deg)`,
 		].join(" ");
+		element.style.setProperty(
+			"--litm-art-image",
+			`url(${JSON.stringify(maskSource)})`,
+		);
+		element.style.setProperty(
+			"--litm-art-gradient-angle",
+			`${gradientAngle}deg`,
+		);
+		element.style.setProperty(
+			"--litm-art-shade-start-stop",
+			shadeStop(shadeStartY),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-quarter-stop",
+			shadeStop(shadeStartY + shadeTransitionHeight * 0.25),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-half-stop",
+			shadeStop(shadeStartY + shadeTransitionHeight * 0.5),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-three-quarter-stop",
+			shadeStop(shadeStartY + shadeTransitionHeight * 0.75),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-full-stop",
+			shadeStop(shadeStartY + shadeTransitionHeight),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-strength",
+			String(shadeStrength / 100),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-strength-quarter",
+			String((shadeStrength / 100) * 0.156),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-strength-half",
+			String((shadeStrength / 100) * 0.5),
+		);
+		element.style.setProperty(
+			"--litm-art-shade-strength-three-quarter",
+			String((shadeStrength / 100) * 0.844),
+		);
+		element.style.setProperty("--litm-art-fade-height", `${fadeHeight}%`);
+		element.classList.toggle(
+			"litm--art-shade-enabled",
+			Boolean(settings.backgroundShadeEnabled) && shadeHeight > 0,
+		);
+		element.classList.toggle(
+			"litm--art-fade-enabled",
+			Boolean(settings.backgroundFadeEnabled) && fadeHeight > 0,
+		);
+		if (onPosition) {
+			onPosition({
+				left: desiredLeft,
+				right: desiredLeft + rotatedWidth,
+				top: desiredTop,
+				bottom: desiredTop + rotatedHeight,
+			});
+		}
 	};
 	image.addEventListener("load", apply, { once: true });
 	image.src = settings.background;
@@ -110,7 +245,7 @@ export function positionThemeContentArt(
 	};
 }
 
-/** Configure the masked illustration used by a Themebook or Theme Kit. */
+/** Configure an illustration used by a Themebook, Theme Kit, or Journey. */
 export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 	ApplicationV2,
 ) {
@@ -138,19 +273,28 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 
 	#item;
 	#settings;
+	#isJourney;
 	#drag = null;
 	#artObserver = null;
 
 	/**
 	 * Create a background configuration application.
-	 * @param {Item} item Themebook or Theme Kit item.
+	 * @param {Item|Actor} item Document containing the illustration settings.
 	 * @param {object} [options={}] Application options.
+	 * @param {string} [options.mode] Optional layout mode, such as `journey`.
 	 */
 	constructor(item, options = {}) {
-		super({ ...options, id: `litm-theme-content-background-${item.id}` });
+		const { mode, ...applicationOptions } = options;
+		super({
+			...applicationOptions,
+			id: `litm-theme-content-background-${item.id}`,
+		});
 		this.#item = item;
+		this.#isJourney = mode === "journey" || item.type === "journey";
 		this.#settings = {
-			background: item.system.background || "",
+			background:
+				item.system.background ||
+				(this.#isJourney ? JOURNEY_DEFAULT_BACKGROUND : ""),
 			backgroundScale: Number(item.system.backgroundScale) || 1,
 			backgroundOffsetX: Number(item.system.backgroundOffsetX) || 0,
 			backgroundOffsetY: Number(item.system.backgroundOffsetY) || 0,
@@ -160,6 +304,23 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 			backgroundFit: item.system.backgroundFit || "cover",
 			backgroundAnchorX: item.system.backgroundAnchorX || "center",
 			backgroundAnchorY: item.system.backgroundAnchorY || "center",
+			backgroundShadeEnabled: Boolean(item.system.backgroundShadeEnabled),
+			backgroundShadeHeight:
+				numberOrDefault(
+					item.system.backgroundShadeHeight,
+					DEFAULTS.backgroundShadeHeight,
+				),
+			backgroundShadeStrength:
+				numberOrDefault(
+					item.system.backgroundShadeStrength,
+					DEFAULTS.backgroundShadeStrength,
+				),
+			backgroundFadeEnabled: Boolean(item.system.backgroundFadeEnabled),
+			backgroundFadeHeight:
+				numberOrDefault(
+					item.system.backgroundFadeHeight,
+					DEFAULTS.backgroundFadeHeight,
+				),
 		};
 	}
 
@@ -176,9 +337,26 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 			? rawMight
 			: this.#item.system.suggestedMight || "origin";
 		const transitionMight = rawMight === "variable" ? "grey" : might;
-		const previewSheetWidth = this.#item.type === "themebook" ? 920 : 820;
-		const previewSheetHeight = this.#item.type === "themebook" ? 675 : 760;
-		const previewArtWidth = CONTENT_ART_WIDTH;
+		const journeySurface = this.#isJourney
+			? this.#item.sheet?.element?.querySelector?.(".litm--journey-art-surface")
+			: null;
+		const previewSheetWidth = this.#isJourney
+			? journeySurface?.parentElement?.closest(".window-content")
+					?.offsetWidth ||
+				journeySurface?.clientWidth ||
+				this.#item.sheet?.position?.width ||
+				800
+			: this.#item.type === "themebook"
+				? 920
+				: 820;
+		const previewSheetHeight = this.#isJourney
+			? 420
+			: this.#item.type === "themebook"
+				? 675
+				: 760;
+		const previewArtWidth = this.#isJourney
+			? JOURNEY_ART_WIDTH
+			: CONTENT_ART_WIDTH;
 		return {
 			...context,
 			name: this.#item.name,
@@ -190,6 +368,7 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 			previewSheetHeight,
 			previewArtWidth,
 			previewArtPercent: (previewArtWidth / previewSheetWidth) * 100,
+			isJourney: this.#isJourney,
 		};
 	}
 
@@ -200,7 +379,16 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 		this.#artObserver = positionThemeContentArt(
 			this.element.querySelector(".litm--background-preview-art"),
 			this.#settings,
-			{ referenceWidth: context.previewArtWidth },
+			{
+				referenceWidth: context.previewArtWidth,
+				baseRotation: journeyBaseRotation(
+					this.#isJourney,
+					this.#settings.background,
+				),
+				stretchAfterQuarterTurn:
+					this.#isJourney &&
+					this.#settings.background === JOURNEY_DEFAULT_BACKGROUND,
+			},
 		);
 		const preview = this.element.querySelector(".litm--background-preview");
 		preview?.addEventListener("pointerdown", (event) =>
@@ -269,19 +457,18 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 			".litm--background-preview-art",
 		);
 		const previewWidth = previewArt?.parentElement?.clientWidth;
-		const previewScale = previewWidth ? previewWidth / CONTENT_ART_WIDTH : 1;
+		const referenceWidth = this.#isJourney
+			? JOURNEY_ART_WIDTH
+			: CONTENT_ART_WIDTH;
+		const previewScale = previewWidth ? previewWidth / referenceWidth : 1;
 		const pointerX = (event.clientX - this.#drag.x) / previewScale;
 		const pointerY = (event.clientY - this.#drag.y) / previewScale;
-		const reflectedX = this.#settings.backgroundFlipX ? -pointerX : pointerX;
-		const reflectedY = this.#settings.backgroundFlipY ? -pointerY : pointerY;
-		const radians =
-			(-(Number(this.#settings.backgroundRotation) || 0) * Math.PI) / 180;
-		const cos = Math.cos(radians);
-		const sin = Math.sin(radians);
-		const imageX = reflectedX * cos - reflectedY * sin;
-		const imageY = reflectedX * sin + reflectedY * cos;
-		this.#settings.backgroundOffsetX = Math.round(this.#drag.offsetX + imageX);
-		this.#settings.backgroundOffsetY = Math.round(this.#drag.offsetY + imageY);
+		this.#settings.backgroundOffsetX = Math.round(
+			this.#drag.offsetX + pointerX,
+		);
+		this.#settings.backgroundOffsetY = Math.round(
+			this.#drag.offsetY + pointerY,
+		);
 		this.#settings.backgroundOffsetX = Math.max(
 			-1000,
 			Math.min(1000, this.#settings.backgroundOffsetX),
@@ -325,7 +512,9 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 	}
 
 	static #resetImage() {
-		this.#settings.background = "";
+		this.#settings.background = this.#isJourney
+			? JOURNEY_DEFAULT_BACKGROUND
+			: "";
 		this.render();
 	}
 
@@ -373,6 +562,9 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 			"backgroundOffsetX",
 			"backgroundOffsetY",
 			"backgroundRotation",
+			"backgroundShadeHeight",
+			"backgroundShadeStrength",
+			"backgroundFadeHeight",
 		]) {
 			this.element
 				.querySelectorAll(`[data-background-setting="${key}"]`)
@@ -380,12 +572,20 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 					input.value = this.#settings[key];
 				});
 		}
-		for (const key of ["backgroundFlipX", "backgroundFlipY"]) {
+		for (const key of [
+			"backgroundFlipX",
+			"backgroundFlipY",
+			"backgroundShadeEnabled",
+			"backgroundFadeEnabled",
+		]) {
 			this.element
 				.querySelectorAll(`[data-background-toggle="${key}"]`)
 				.forEach((button) => {
 					button.classList.toggle("active", this.#settings[key]);
 					button.setAttribute("aria-pressed", String(this.#settings[key]));
+					if (button instanceof HTMLInputElement) {
+						button.checked = this.#settings[key];
+					}
 				});
 		}
 	}
@@ -397,7 +597,7 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 	}
 
 	async #persist() {
-		await this.#item.update({
+		const update = {
 			"system.background": this.#settings.background,
 			"system.backgroundScale": this.#settings.backgroundScale,
 			"system.backgroundOffsetX": this.#settings.backgroundOffsetX,
@@ -408,6 +608,18 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 			"system.backgroundFit": this.#settings.backgroundFit,
 			"system.backgroundAnchorX": this.#settings.backgroundAnchorX,
 			"system.backgroundAnchorY": this.#settings.backgroundAnchorY,
-		});
+		};
+		if (this.#isJourney) {
+			Object.assign(update, {
+				"system.backgroundShadeEnabled":
+					this.#settings.backgroundShadeEnabled,
+				"system.backgroundShadeHeight": this.#settings.backgroundShadeHeight,
+				"system.backgroundShadeStrength":
+					this.#settings.backgroundShadeStrength,
+				"system.backgroundFadeEnabled": this.#settings.backgroundFadeEnabled,
+				"system.backgroundFadeHeight": this.#settings.backgroundFadeHeight,
+			});
+		}
+		await this.#item.update(update);
 	}
 }

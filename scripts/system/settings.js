@@ -178,6 +178,7 @@ export class LitmSettings {
 				auto: "Litm.settings.default-actor-type-auto",
 				character: "TYPES.Actor.character",
 				challenge: "TYPES.Actor.challenge",
+				journey: "TYPES.Actor.journey",
 			},
 		});
 

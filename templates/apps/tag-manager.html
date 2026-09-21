@@ -287,7 +287,7 @@
         {{#unless actor.isCharacter}}
         <button type="button" data-action="add-might" data-section="actor-{{actor.ref}}" data-tooltip="{{localize 'Litm.ui.add-might'}}"><span class="litm--tm-add-icon litm--tm-add-icon-might" aria-hidden="true"></span></button>
         {{/unless}}
-        <button type="button" data-action="add-limit" data-section="actor-{{actor.ref}}" data-tooltip="{{localize 'Litm.ui.add-limit'}}"><span class="litm--tm-add-icon litm--tm-add-icon-limit" aria-hidden="true"></span></button>
+		{{#if actor.supportsLimits}}<button type="button" data-action="add-limit" data-section="actor-{{actor.ref}}" data-tooltip="{{localize 'Litm.ui.add-limit'}}"><span class="litm--tm-add-icon litm--tm-add-icon-limit" aria-hidden="true"></span></button>{{/if}}
         {{/if}}
       </div>
     </div>

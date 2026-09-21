@@ -1,4 +1,6 @@
 export class LitmConfig {
+	journey_types = ["landscape", "occasion", "undertaking"];
+
 	challenge_types = [
 		"aggressor",
 		"charge",

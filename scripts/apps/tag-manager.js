@@ -652,7 +652,9 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			.filter((t) => !(statusIdsInLimits.has(t.id) && t.type !== "limit"));
 
 		const modeSetting = `portraitMode-${actor.type}`;
-		const useToken = game.settings.get("litm-rn", modeSetting) === "token";
+		const useToken =
+			actor.type !== "journey" &&
+			game.settings.get("litm-rn", modeSetting) === "token";
 		return {
 			ref,
 			id: ref,
@@ -661,6 +663,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			fellowshipId: getActorFellowshipId(actor),
 			isOwner,
 			isCharacter,
+			supportsLimits: actor.type !== "journey",
 			hideFromPlayers: isHidden,
 			tags: visibleTags,
 		};
@@ -690,6 +693,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			.filter((e) => {
 				const flags = e.flags?.["litm-rn"];
 				if (!flags?.type) return false;
+				if (actor.type === "journey" && flags.type === "limit") return false;
 				// Theme/backpack tags are managed via CardReader, not TagManager
 				if (flags.ownerType) return false;
 				return true;
@@ -2484,6 +2488,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			const ref = section.slice(6);
 			const actor = this.#resolveActor(ref);
 			if (!actor || !actor.isOwner) return;
+			if (actor.type === "journey") return;
 			if (actor.type === "challenge") {
 				const limits = foundry.utils.deepClone(actor.system.limits || []);
 				this.#editingTagId = `_limit_${limits.length}`;
@@ -3137,6 +3142,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			if (actorRef) {
 				const actor = this.#resolveActor(actorRef);
 				if (actor) {
+					if (data.type === "limit" && actor.type === "journey") return;
 					// Block might tags on character actors
 					if (data.type === "might" && actor.type === "character") {
 						ui.notifications.warn(

@@ -9,6 +9,7 @@
 @import "./styles/item/trope.css";
 @import "./styles/item/threat.css";
 @import "./styles/actor/challenge.css";
+@import "./styles/actor/journey.css";
 @import "./styles/actor/character.css";
 @import "./styles/apps/roll-dialog.css";
 @import "./styles/apps/camp-dialog.css";

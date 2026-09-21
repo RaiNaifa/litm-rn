@@ -3,6 +3,9 @@
 	<section class="litm--background-preview">
 		<div class="litm--background-preview-stage"
 			style="--background-sheet-aspect:{{previewSheetWidth}} / {{previewSheetHeight}};--background-art-width:{{previewArtPercent}}%;">
+			{{#if isJourney}}
+			<div class="litm--background-preview-art litm--background-preview-art--journey" style="{{artStyle}}"></div>
+			{{else}}
 			<img class="litm--background-preview-default" src="{{transitionSrc}}" alt="" />
 			{{#if hasImage}}
 			<div class="litm--background-preview-mask"
@@ -15,6 +18,7 @@
 				<h2>{{name}}</h2>
 				<p>{{localize "Litm.theme-content.background-preview-text"}}</p>
 			</div>
+			{{/if}}
 		</div>
 	</section>
 
@@ -38,9 +42,23 @@
 				<option value="stretch" {{#if (eq settings.backgroundFit "stretch")}}selected{{/if}}>
 					{{localize "Litm.theme-content.background-fit-stretch"}}
 				</option>
+				<option value="native" {{#if (eq settings.backgroundFit "native")}}selected{{/if}}>
+					{{localize "Litm.theme-content.background-fit-native"}}
+				</option>
 			</select>
 			<span></span>
 		</label>
+		{{#if isJourney}}
+		<label class="litm--background-fit-control">
+			<span>{{localize "Litm.theme-content.background-anchor-x"}}</span>
+			<select data-background-anchor="backgroundAnchorX">
+				<option value="left" {{#if (eq settings.backgroundAnchorX "left")}}selected{{/if}}>{{localize "Litm.theme-content.anchor-left"}}</option>
+				<option value="center" {{#if (eq settings.backgroundAnchorX "center")}}selected{{/if}}>{{localize "Litm.theme-content.anchor-center"}}</option>
+				<option value="right" {{#if (eq settings.backgroundAnchorX "right")}}selected{{/if}}>{{localize "Litm.theme-content.anchor-right"}}</option>
+			</select>
+			<span></span>
+		</label>
+		{{/if}}
 		<label class="litm--background-fit-control">
 			<span>{{localize "Litm.theme-content.background-anchor-y"}}</span>
 			<select data-background-anchor="backgroundAnchorY">
@@ -77,6 +95,41 @@
 				<span>{{localize "Litm.theme-content.background-reflection-y"}}</span>
 			</button>
 		</div>
+		{{#if isJourney}}
+		<label class="litm--background-effect-toggle">
+			<span>{{localize "Litm.theme-content.background-shade"}}</span>
+			<input type="checkbox" data-background-toggle="backgroundShadeEnabled"
+				{{#if settings.backgroundShadeEnabled}}checked{{/if}} />
+			<span></span>
+		</label>
+		<label>
+			<span>{{localize "Litm.theme-content.background-shade-height"}}</span>
+			<input type="range" min="0" max="100" step="1"
+				value="{{settings.backgroundShadeHeight}}" data-background-setting="backgroundShadeHeight" />
+			<input type="number" min="0" max="100" step="1"
+				value="{{settings.backgroundShadeHeight}}" data-background-setting="backgroundShadeHeight" />
+		</label>
+		<label>
+			<span>{{localize "Litm.theme-content.background-shade-strength"}}</span>
+			<input type="range" min="0" max="100" step="1"
+				value="{{settings.backgroundShadeStrength}}" data-background-setting="backgroundShadeStrength" />
+			<input type="number" min="0" max="100" step="1"
+				value="{{settings.backgroundShadeStrength}}" data-background-setting="backgroundShadeStrength" />
+		</label>
+		<label class="litm--background-effect-toggle">
+			<span>{{localize "Litm.theme-content.background-fade"}}</span>
+			<input type="checkbox" data-background-toggle="backgroundFadeEnabled"
+				{{#if settings.backgroundFadeEnabled}}checked{{/if}} />
+			<span></span>
+		</label>
+		<label>
+			<span>{{localize "Litm.theme-content.background-fade-height"}}</span>
+			<input type="range" min="0" max="100" step="1"
+				value="{{settings.backgroundFadeHeight}}" data-background-setting="backgroundFadeHeight" />
+			<input type="number" min="0" max="100" step="1"
+				value="{{settings.backgroundFadeHeight}}" data-background-setting="backgroundFadeHeight" />
+		</label>
+		{{/if}}
 		<label>
 			<span>{{localize "Litm.theme-content.background-offset-x"}}</span>
 			<input type="range" min="-500" max="500" step="1"

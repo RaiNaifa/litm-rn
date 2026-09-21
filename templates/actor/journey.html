@@ -1,0 +1,138 @@
+{{#*inline 'journeyDivider' title story active add}}
+	<div class="litm--journey-divider{{#if story}} grid-5{{else if add}} grid-4{{/if}}">
+		{{#if (and story @root.isEditable)}}
+		<button class="litm--journey-move{{#if active}} active{{/if}}" type="button"
+			data-click="move-to-story" aria-pressed="{{ifThen active 'true' 'false'}}"
+			data-tooltip="{{localize (ifThen active 'Litm.ui.remove-from-story' 'Litm.ui.move-to-story')}}">
+			<i class="{{ifThen active 'fas' 'far'}} fa-tags"></i>
+		</button>
+		{{/if}}
+		<span class="litm--journey-divider-line" aria-hidden="true"></span>
+		<label>{{localize title}}</label>
+		<span class="litm--journey-divider-line" aria-hidden="true"></span>
+		{{#if (and add @root.isEditable)}}
+		<button class="litm--journey-add" type="button" data-click="{{concat 'add-' add}}"
+			data-tooltip="{{localize (concat 'Litm.ui.add-' add)}}" aria-label="{{localize (concat 'Litm.ui.add-' add)}}"><i class="far fa-plus"></i></button>
+		{{/if}}
+		{{#if (and story @root.isEditable)}}
+		<div class="litm--journey-effect-buttons">
+			<button type="button" data-click="add-tag" data-tooltip="{{localize 'Litm.ui.add-tag'}}"><img src="systems/litm-rn/assets/media/icons/add-story-tag_icn.svg" alt=""></button>
+			<button type="button" data-click="add-status" data-tooltip="{{localize 'Litm.ui.add-status'}}"><img src="systems/litm-rn/assets/media/icons/add-story-status_icn.svg" alt=""></button>
+			<button type="button" data-click="add-might" data-tooltip="{{localize 'Litm.ui.add-might'}}"><img src="systems/litm-rn/assets/media/icons/add-might_icn.svg" alt=""></button>
+		</div>
+		{{/if}}
+	</div>
+{{/inline}}
+
+{{#*inline 'journeyEffect' effect source editingId}}
+	{{#if effect.flags.litm-rn.type}}
+	<li class="litm--tag-item litm--tm-tag-{{effect.flags.litm-rn.type}}{{#if (eq effect.flags.litm-rn.type 'might')}} litm--tm-might-val-{{#if (eq effect.flags.litm-rn.value 0)}}origin{{else if (eq effect.flags.litm-rn.value 6)}}greatness{{else}}adventure{{/if}}{{/if}}{{#if effect.flags.litm-rn.isPrivate}} litm--tm-private{{/if}}{{#if effect.flags.litm-rn.isHindering}} litm--tm-hindering{{/if}}{{#if effect.flags.litm-rn.isCrispy}} litm--tm-crispy{{/if}}{{#if (and @root.isGM (lookup @root.rollSelMap effect._id))}} litm--tag-roll-selected{{/if}}"
+		data-tag-id="{{effect._id}}" data-id="{{effect._id}}" data-ref="{{source}}"
+		{{#if @root.isEditable}}data-context-entity="{{effect.flags.litm-rn.type}}"{{/if}}>
+		<div class="litm--tm-tag-visual"><div class="litm--tm-tag-inner">
+			<div class="litm--tm-tag-name{{#unless (eq effect._id editingId)}} litm--tm-tag-name-display{{/unless}}"
+				{{#if (eq effect._id editingId)}}contenteditable="true"{{else if @root.isGM}}data-click="select"{{/if}}
+				{{#if @root.isEditable}}{{#unless (eq effect._id editingId)}}draggable="true" data-drag-effect="{{effect._id}}"{{/unless}}{{/if}}
+				data-id="{{effect._id}}" data-ref="{{source}}" role="textbox" aria-multiline="false">
+				<span class="litm--tm-tag-text">{{effect.name}}</span>
+			</div>
+			<div class="litm--tm-tag-indicators">
+				{{#if (and @root.isGM (lookup @root.rollSelMap effect._id))}}
+					<div class="litm--roll-selected-indicators">
+						{{#each (lookup @root.rollSelMap effect._id) as |selection|}}
+							<img class="litm--roll-selected-portrait" src="{{selection.portrait}}" alt="" draggable="false" data-tooltip="{{selection.actorName}}">
+						{{/each}}
+					</div>
+				{{/if}}
+				{{#if (eq effect.flags.litm-rn.type 'tag')}}
+					{{#if effect.flags.litm-rn.isCrispy}}<i class="litm--tm-tag-icon fas fa-hourglass-half"></i>{{/if}}
+					{{#if effect.flags.litm-rn.isPrivate}}<i class="litm--tm-tag-icon fa-solid fa-mask"></i>{{/if}}
+				{{/if}}
+				{{#if (eq effect.flags.litm-rn.type 'status')}}
+					{{#if effect.flags.litm-rn.isPrivate}}<i class="litm--tm-tag-icon fa-solid fa-mask"></i>{{/if}}
+					<div class="litm--tm-status-values">{{#each effect.flags.litm-rn.values}}<span class="litm--tm-status-dot{{ifThen this ' litm--tm-filled' ''}}"></span>{{/each}}</div>
+				{{/if}}
+				{{#if (eq effect.flags.litm-rn.type 'might')}}
+					{{#if effect.flags.litm-rn.isPrivate}}<i class="litm--tm-tag-icon fa-solid fa-mask"></i>{{/if}}
+					<span class="litm--tm-might-indicator litm--tm-might-{{#if (eq effect.flags.litm-rn.value 0)}}origin{{else if (eq effect.flags.litm-rn.value 6)}}greatness{{else}}adventure{{/if}}"></span>
+				{{/if}}
+			</div>
+		</div></div>
+	</li>
+	{{/if}}
+{{/inline}}
+
+<div class="litm--journey-wrapper" data-sheet-scroll data-journey-actor-uuid="{{document.uuid}}">
+	<datalist id="litm--journey-types">
+		{{#each system.journeys as |journey|}}<option>{{localize (concat "Litm.journeys." journey)}}</option>{{/each}}
+	</datalist>
+
+	<section class="litm--journey-hero">
+		<div class="litm--journey-art-surface">
+			<div class="litm--journey-art" style="background-image:url('{{system.background}}')"></div>
+		</div>
+	</section>
+
+	<main class="litm--journey-paper">
+		<header class="litm--journey-header">
+			<div class="litm--journey-icon{{#if isDefaultIcon}} is-default{{/if}}">
+				<img src="{{document.img}}" alt="{{document.name}}"
+					{{#if isEditable}}data-action="editImage" data-edit="img" data-tooltip="{{localize 'Litm.ui.journey-edit-icon'}}"{{/if}}>
+			</div>
+			<div class="litm--journey-heading-fields">
+				<label class="litm--sro" for="journey-category">{{localize 'Litm.ui.journey-type'}}</label>
+				<input id="journey-category" list="litm--journey-types" type="text" name="system.category" value="{{system.category}}" data-size-input {{#unless isEditable}}disabled{{/unless}}>
+				<label class="litm--sro" for="journey-name">{{localize 'Name'}}</label>
+				<input type="hidden" id="journey-name" name="name" value="{{document.name}}" required>
+				<span class="litm--journey-name" role="textbox" contenteditable="{{isEditable}}" data-input="journey-name">{{document.name}}</span>
+			</div>
+		</header>
+
+		<label class="litm--sro" for="journey-note">{{localize 'Notes'}}</label>
+		<prose-mirror class="litm--journey-description" id="journey-note" name="system.note" button="true" toggled="false" editable="{{isEditable}}" value="{{system.noteRaw}}">{{{system.note}}}</prose-mirror>
+
+		{{> journeyDivider title="Litm.ui.tags-statuses" story=true active=isStoryActor}}
+		{{#if effects}}
+		<div class="litm--journey-effects" data-journey-drop-block="effects"
+			data-tooltip="{{localize 'Litm.ui.context-open-menu'}}" data-tooltip-direction="LEFT">
+			{{#each effectGroups as |group|}}
+				{{#if group.effects}}
+				<ul class="litm--journey-effect-group litm--journey-effect-group-{{group.type}}">
+					{{#each group.effects as |effect|}}{{> journeyEffect effect=effect source=@root.document._id editingId=@root.editingTagId}}{{/each}}
+				</ul>
+				{{/if}}
+			{{/each}}
+		</div>
+		{{/if}}
+
+		{{> journeyDivider title="Litm.ui.general-consequences" add="consequence"}}
+		<ul class="litm--journey-consequences" data-journey-drop-block="general-consequences"
+			data-tooltip="{{localize 'Litm.ui.context-open-menu'}}" data-tooltip-direction="LEFT">
+			{{#each consequences as |consequence index|}}
+			<li class="litm--journey-consequence-item" data-id="{{index}}" data-context-consequence>
+				<prose-mirror class="litm--journey-consequence-editor" name="system.consequences.{{index}}"
+					button="true" toggled="false" editable="{{@root.isEditable}}" value="{{consequence}}">
+					<div class="litm--journey-consequence-content">
+						<img src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt="">
+						<div>{{{lookup @root.consequencesHTML index}}}</div>
+					</div>
+				</prose-mirror>
+			</li>
+			{{/each}}
+		</ul>
+
+		{{> journeyDivider title="Litm.ui.vignettes" add="vignette"}}
+		<ul class="litm--journey-vignettes item-list"
+			data-tooltip="{{localize 'Litm.ui.context-open-menu'}}" data-tooltip-direction="LEFT">
+			{{#each items as |item|}}
+			<li class="item" data-id="{{item._id}}" data-item-id="{{item._id}}" data-journey-drop-block="vignette:{{item._id}}" {{#if @root.isEditable}}data-context-entity="threat"{{/if}}>
+				<h3 {{#if @root.isEditable}}draggable="true" data-drag-threat="{{item._id}}"{{/if}}>{{item.name}}</h3>
+				{{#if item.system.enrichedThreat}}<div class="litm--journey-vignette-description">{{{item.system.enrichedThreat}}}</div>{{/if}}
+				{{#each item.system.enrichedConsequences as |consequence|}}
+				<div class="litm--journey-consequence"><img src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt=""><div>{{{consequence}}}</div></div>
+				{{/each}}
+			</li>
+			{{/each}}
+		</ul>
+	</main>
+</div>
