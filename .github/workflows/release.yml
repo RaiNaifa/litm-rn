@@ -3,6 +3,12 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to package and publish
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -14,6 +20,8 @@ jobs:
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -35,13 +43,15 @@ jobs:
         id: tag
         shell: bash
         run: |
-          TAG_NAME="${{ github.event.release.tag_name }}"
+          TAG_NAME="${{ github.event.release.tag_name || inputs.tag }}"
           VERSION="$(jq -r '.version' system.json)"
           if [[ "$TAG_NAME" != "v$VERSION" ]]; then
             echo "Release tag $TAG_NAME does not match system.json version $VERSION" >&2
             exit 1
           fi
+          echo "name=$TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "release-url=https://github.com/RaiNaifa/litm-rn/releases/tag/$TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "minimum=$(jq -r '.compatibility.minimum' system.json)" >> "$GITHUB_OUTPUT"
           echo "verified=$(jq -r '.compatibility.verified' system.json)" >> "$GITHUB_OUTPUT"
           echo "maximum=$(jq -r '.compatibility.maximum' system.json)" >> "$GITHUB_OUTPUT"
@@ -57,6 +67,7 @@ jobs:
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tag.outputs.name }}
           files: |
             ${{ runner.temp }}/litm-rn.zip
             system.json
@@ -84,9 +95,9 @@ jobs:
               "id": "litm-rn",
               "release": {
                 "version": "${{ steps.tag.outputs.version }}",
-                "manifest": "https://github.com/RaiNaifa/litm-rn/releases/download/${{ github.event.release.tag_name }}/system.json",
-                "download": "https://github.com/RaiNaifa/litm-rn/releases/download/${{ github.event.release.tag_name }}/litm-rn.zip",
-                "notes": "${{ github.event.release.html_url }}",
+                "manifest": "https://github.com/RaiNaifa/litm-rn/releases/download/${{ steps.tag.outputs.name }}/system.json",
+                "download": "https://github.com/RaiNaifa/litm-rn/releases/download/${{ steps.tag.outputs.name }}/litm-rn.zip",
+                "notes": "${{ steps.tag.outputs.release-url }}",
                 "compatibility": {
                   "minimum": "${{ steps.tag.outputs.minimum }}",
                   "verified": "${{ steps.tag.outputs.verified }}",
@@ -99,7 +110,7 @@ jobs:
         shell: bash
         run: |
           echo "**Version:** ${{ steps.tag.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Release notes:** ${{ github.event.release.html_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Release notes:** ${{ steps.tag.outputs.release-url }}" >> "$GITHUB_STEP_SUMMARY"
           if [[ "${{ steps.foundry-config.outputs.enabled }}" == "true" ]]; then
             echo "**Foundry status:** ${{ steps.foundry.outputs.response.status }}" >> "$GITHUB_STEP_SUMMARY"
             echo "**Foundry URL:** ${{ steps.foundry.outputs.response.page }}" >> "$GITHUB_STEP_SUMMARY"
