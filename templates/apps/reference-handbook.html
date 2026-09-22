@@ -27,7 +27,7 @@
 		{{#if editing}}
 		<div class="litm--reference-editor">
 			<input type="text" name="referenceName" value="{{active.name}}" aria-label="{{localize 'Litm.reference.page-name'}}">
-			<prose-mirror name="referenceContent" button="true" toggled="false" editable="true" value="{{active.content}}">{{{active.enrichedContent}}}</prose-mirror>
+			<prose-mirror name="referenceContent" editable="true" value="{{active.content}}">{{{active.enrichedContent}}}</prose-mirror>
 			<footer>
 				{{#if (eq active.source "system")}}<button type="button" data-reference-action="reset"><i class="fas fa-rotate-left"></i> {{localize "Litm.reference.reset"}}</button>{{else}}<button type="button" data-reference-action="delete"><i class="fas fa-trash"></i> {{localize "Litm.reference.delete"}}</button>{{/if}}
 				{{#if active.isUser}}

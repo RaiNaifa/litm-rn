@@ -4,13 +4,13 @@
 
 	&:not(.minimized) {
 		min-width: 470px;
-		background-color: var(--litm-reference-tabs-background-color, #c1a7a4);
+		background-color: var(--litm-reference-tabs-background-color, #c89265);
 
 		& .window-header {
 			position: relative;
 			z-index: 2;
 			color: #f1e6d7;
-			background-color: var(--litm-reference-tabs-background-color, #c1a7a4);
+			background-color: var(--litm-reference-tabs-background-color, #c89265);
 			background-image: linear-gradient(
 					180deg,
 					rgb(0 0 0 / 75%) 0%,
@@ -56,7 +56,7 @@
 		gap: 4px;
 		padding: 9px 9px 0;
 		overflow-x: auto;
-		background-color: var(--litm-reference-tabs-background-color, #c1a7a4);
+		background-color: var(--litm-reference-tabs-background-color, #c89265);
 		background-image: var(--litm-reference-tabs-background, none);
 		background-blend-mode: var(--litm-reference-tabs-background-blend, multiply);
 		background-position: var(--litm-reference-tabs-background-position, center);
@@ -196,7 +196,30 @@
 		height: 38px;
 	}
 	& .litm--reference-editor prose-mirror {
+		display: flex;
+		flex-direction: column;
+		margin: 0;
 		min-height: 390px;
+	}
+	& .litm--reference-editor prose-mirror .editor-container {
+		flex: 1;
+		min-height: 320px;
+		max-height: none;
+		overflow: auto;
+		border: 1px solid #302830;
+		border-radius: 5px;
+		background: transparent;
+	}
+	& .litm--reference-editor prose-mirror .editor-content {
+		background: transparent;
+		color: inherit;
+	}
+	&
+		.litm--reference-editor
+		prose-mirror
+		menu
+		li:has(> button[data-action="save"]) {
+		display: none;
 	}
 	& .litm--reference-editor footer {
 		display: flex;
@@ -247,6 +270,8 @@
 }
 
 .litm-reference-spending {
+	--litm-reference-note: url("../../assets/media/notes.webp");
+
 	display: grid;
 	gap: 24px;
 
@@ -330,8 +355,7 @@
 		padding: 20px;
 	}
 	& .litm-reference-spending__paper {
-		background: url("../../assets/media/notes.webp") center / 100% 100%
-			no-repeat;
+		background: var(--litm-reference-note) center / 100% 100% no-repeat;
 		filter: drop-shadow(0 2px 2px rgb(49 34 21 / 22%));
 	}
 	& .litm-reference-spending__costs > ul {
@@ -350,8 +374,7 @@
 		position: absolute;
 		z-index: -1;
 		inset: 0;
-		background: url("../../assets/media/notes.webp") center / 100% 100%
-			no-repeat;
+		background: var(--litm-reference-note) center / 100% 100% no-repeat;
 		filter: brightness(0.9) sepia(0.3) saturate(0.92)
 			drop-shadow(0 2px 2px rgb(49 34 21 / 22%));
 	}
@@ -533,6 +556,9 @@
 }
 
 .litm-reference-nutshell {
+	--litm-reference-note: url("../../assets/media/notes.webp");
+	--litm-reference-scratch-image: url("../../assets/media/scratch.svg");
+
 	display: grid;
 	gap: 24px;
 	color: inherit;
@@ -568,14 +594,12 @@
 		position: relative;
 		min-width: 0;
 		padding: 20px;
-		background: url("../../assets/media/notes.webp") center / 100% 100%
-			no-repeat;
+		background: var(--litm-reference-note) center / 100% 100% no-repeat;
 		filter: drop-shadow(0 2px 2px rgb(49 34 21 / 22%));
 	}
 
 	& .litm-reference-paper--dark {
-		background: url("../../assets/media/notes.webp") center / 100% 100%
-			no-repeat;
+		background: var(--litm-reference-note) center / 100% 100% no-repeat;
 		filter: sepia(0.12) saturate(0.92)
 			drop-shadow(0 2px 2px rgb(49 34 21 / 22%));
 	}
@@ -761,8 +785,7 @@
 		z-index: 0;
 		inset: 0 auto 0 0;
 		width: 160%;
-		background: url("../../assets/media/notes.webp") center / 100% 100%
-			no-repeat;
+		background: var(--litm-reference-note) center / 100% 100% no-repeat;
 		filter: brightness(0.9) sepia(0.3) saturate(0.92)
 			drop-shadow(0 2px 2px rgb(49 34 21 / 22%));
 	}
@@ -772,8 +795,7 @@
 		z-index: -1;
 		inset: 8px auto 8px -14px;
 		width: 165%;
-		background: url("../../assets/media/notes.webp") center / 100% 100%
-			no-repeat;
+		background: var(--litm-reference-note) center / 100% 100% no-repeat;
 		filter: sepia(0.09) saturate(0.94)
 			drop-shadow(0 2px 2px rgb(49 34 21 / 20%));
 		transform: translateX(15px) rotate(-3deg);
@@ -905,8 +927,45 @@
 		height: 1.05em;
 		margin-inline: 0.1em;
 		vertical-align: -0.18em;
-		background: url("../../assets/media/scratch.svg") center / contain no-repeat;
+		background: var(--litm-reference-scratch-image) center / contain no-repeat;
 		filter: sepia(0.7) saturate(0.65);
+	}
+}
+
+:is(#interface.theme-dark, body.theme-dark) {
+	&
+		.litm--reference-page--system-paper:has(
+			.litm--reference-content
+				> :is(.litm-reference-spending, .litm-reference-nutshell)
+		) {
+		background-image: url("../../assets/media/paper-dark.webp") !important;
+	}
+
+	& .litm-reference-spending,
+	& .litm-reference-nutshell {
+		--litm-reference-note: url("../../assets/media/notes-dark.webp");
+		--litm-reference-heading-color: var(--litm-color-text-heading-ochre);
+
+		color: #d8cbbb;
+	}
+
+	& .litm-reference-nutshell {
+		--litm-reference-scratch-image: url("../../assets/media/scratch-inverted.svg");
+	}
+
+	& .litm-reference-spending .litm-reference-effect-group::before,
+	& .litm-reference-nutshell .litm-reference-scene-column::before {
+		filter: brightness(0.92) sepia(0.25) saturate(1.22)
+			drop-shadow(0 2px 2px rgb(0 0 0 / 32%));
+	}
+
+	& .litm-reference-nutshell .litm-reference-scene-column::after {
+		filter: brightness(1.04) sepia(0.06) saturate(0.88)
+			drop-shadow(0 2px 2px rgb(0 0 0 / 30%));
+	}
+
+	& .litm-reference-nutshell .litm-reference-scratch {
+		filter: sepia(0.25) saturate(0.65);
 	}
 }
 

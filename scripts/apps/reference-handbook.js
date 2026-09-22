@@ -34,7 +34,7 @@ const DEFAULT_APPEARANCE = {
 	textColor: "#2c231e",
 	headingColor: "#8b4140",
 	tabsBackground: "systems/litm-rn/assets/media/paper.webp",
-	tabsBackgroundColor: "#c1a7a4",
+	tabsBackgroundColor: "#c89265",
 	tabsBackgroundBlend: "multiply",
 	tabsBackgroundSize: "cover",
 	tabsBackgroundPosition: "center",
@@ -619,6 +619,10 @@ export class ReferenceHandbook extends HandlebarsApplicationMixin(
 		const content = shell.querySelector(".litm--reference-content");
 		const tabs = shell.querySelector(".litm--reference-tabs");
 		if (page) {
+			page.classList.toggle(
+				"litm--reference-page--system-paper",
+				appearance.mainBackground === DEFAULT_APPEARANCE.mainBackground,
+			);
 			page.style.backgroundColor = appearance.mainBackgroundColor || "";
 			page.style.backgroundImage = this.#cssImage(appearance.mainBackground);
 			page.style.backgroundBlendMode =
