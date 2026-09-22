@@ -1338,7 +1338,8 @@ export class LitmHooks {
 				if (!menu || button.parentElement === menu) return;
 
 				button.classList.remove("icon");
-				const label = button.dataset.tooltip || game.i18n.localize("POPOUT.PopOut");
+				const label =
+					button.dataset.tooltip || game.i18n.localize("POPOUT.PopOut");
 				if (!button.querySelector("span")) {
 					const text = document.createElement("span");
 					text.textContent = label;
@@ -1350,14 +1351,10 @@ export class LitmHooks {
 			const moveControlsWithin = (node) => {
 				if (!(node instanceof HTMLElement)) return;
 				if (node.matches(".popout-module-button")) moveControl(node);
-				node
-					.querySelectorAll(".popout-module-button")
-					.forEach(moveControl);
+				node.querySelectorAll(".popout-module-button").forEach(moveControl);
 			};
 
-			document
-				.querySelectorAll(".popout-module-button")
-				.forEach(moveControl);
+			document.querySelectorAll(".popout-module-button").forEach(moveControl);
 			new MutationObserver((mutations) => {
 				for (const mutation of mutations) {
 					mutation.addedNodes.forEach(moveControlsWithin);

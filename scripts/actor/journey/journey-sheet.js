@@ -363,8 +363,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		if (!["tag", "status", "might"].includes(data.type)) {
 			return super._onDrop(event);
 		}
-		const targetJourneyBlock = event.target
-			.closest("[data-journey-drop-block]")
+		const targetJourneyBlock = event.target.closest("[data-journey-drop-block]")
 			?.dataset.journeyDropBlock;
 		if (
 			data.sourceActorUuid === this.actor.uuid &&

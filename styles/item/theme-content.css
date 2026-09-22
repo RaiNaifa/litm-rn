@@ -1298,7 +1298,7 @@
 				var(--litm-art-shade-half-stop),
 			rgb(
 					var(--litm-art-shade-color) /
-						var(--litm-art-shade-strength-three-quarter)
+					var(--litm-art-shade-strength-three-quarter)
 				)
 				var(--litm-art-shade-three-quarter-stop),
 			rgb(var(--litm-art-shade-color) / var(--litm-art-shade-strength))

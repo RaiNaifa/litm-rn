@@ -41,10 +41,7 @@ const DEFAULTS = Object.freeze({
 export function positionThemeContentArt(
 	element,
 	settings,
-	{
-		referenceWidth = 0,
-		onPosition = null,
-	} = {},
+	{ referenceWidth = 0, onPosition = null } = {},
 ) {
 	if (!element || !settings.background) return null;
 	const surface = element.parentElement;
@@ -119,8 +116,7 @@ export function positionThemeContentArt(
 		const elementTop = desiredTop + (rotatedHeight - paintedHeight) / 2;
 		const gradientX = Math.sin(radians) / flipY;
 		const gradientY = Math.cos(radians) / flipY;
-		const gradientAngle =
-			(Math.atan2(gradientX, -gradientY) * 180) / Math.PI;
+		const gradientAngle = (Math.atan2(gradientX, -gradientY) * 180) / Math.PI;
 		const shadeHeight = Math.max(
 			0,
 			Math.min(100, Number(settings.backgroundShadeHeight) || 0),
@@ -288,22 +284,19 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 			backgroundAnchorX: item.system.backgroundAnchorX || "center",
 			backgroundAnchorY: item.system.backgroundAnchorY || "center",
 			backgroundShadeEnabled: Boolean(item.system.backgroundShadeEnabled),
-			backgroundShadeHeight:
-				numberOrDefault(
-					item.system.backgroundShadeHeight,
-					DEFAULTS.backgroundShadeHeight,
-				),
-			backgroundShadeStrength:
-				numberOrDefault(
-					item.system.backgroundShadeStrength,
-					DEFAULTS.backgroundShadeStrength,
-				),
+			backgroundShadeHeight: numberOrDefault(
+				item.system.backgroundShadeHeight,
+				DEFAULTS.backgroundShadeHeight,
+			),
+			backgroundShadeStrength: numberOrDefault(
+				item.system.backgroundShadeStrength,
+				DEFAULTS.backgroundShadeStrength,
+			),
 			backgroundFadeEnabled: Boolean(item.system.backgroundFadeEnabled),
-			backgroundFadeHeight:
-				numberOrDefault(
-					item.system.backgroundFadeHeight,
-					DEFAULTS.backgroundFadeHeight,
-				),
+			backgroundFadeHeight: numberOrDefault(
+				item.system.backgroundFadeHeight,
+				DEFAULTS.backgroundFadeHeight,
+			),
 		};
 	}
 
@@ -585,8 +578,7 @@ export class ThemeContentBackgroundApp extends HandlebarsApplicationMixin(
 		};
 		if (this.#isJourney) {
 			Object.assign(update, {
-				"system.backgroundShadeEnabled":
-					this.#settings.backgroundShadeEnabled,
+				"system.backgroundShadeEnabled": this.#settings.backgroundShadeEnabled,
 				"system.backgroundShadeHeight": this.#settings.backgroundShadeHeight,
 				"system.backgroundShadeStrength":
 					this.#settings.backgroundShadeStrength,

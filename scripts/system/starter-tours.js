@@ -1242,8 +1242,7 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 		this.#closeContextMenu();
 		this.#clearTarget();
 		await this.#removeTemporaryTag();
-		if (this.#initialSidebarTab)
-			await ui[this.#initialSidebarTab]?.activate();
+		if (this.#initialSidebarTab) await ui[this.#initialSidebarTab]?.activate();
 		await ui.sidebar.toggleExpanded(this.#initialSidebarExpanded);
 		await this.#settleInterface();
 		const popout =
@@ -1634,8 +1633,8 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 		} else {
 			button.click();
 		}
-		const opened = await this.#waitForOptional(
-			() => document.querySelector(".litm--progression-settings"),
+		const opened = await this.#waitForOptional(() =>
+			document.querySelector(".litm--progression-settings"),
 		);
 		if (!opened) {
 			console.warn(
@@ -1695,11 +1694,7 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 
 	#findOwnedCharacter() {
 		const assigned = game.user.character;
-		if (
-			assigned?.type === "character" &&
-			assigned.visible &&
-			assigned.isOwner
-		)
+		if (assigned?.type === "character" && assigned.visible && assigned.isOwner)
 			return assigned;
 		return (
 			game.actors.find(
@@ -1781,7 +1776,9 @@ class HintsAndTipsTour extends foundry.nue.Tour {
 			.find((control) => control.action === action);
 		if (!descriptor?.label) return null;
 		const label = game.i18n.localize(descriptor.label).trim();
-		return [...document.querySelectorAll("nav#context-menu li.context-item")].find(
+		return [
+			...document.querySelectorAll("nav#context-menu li.context-item"),
+		].find(
 			(item) =>
 				this.#isVisible(item) &&
 				item.querySelector("span")?.textContent.trim() === label,
