@@ -42,6 +42,9 @@ jobs:
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "minimum=$(jq -r '.compatibility.minimum' system.json)" >> "$GITHUB_OUTPUT"
+          echo "verified=$(jq -r '.compatibility.verified' system.json)" >> "$GITHUB_OUTPUT"
+          echo "maximum=$(jq -r '.compatibility.maximum' system.json)" >> "$GITHUB_OUTPUT"
 
       - name: Create system archive
         shell: bash
@@ -85,9 +88,9 @@ jobs:
                 "download": "https://github.com/RaiNaifa/litm-rn/releases/download/${{ github.event.release.tag_name }}/litm-rn.zip",
                 "notes": "${{ github.event.release.html_url }}",
                 "compatibility": {
-                  "minimum": "13",
-                  "verified": "14",
-                  "maximum": "14"
+                  "minimum": "${{ steps.tag.outputs.minimum }}",
+                  "verified": "${{ steps.tag.outputs.verified }}",
+                  "maximum": "${{ steps.tag.outputs.maximum }}"
                 }
               }
             }

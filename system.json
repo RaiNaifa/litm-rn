@@ -1,13 +1,13 @@
 {
 	"$schema": "https://json.schemastore.org/foundryvtt-system-manifest.json",
 	"id": "litm-rn",
-	"version": "11.1.1",
+	"version": "11.2.0",
 	"license": "LICENSE",
 	"title": "Legend in the Mist (RN)",
 	"description": "A <strong>Rustic Fantasy</strong> Game for Foundry Virtual Tabletop.",
 	"url": "https://github.com/RaiNaifa/litm-rn",
 	"manifest": "https://github.com/RaiNaifa/litm-rn/releases/latest/download/system.json",
-	"download": "https://github.com/RaiNaifa/litm-rn/releases/download/v11.1.1/litm-rn.zip",
+	"download": "https://github.com/RaiNaifa/litm-rn/releases/download/v11.2.0/litm-rn.zip",
 	"authors": [
 		{
 			"name": "RaiNaifa",
