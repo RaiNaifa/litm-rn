@@ -10,13 +10,13 @@
         value="{{consequence}}">
         <div class="litm-consequences-editor-wrapper">
           <img class="litm--consequences-icon" src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt="Icon" />
-          <div class="litm--consequences-content" data-tooltip="{{localize 'Litm.ui.context-open-menu'}}">
+          <div class="litm--consequences-content" data-tooltip="{{localize 'Litm.ui.context-open-menu'}}" data-tooltip-direction="LEFT">
             {{{lookup @root.consequencesHTML key}}}
           </div>
         </div>
       </prose-mirror>
     {{else}}
-      <div class="litm--consequences-content" data-tooltip="{{localize 'Litm.ui.context-open-menu'}}">
+      <div class="litm--consequences-content" data-tooltip="{{localize 'Litm.ui.context-open-menu'}}" data-tooltip-direction="LEFT">
         {{{lookup @root.consequencesHTML key}}}
       </div>
     {{/if}}

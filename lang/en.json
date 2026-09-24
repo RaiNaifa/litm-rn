@@ -32,6 +32,8 @@
 		},
 		"rote": {
 			"active": "Active",
+			"effect": "effect",
+			"consequence": "consequence",
 			"description": "Description",
 			"description-placeholder": "A description of what the rote entails and its benefits and limitations",
 			"practitioners": "Practitioners",

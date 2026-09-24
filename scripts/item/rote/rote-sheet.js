@@ -1,4 +1,4 @@
-import { localize as t } from "../../utils.js";
+import { confirmDelete, localize as t } from "../../utils.js";
 
 const { HandlebarsApplicationMixin, DialogV2 } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
@@ -18,12 +18,16 @@ const EFFECT_GROUPS = [
 	{ label: "on-process", types: ["advance", "setBack"] },
 	{ label: "other-effects", types: ["discover", "extraFeat"] },
 ];
+const EFFECT_TYPES = new Set(EFFECT_GROUPS.flatMap((group) => group.types));
+const normalizeRoteName = (name) =>
+	name.replace(/[\r\n\u2028\u2029]+/g, " ").replace(/ {2,}/g, " ");
 
 /** Sheet for authoring a Rote item. */
 export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	#contextMenu = null;
 	#pendingEditor = null;
 	#scrollTop = 0;
+	#nameResizeObserver = null;
 
 	static DEFAULT_OPTIONS = {
 		classes: ["litm", "litm--rote"],
@@ -54,6 +58,7 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 			...context,
 			canEdit: game.user.isGM || this.item.isOwner,
 			document: this.item,
+			roteName: normalizeRoteName(this.item.name),
 			system,
 			descriptionHTML: await enrich(system.description),
 			effects: await Promise.all(
@@ -77,7 +82,22 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	_onRender(context, options) {
 		super._onRender(context, options);
 		this.#closeContextMenu();
+		this.#nameResizeObserver?.disconnect();
 		const form = this.element;
+		const nameField = form.querySelector(".litm--rote-name");
+		nameField?.addEventListener("keydown", (event) => {
+			if (event.key === "Enter") event.preventDefault();
+		});
+		nameField?.addEventListener("input", (event) => {
+			if (event.isComposing) return;
+			const normalized = normalizeRoteName(nameField.value);
+			if (normalized === nameField.value) return;
+			const caret = normalizeRoteName(
+				nameField.value.slice(0, nameField.selectionStart),
+			).length;
+			nameField.value = normalized;
+			nameField.setSelectionRange(caret, caret);
+		});
 		const scroller = form.querySelector(".litm--rote-sheet");
 		if (scroller) {
 			scroller.scrollTop = this.#scrollTop;
@@ -97,6 +117,27 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 			resize();
 			field.addEventListener("input", resize);
 		}
+		for (const editor of form.querySelectorAll("[data-rote-power-input]")) {
+			const input = editor.parentElement.querySelector('input[type="hidden"]');
+			if (!input) continue;
+			const sync = () => {
+				input.value = editor.innerText.replace(/\r\n?/g, "\n");
+			};
+			sync();
+			editor.addEventListener("input", sync);
+			editor.addEventListener("blur", () => this.submit().catch(console.error));
+		}
+		if (nameField) {
+			let lastWidth = 0;
+			this.#nameResizeObserver = new ResizeObserver(([entry]) => {
+				const width = entry.contentRect.width;
+				if (width === lastWidth) return;
+				lastWidth = width;
+				nameField.style.height = "auto";
+				nameField.style.height = `${nameField.scrollHeight}px`;
+			});
+			this.#nameResizeObserver.observe(nameField.parentElement);
+		}
 		for (const button of form.querySelectorAll("[data-rote-action]")) {
 			button.addEventListener("pointerdown", (event) => event.preventDefault());
 			button.addEventListener("click", (event) => this.#onAction(event));
@@ -114,6 +155,9 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	/** @override Restore complete array entries before Foundry validates the form. */
 	_processFormData(event, form, formData) {
 		const data = super._processFormData(event, form, formData);
+		if (typeof data.name === "string") {
+			data.name = normalizeRoteName(data.name).trim();
+		}
 		const system = data.system;
 		if (system?.effects !== undefined) {
 			const effects = foundry.utils.deepClone(
@@ -208,14 +252,19 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 				? `<optgroup label="${foundry.utils.escapeHTML(t(`Litm.rote.${group.label}`))}">${entries}</optgroup>`
 				: entries;
 		}).join("");
-		return DialogV2.wait({
-			window: { title: t("Litm.rote.add-effect") },
-			content: `<div class="standard-form"><div class="form-group"><select name="roteEffectType">${options}</select></div></div>`,
+		const result = await DialogV2.wait({
+			classes: ["litm", "litm--rote-type-dialog"],
+			window: {
+				title: t(
+					current ? "Litm.rote.change-effect-type" : "Litm.rote.add-effect",
+				),
+			},
+			content: `<div class="litm--rote-type-field"><select class="litm--rote-type-select" name="roteEffectType" aria-label="${foundry.utils.escapeHTML(t("Litm.rote.change-effect-type"))}">${options}</select></div>`,
 			buttons: [
 				{ action: "cancel", label: t("Litm.ui.cancel"), callback: () => null },
 				{
 					action: "choose",
-					label: t("Litm.rote.choose-type"),
+					label: t(current ? "Litm.ui.edit" : "Litm.rote.choose-type"),
 					default: true,
 					callback: (_event, _button, dialog) =>
 						dialog.element.querySelector('[name="roteEffectType"]')?.value,
@@ -223,6 +272,7 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 			],
 			rejectClose: false,
 		});
+		return EFFECT_TYPES.has(result) ? result : null;
 	}
 
 	async #commitActiveEditor() {
@@ -283,12 +333,13 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		const menu = doc.createElement("div");
 		menu.className = "litm--rote-context-menu";
 		menu.setAttribute("role", "menu");
-		menu.style.left = `${Math.min(event.clientX, doc.defaultView.innerWidth - 210)}px`;
+		menu.style.left = `${Math.max(0, Math.min(event.clientX, doc.defaultView.innerWidth - 230))}px`;
 		menu.style.top = `${Math.min(event.clientY, doc.defaultView.innerHeight - 140)}px`;
-		const option = (label, icon, callback) => {
+		const option = (label, icon, callback, separator = false) => {
 			const button = doc.createElement("button");
 			button.type = "button";
 			button.setAttribute("role", "menuitem");
+			button.classList.toggle("litm--rote-context-menu-separator", separator);
 			const glyph = doc.createElement("i");
 			glyph.className = icon;
 			const text = doc.createElement("span");
@@ -322,6 +373,7 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 			),
 			"fa-solid fa-trash",
 			() => this.#removeRow(kind, id),
+			true,
 		);
 		doc.body.append(menu);
 		this.#contextMenu = menu;
@@ -360,6 +412,9 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	}
 
 	async #removeRow(kind, id) {
+		const subject =
+			kind === "effect" ? "Litm.rote.effect" : "Litm.rote.consequence";
+		if (!(await confirmDelete(subject))) return;
 		await this.#commitActiveEditor();
 		if (kind === "effect") {
 			await this.item.update({

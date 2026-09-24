@@ -32,6 +32,8 @@
 		},
 		"rote": {
 			"active": "Активна",
+			"effect": "эффект",
+			"consequence": "последствие",
 			"description": "Описание",
 			"description-placeholder": "Описание техники, её преимуществ и ограничений",
 			"practitioners": "Кому доступна",

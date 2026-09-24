@@ -184,6 +184,19 @@
 		& :is(.editor-content, .ProseMirror) {
 			text-align: left;
 		}
+
+		&.active > code-mirror {
+			display: block;
+			box-sizing: border-box;
+			width: calc(100% - 4px);
+			height: 260px;
+			min-height: 260px;
+			margin: 2px;
+		}
+
+		&.active > code-mirror .cm-editor {
+			height: 100%;
+		}
 	}
 
 	& .litm--journey-divider {
