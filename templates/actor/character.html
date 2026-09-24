@@ -373,12 +373,12 @@
 										<button class="litm--collapse-btn" type="button" data-click="toggle-collapse" data-target="{{story.data._id}}">
 											<i class="fas {{#if story.collapsed}}fa-angle-right{{else}}fa-angle-down{{/if}}"></i>
 										</button>
-										<div class="litm--theme-title"><span class="litm--theme-name"><span class="litm--story-title-text">{{story.data.system.themeTag.name}}</span></span></div>
+										<div class="litm--theme-title"><span class="litm--theme-name"><span class="litm--story-title-text">{{#if (includes @root.activeRoteTagIds story.data.system.themeTag.id)}}<i class="litm--rote-indicator fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>{{/if}}{{story.data.system.themeTag.name}}</span></span></div>
 									</div>
 									<div class="litm--story-tags-collapsible {{#if story.collapsed}}litm--collapsed{{/if}}" data-collapse-id="{{story.data._id}}">
 										<ul class="taglist-stories">
 											{{#each story.data.system.powerTags as |tag|}}
-											<li class="litm--theme-tag embedded"><div class="litm--theme-tag-button"><span class="tag--name">{{tag.name}}</span></div></li>
+											<li class="litm--theme-tag embedded"><div class="litm--theme-tag-button"><span class="tag--name">{{#if (includes @root.activeRoteTagIds tag.id)}}<i class="litm--rote-indicator fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>{{/if}}{{tag.name}}</span></div></li>
 											{{/each}}
 										</ul>
 										{{#each story.data.system.weakness as |tag|}}
@@ -447,7 +447,7 @@
 											<span class="litm--theme-name{{#if story.data.system.themeTag.isScratched}} scratched{{/if}}">
 												<span class="litm--story-title-text" data-click="select"
 													data-id="{{story.data.system.themeTag.id}}">{{#if story.data.system.themeTag.isPrivate}}<i
-														class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{story.data.system.themeTag.name}}</span>
+														class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{#if (includes @root.activeRoteTagIds story.data.system.themeTag.id)}}<i class="litm--rote-indicator fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>{{/if}}{{story.data.system.themeTag.name}}</span>
 											</span>
 											<span class="litm--sro">{{localize (ifThen story.data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
 											<span class="litm--scratch {{checked (or story.data.system.themeTag.isScratched (includes @root.scratchedTags story.data.system.themeTag.id 'id'))}}"
@@ -575,7 +575,7 @@
 								data-id="{{item.data._id}}"
 								{{#if (includes @root.rollTags item.data._id 'id')}}data-selected{{/if}}>
 								<span class="litm--theme-name">{{#if item.data.system.themeTag.isPrivate}}<i
-									class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{item.data.system.themeTag.name}}</span>
+									class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{#if (includes @root.activeRoteTagIds item.data.system.themeTag.id)}}<i class="litm--rote-indicator fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>{{/if}}{{item.data.system.themeTag.name}}</span>
 							</button>
 							<div class="litm--theme-back">
 								<div class="litm--theme-back-description">{{{item.data.system.enrichedNote}}}</div>
@@ -590,7 +590,7 @@
 								<span class="litm--theme-name {{#if item.data.system.themeTag.isScratched}}scratched{{/if}}"
 									data-click="select" data-id="{{item.data.system.themeTag.id}}">{{#if item.data.system.themeTag.isPrivate}}<i
 									class="litm--secret-indicator fa-solid fa-mask"
-									></i>{{/if}}{{item.data.system.themeTag.name}}</span>
+									></i>{{/if}}{{#if (includes @root.activeRoteTagIds item.data.system.themeTag.id)}}<i class="litm--rote-indicator fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>{{/if}}{{item.data.system.themeTag.name}}</span>
 								<span class="litm--sro">{{localize (ifThen item.data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
 								<span class="litm--scratch {{checked (or item.data.system.themeTag.isScratched (includes @root.scratchedTags item.data.system.themeTag.id 'id'))}}"
 									data-click="toggle-tag-scratch" data-id="{{item.data.system.themeTag.id}}" aria-hidden="true"></span>

@@ -33,6 +33,12 @@
 		padding: 22px 27px 30px;
 	}
 
+	& .litm--rote-top-controls {
+		display: flex;
+		justify-content: flex-end;
+		margin-bottom: 8px;
+	}
+
 	& .litm--rote-header {
 		display: flex;
 		align-items: center;
@@ -89,6 +95,27 @@
 		font-size: 1.65rem;
 		line-height: 1.18;
 		box-shadow: none;
+	}
+
+	& .litm--rote-active {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-size: var(--font-size-14);
+		white-space: nowrap;
+
+		& input {
+			appearance: auto;
+			flex: 0 0 16px;
+			width: 16px;
+			min-width: 16px;
+			max-width: 16px;
+			height: 16px;
+			padding: 0;
+			margin: 0;
+			accent-color: var(--rote-ink);
+			opacity: 1;
+		}
 	}
 
 	& .litm--rote-section {
@@ -149,6 +176,8 @@
 	& .litm--rote-textarea {
 		display: block;
 		width: 100%;
+		height: auto;
+		field-sizing: content;
 		min-height: 30px;
 		max-height: none;
 		margin: 0;
@@ -700,6 +729,17 @@
 			color: var(--litm-color-text-espresso);
 			font-family: var(--litm-font-text);
 		}
+	}
+}
+
+.litm.litm--rote-name-dialog .litm--rote-disabled-choice {
+	display: inline-flex;
+	flex: 1 1 0;
+	min-width: 0;
+
+	& button {
+		width: 100%;
+		pointer-events: none;
 	}
 }
 

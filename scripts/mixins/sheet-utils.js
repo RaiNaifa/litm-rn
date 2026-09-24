@@ -11,8 +11,9 @@
  * Synchronize contenteditable data-input controls with their form inputs.
  * @param {HTMLFormElement} form
  * @param {ApplicationV2} sheet
+ * @param {(submission: Promise<unknown>) => void} [onSubmit]
  */
-export function registerDataInputSync(form, sheet) {
+export function registerDataInputSync(form, sheet, onSubmit) {
 	form.querySelectorAll("[data-input]").forEach((el) => {
 		el.addEventListener("input", (event) => {
 			const t = event.currentTarget;
@@ -26,7 +27,9 @@ export function registerDataInputSync(form, sheet) {
 			if (input) input.value = value;
 		});
 		el.addEventListener("blur", () => {
-			sheet.submit().catch(console.error);
+			const submission = sheet.submit();
+			onSubmit?.(submission);
+			submission.catch(console.error);
 		});
 	});
 }

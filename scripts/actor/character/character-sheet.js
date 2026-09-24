@@ -4,6 +4,11 @@ import { HeroCreationApp } from "../../apps/hero-creation.js";
 import { PromiseFulfillmentApp } from "../../apps/promise-fulfillment.js";
 import { ThemeAdvancementApp } from "../../apps/theme-advancement.js";
 import { ThemeArchiveApp } from "../../apps/theme-archive.js";
+import {
+	cloneStoryRotes,
+	confirmTagRoteRemoval,
+	getActiveRoteTagIds,
+} from "../../item/rote/rote-links.js";
 import { createPrivate } from "../../system/private-creation.js";
 import { ThemeAdvancement } from "../../system/theme-advancement.js";
 import {
@@ -515,6 +520,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 					};
 				}),
 		);
+		context.activeRoteTagIds = [
+			...getActiveRoteTagIds(this.actor),
+			...this.items
+				.filter((item) => item.type === "story")
+				.flatMap((item) => [...getActiveRoteTagIds(item)]),
+		];
 		const stories = storyEntries.filter(
 			(story) => story.data.system.isArchived !== true,
 		);
@@ -1178,9 +1189,38 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 		const itemData = item.toObject();
 		delete itemData._id;
+		if (item.type === "story" && itemData.flags?.["litm-rn"])
+			delete itemData.flags["litm-rn"].roteLinks;
+		const originalTagIds =
+			item.type === "story"
+				? [itemData.system.themeTag, ...(itemData.system.powerTags ?? [])].map(
+						(tag) => tag?.id,
+					)
+				: [];
 		this.#regenerateInternalIds(itemData);
 
-		return this.actor.createEmbeddedDocuments("Item", [itemData]);
+		const created = await this.actor.createEmbeddedDocuments("Item", [
+			itemData,
+		]);
+		if (item.type === "story" && created[0]) {
+			const copiedTags = [
+				created[0].system.themeTag,
+				...(created[0].system.powerTags ?? []),
+			];
+			const tagIds = new Map(
+				originalTagIds
+					.map((id, index) => [id, copiedTags[index]?.id])
+					.filter(([oldId, newId]) => oldId && newId),
+			);
+			try {
+				await cloneStoryRotes(item, created[0], tagIds);
+			} catch (error) {
+				await created[0].delete();
+				ui.notifications.error(error.message);
+				return [];
+			}
+		}
+		return created;
 	}
 
 	#handleMouseDown(event) {
@@ -1926,6 +1966,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				{ validate: false },
 			);
 		} else if (kind === "story-tag" && story) {
+			if (!(await confirmTagRoteRemoval(story, tag))) return;
 			const field =
 				tag.type === "weaknessTag" || tag.type === "weaknessStoryTag"
 					? "weaknessTags"

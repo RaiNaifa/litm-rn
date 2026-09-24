@@ -1,4 +1,9 @@
 import { TokenTooltip } from "../apps/token-tooltip.js";
+import {
+	deleteOwnerRotes,
+	syncLinkedRoteNames,
+	syncTagNameFromRote,
+} from "../item/rote/rote-links.js";
 import { info } from "../logger.js";
 import { dispatch, localize as t } from "../utils.js";
 import { EMBEDDED_ONLY } from "./constants.js";
@@ -46,6 +51,38 @@ export class LitmHooks {
 		LitmHooks.#reorderDialogTypes();
 		LitmHooks.#refreshRollOnEffectUpdate();
 		LitmHooks.#normalizeThemeProgress();
+		LitmHooks.#syncRoteNames();
+	}
+
+	static #syncRoteNames() {
+		const refreshRoteOwner = (item) => {
+			if (item.type === "rote" && item.parent?.documentName === "Actor")
+				Hooks.callAll("litmActorDataUpdated", item.parent.uuid);
+		};
+		Hooks.on("createItem", refreshRoteOwner);
+		Hooks.on("updateActor", (actor, changes, _options, userId) => {
+			if (userId !== game.user.id || actor.type !== "character") return;
+			if (
+				changes["system.themes"] === undefined &&
+				changes.system?.themes === undefined
+			)
+				return;
+			syncLinkedRoteNames(actor).catch(console.error);
+		});
+		Hooks.on("updateItem", (item, changes, _options, userId) => {
+			refreshRoteOwner(item);
+			if (userId !== game.user.id) return;
+			if (item.type === "story") {
+				syncLinkedRoteNames(item).catch(console.error);
+			} else if (item.type === "rote" && changes.name !== undefined) {
+				syncTagNameFromRote(item).catch(console.error);
+			}
+		});
+		Hooks.on("deleteItem", (item, _options, userId) => {
+			refreshRoteOwner(item);
+			if (userId !== game.user.id || item.type !== "story") return;
+			deleteOwnerRotes(item).catch(console.error);
+		});
 	}
 
 	static #normalizeThemeProgress() {

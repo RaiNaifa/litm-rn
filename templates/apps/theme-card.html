@@ -84,6 +84,11 @@
 				data-tooltip="{{localize (ifThen theme.themeTag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
 				<i class="{{ifThen theme.themeTag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
 			</button>
+			<button type="button" class="litm--tc-rote-toggle{{#if theme.themeTag.hasRote}} has-rote{{/if}}{{#if theme.themeTag.hasActiveRote}} linked{{/if}}"
+				data-click="configure-rote" data-context="delete-rote" data-id="{{theme.themeTag.id}}"
+				data-tooltip="{{localize (ifThen theme.themeTag.hasRote 'Litm.rote.configure' 'Litm.rote.add')}}" data-tooltip-direction="LEFT">
+				<i class="fa-solid fa-wand-magic-sparkles"></i>
+			</button>
 			<span class="litm--tc-title-name{{#if theme.themeTag.isScratched}} scratched{{/if}}" contenteditable="true"
 				data-input="title-{{themeIndex}}"
 				data-placeholder="{{localize 'Litm.ui.name-power'}}">{{theme.themeTag.name}}</span>
@@ -106,6 +111,11 @@
 							data-click="toggle-secret" data-field="powerTags" data-id="{{tag.id}}"
 							data-tooltip="{{localize (ifThen tag.isPrivate 'Litm.tags.isSecret' 'Litm.tags.toSecret')}}">
 							<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
+						</button>
+						<button type="button" class="litm--tc-rote-toggle{{#if tag.hasRote}} has-rote{{/if}}{{#if tag.hasActiveRote}} linked{{/if}}"
+							data-click="configure-rote" data-context="delete-rote" data-id="{{tag.id}}"
+							data-tooltip="{{localize (ifThen tag.hasRote 'Litm.rote.configure' 'Litm.rote.add')}}" data-tooltip-direction="LEFT">
+							<i class="fa-solid fa-wand-magic-sparkles"></i>
 						</button>
 						<span class="litm--tc-tag-name{{#if tag.isScratched}} scratched{{/if}}" contenteditable="true"
 							data-input="pname-{{@root.themeIndex}}-{{idx}}"

@@ -1,3 +1,9 @@
+import {
+	configureTagRote,
+	confirmTagRoteRemoval,
+	deleteTagRote,
+	getLinkedRote,
+} from "../item/rote/rote-links.js";
 import { ThemebookSheet } from "../item/themebook/themebook-sheet.js";
 import { ThemeAdvancement } from "../system/theme-advancement.js";
 import { ThemeSources } from "../system/theme-sources.js";
@@ -601,22 +607,29 @@ export class ThemeCard extends CardReader {
 	constructor(actorUuid, options) {
 		super(actorUuid, options);
 		this.themeIndex = options.themeIndex;
-		this.#themebookItemHooks = [
+		const refreshForItem = (item) => {
+			if (
+				item.type === "themebook" ||
+				(item.type === "rote" && item.parent?.uuid === this.actor.uuid)
+			)
+				this.render();
+		};
+		this.#sourceItemHooks = [
 			Hooks.on("createItem", (item) => {
-				if (item.type === "themebook") this.render();
+				refreshForItem(item);
 			}),
 			Hooks.on("updateItem", (item) => {
-				if (item.type === "themebook") this.render();
+				refreshForItem(item);
 			}),
 			Hooks.on("deleteItem", (item) => {
-				if (item.type === "themebook") this.render();
+				refreshForItem(item);
 			}),
 		];
 	}
 
 	#customThemebookEditing = false;
 
-	#themebookItemHooks = [];
+	#sourceItemHooks = [];
 
 	#handleCloseThemebooks = (event) => {
 		if (!this.element) {
@@ -643,7 +656,7 @@ export class ThemeCard extends CardReader {
 			"updateItem",
 			"deleteItem",
 		].entries()) {
-			Hooks.off(hook, this.#themebookItemHooks[index]);
+			Hooks.off(hook, this.#sourceItemHooks[index]);
 		}
 		return super.close(options);
 	}
@@ -662,8 +675,18 @@ export class ThemeCard extends CardReader {
 		ctx.transitionSrc = `systems/litm-rn/assets/media/transition-left-${fallbackSrc}-dark.webp`;
 		ctx.currentLevelLabel = game.i18n.localize(`Litm.levels.${fallbackSrc}`);
 		const draftTags = theme.draftTags || [];
+		const withRote = (tag) => {
+			const rote = getLinkedRote(this.actor, tag?.id);
+			return {
+				...tag,
+				hasRote: Boolean(rote),
+				hasActiveRote: rote?.system.isActive === true,
+			};
+		};
 		ctx.theme = {
 			...theme,
+			themeTag: withRote(theme.themeTag),
+			powerTags: (theme.powerTags ?? []).map(withRote),
 			improveTrackLength: Number(theme.improveTrackLength ?? 3),
 			improvementsPerTrack: Number(theme.improvementsPerTrack ?? 1),
 			enrichedNote: await TextEditor.enrichHTML(theme.note || ""),
@@ -853,6 +876,9 @@ export class ThemeCard extends CardReader {
 			case "toggle-secret":
 				this.#toggleThemeTagSecret(btn.dataset.field, btn.dataset.id);
 				break;
+			case "configure-rote":
+				this.#configureRote(btn.dataset.id);
+				break;
 			case "toggle-edit-special":
 				this.#toggleEditSpecial(btn.dataset.id);
 				break;
@@ -868,6 +894,11 @@ export class ThemeCard extends CardReader {
 	#onContext(event) {
 		const btn = event.currentTarget;
 		switch (btn.dataset.context) {
+			case "delete-rote":
+				event.preventDefault();
+				event.stopPropagation();
+				this.#deleteRote(btn.dataset.id);
+				break;
 			case "decrease":
 				this.#decrease(btn.dataset.id);
 				break;
@@ -1134,9 +1165,37 @@ export class ThemeCard extends CardReader {
 		this.render();
 	}
 
+	async #configureRote(id) {
+		const theme = this.theme;
+		const tag =
+			theme?.themeTag?.id === id
+				? theme.themeTag
+				: theme?.powerTags?.find((entry) => entry.id === id);
+		if (!tag) return;
+		await configureTagRote(this.actor, tag, async (name) => {
+			const updated = foundry.utils.duplicate(this.theme);
+			const target =
+				updated.themeTag?.id === id
+					? updated.themeTag
+					: updated.powerTags?.find((entry) => entry.id === id);
+			if (!target) return;
+			target.name = name;
+			await this.#updateTheme(updated);
+		});
+		this.render();
+	}
+
+	async #deleteRote(id) {
+		if (await deleteTagRote(this.actor, id)) this.render();
+	}
+
 	async #removeTag(btn, type) {
 		const id = btn.dataset.id;
 		const field = `${type}s`;
+		const tag = this.actor.system.themes[this.themeIndex]?.[field]?.find(
+			(entry) => entry.id === id,
+		);
+		if (!tag || !(await confirmTagRoteRemoval(this.actor, tag))) return;
 		const tags = (
 			foundry.utils.getProperty(
 				this.actor.system.themes[this.themeIndex],

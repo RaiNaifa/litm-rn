@@ -11,7 +11,8 @@
 			<!-- Name -->
 			<span class="tag--name {{#if tag.isScratched}}scratched{{/if}}" data-click="select"
 				data-id="{{tag.id}}">{{#if tag.isPrivate}}<i
-				class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{tag.name}}</span>
+				class="litm--secret-indicator fa-solid fa-mask"></i>{{/if}}{{#if (includes @root.activeRoteTagIds tag.id)}}<i
+				class="litm--rote-indicator fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>{{/if}}{{tag.name}}</span>
 			<!-- isBurnt indicator -->
 			<span class="litm--sro">{{localize (ifThen tag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
 			<span class="litm--scratch {{checked (or tag.isScratched (includes @root.scratchedTags tag.id 'id'))}}"

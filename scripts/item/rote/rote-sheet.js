@@ -28,6 +28,7 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	#pendingEditor = null;
 	#scrollTop = 0;
 	#nameResizeObserver = null;
+	#textareaResizeObserver = null;
 
 	static DEFAULT_OPTIONS = {
 		classes: ["litm", "litm--rote"],
@@ -35,7 +36,10 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		position: { width: 420, height: 600 },
 		window: { resizable: true, title: (app) => app.document.name },
 		form: { submitOnChange: true },
-		actions: { editImage: RoteSheet.#onEditImage },
+		actions: {
+			editImage: RoteSheet.#onEditImage,
+			deleteLinkedRote: RoteSheet.#onDeleteLinkedRote,
+		},
 	};
 
 	static PARTS = {
@@ -44,6 +48,48 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 			scrollable: [".litm--rote-sheet"],
 		},
 	};
+
+	/** Show deletion only for a Rote attached to an actor's tag. */
+	_getHeaderControls() {
+		const controls = super._getHeaderControls();
+		if (
+			this.item.parent?.documentName !== "Actor" ||
+			!this.item.getFlag("litm-rn", "roteLink")?.tagId ||
+			(!game.user.isGM && !this.item.isOwner)
+		)
+			return controls;
+		return [
+			...controls,
+			{
+				action: "deleteLinkedRote",
+				icon: "fa-solid fa-trash",
+				label: "Litm.rote.delete-linked",
+				ownership: "OWNER",
+			},
+		];
+	}
+
+	static async #onDeleteLinkedRote() {
+		if (
+			this.item.parent?.documentName !== "Actor" ||
+			!this.item.getFlag("litm-rn", "roteLink")?.tagId ||
+			(!game.user.isGM && !this.item.isOwner)
+		)
+			return;
+		const confirmed = await DialogV2.confirm({
+			window: {
+				title: t("Litm.rote.delete-linked"),
+				icon: "fa-solid fa-trash",
+			},
+			content: game.i18n.format("Litm.rote.delete-linked-confirm", {
+				name: Handlebars.escapeExpression(this.item.name),
+			}),
+			rejectClose: false,
+		});
+		if (!confirmed) return;
+		await this.item.delete();
+		if (this.rendered) await this.close();
+	}
 
 	/** @override */
 	async _prepareContext(options) {
@@ -57,6 +103,9 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		return {
 			...context,
 			canEdit: game.user.isGM || this.item.isOwner,
+			isLinked: Boolean(
+				this.item.isEmbedded && this.item.getFlag("litm-rn", "roteLink")?.tagId,
+			),
 			document: this.item,
 			roteName: normalizeRoteName(this.item.name),
 			system,
@@ -83,6 +132,7 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		super._onRender(context, options);
 		this.#closeContextMenu();
 		this.#nameResizeObserver?.disconnect();
+		this.#textareaResizeObserver?.disconnect();
 		const form = this.element;
 		const nameField = form.querySelector(".litm--rote-name");
 		nameField?.addEventListener("keydown", (event) => {
@@ -109,13 +159,36 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 				{ passive: true },
 			);
 		}
+		let resizeTextarea = null;
 		for (const field of form.querySelectorAll("[data-rote-autosize]")) {
+			if (
+				field.classList.contains("litm--rote-textarea") &&
+				globalThis.CSS?.supports?.("field-sizing", "content")
+			) {
+				field.style.removeProperty("height");
+				continue;
+			}
 			const resize = () => {
 				field.style.height = "auto";
 				field.style.height = `${field.scrollHeight}px`;
 			};
 			resize();
 			field.addEventListener("input", resize);
+			if (field.classList.contains("litm--rote-textarea")) {
+				resizeTextarea = resize;
+				form.ownerDocument.fonts?.ready.then(() => {
+					if (field.isConnected) resize();
+				});
+			}
+		}
+		if (resizeTextarea && scroller) {
+			let previousWidth = scroller.clientWidth;
+			this.#textareaResizeObserver = new ResizeObserver(() => {
+				if (scroller.clientWidth === previousWidth) return;
+				previousWidth = scroller.clientWidth;
+				resizeTextarea();
+			});
+			this.#textareaResizeObserver.observe(scroller);
 		}
 		for (const editor of form.querySelectorAll("[data-rote-power-input]")) {
 			const input = editor.parentElement.querySelector('input[type="hidden"]');
@@ -158,7 +231,16 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		if (typeof data.name === "string") {
 			data.name = normalizeRoteName(data.name).trim();
 		}
+		if (!data.system) data.system = {};
 		const system = data.system;
+		if (
+			this.item.isEmbedded &&
+			this.item.getFlag("litm-rn", "roteLink")?.tagId
+		) {
+			system.isActive = Boolean(
+				form.querySelector('[name="system.isActive"]')?.checked,
+			);
+		}
 		if (system?.effects !== undefined) {
 			const effects = foundry.utils.deepClone(
 				this.item.toObject().system.effects ?? [],

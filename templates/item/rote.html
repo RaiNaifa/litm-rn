@@ -1,4 +1,10 @@
 <div class="litm--rote-sheet">
+	{{#if isLinked}}<div class="litm--rote-top-controls">
+		<label class="litm--rote-active">
+			<input type="checkbox" name="system.isActive" {{checked system.isActive}} {{#unless canEdit}}disabled{{/unless}}>
+			<span>{{localize "Litm.rote.active"}}</span>
+		</label>
+	</div>{{/if}}
 	<header class="litm--rote-header">
 		<button type="button" class="litm--rote-image" data-action="editImage"
 			data-tooltip="{{localize 'Litm.ui.edit'}}" {{#unless canEdit}}disabled{{/unless}}>

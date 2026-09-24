@@ -44,6 +44,22 @@
 					<i class="{{ifThen system.themeTag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
 				</button>
 			{{/if}}
+			<button type="button" class="litm--tc-rote-toggle{{#if system.themeTag.hasRote}} has-rote{{/if}}{{#if system.themeTag.hasActiveRote}} linked{{/if}}{{#if system.themeTag.hasWorldLink}} world-linked{{/if}}"
+				data-click="configure-rote" {{#if isEmbedded}}data-context="delete-rote"{{/if}} data-id="{{system.themeTag.id}}"
+				data-tooltip="{{localize system.themeTag.roteTooltip}}" data-tooltip-direction="LEFT">
+				<i class="fa-solid fa-wand-magic-sparkles"></i>
+			</button>
+			{{#unless isEmbedded}}
+				<span class="litm--tc-world-unlink-slot">
+					{{#if system.themeTag.hasWorldLink}}
+						<button type="button" class="litm--tc-world-unlink" data-click="unlink-world-rote" data-id="{{system.themeTag.id}}"
+							aria-label="{{localize 'Litm.rote.unlink-source'}}"
+							data-tooltip="{{localize 'Litm.rote.unlink-source'}}" data-tooltip-direction="LEFT">
+							<i class="fa-solid fa-link-slash" aria-hidden="true"></i>
+						</button>
+					{{/if}}
+				</span>
+			{{/unless}}
 			<span class="litm--tc-title-name{{#if system.themeTag.isScratched}} scratched{{/if}}" contenteditable="true"
 				data-input="story-title">{{system.themeTag.name}}</span>
 			<input type="hidden" id="story-title" name="system.themeTag.name" value="{{system.themeTag.name}}" />
@@ -66,6 +82,22 @@
 								<i class="{{ifThen tag.isPrivate 'fa-solid' 'fa-light'}} fa-mask"></i>
 							</button>
 						{{/if}}
+						<button type="button" class="litm--tc-rote-toggle{{#if tag.hasRote}} has-rote{{/if}}{{#if tag.hasActiveRote}} linked{{/if}}{{#if tag.hasWorldLink}} world-linked{{/if}}"
+							data-click="configure-rote" {{#if @root.isEmbedded}}data-context="delete-rote"{{/if}} data-id="{{tag.id}}"
+							data-tooltip="{{localize tag.roteTooltip}}" data-tooltip-direction="LEFT">
+							<i class="fa-solid fa-wand-magic-sparkles"></i>
+						</button>
+						{{#unless @root.isEmbedded}}
+							<span class="litm--tc-world-unlink-slot">
+								{{#if tag.hasWorldLink}}
+									<button type="button" class="litm--tc-world-unlink" data-click="unlink-world-rote" data-id="{{tag.id}}"
+										aria-label="{{localize 'Litm.rote.unlink-source'}}"
+										data-tooltip="{{localize 'Litm.rote.unlink-source'}}" data-tooltip-direction="LEFT">
+										<i class="fa-solid fa-link-slash" aria-hidden="true"></i>
+									</button>
+								{{/if}}
+							</span>
+						{{/unless}}
 						<span class="litm--tc-tag-name{{#if tag.isScratched}} scratched{{/if}}" contenteditable="true"
 							data-input="story-power-{{idx}}" data-placeholder="{{localize 'Litm.ui.name-power'}}">{{tag.name}}</span>
 						<input type="hidden" id="story-power-{{idx}}" name="system.powerTags.{{idx}}.name" value="{{tag.name}}" />

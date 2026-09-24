@@ -1420,6 +1420,17 @@
 		vertical-align: 0.05em;
 	}
 
+	& .litm--rote-indicator {
+		display: inline-block;
+		margin-right: 5px;
+		color: currentcolor;
+		font-size: 12px;
+		line-height: 1;
+		opacity: 0.9;
+		pointer-events: none;
+		vertical-align: 0.05em;
+	}
+
 	&
 		:is(
 			[data-click="select"],

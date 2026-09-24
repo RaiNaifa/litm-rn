@@ -1,11 +1,22 @@
 import { registerDataInputSync } from "../../mixins/sheet-utils.js";
 import { localize as t } from "../../utils.js";
+import {
+	configureTagRote,
+	confirmTagRoteRemoval,
+	deleteTagRote,
+	getLinkedRote,
+	getWorldRoteLink,
+} from "../rote/rote-links.js";
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 const FilePicker = foundry.applications.apps.FilePicker.implementation;
 
 export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
+	#roteItemHooks = [];
+	#linkedRoteIds = new Set();
+	#pendingDataInputSubmit = Promise.resolve();
+
 	static DEFAULT_OPTIONS = {
 		classes: ["litm", "litm--story-theme", "litm--theme-card"],
 		tag: "form",
@@ -31,6 +42,27 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
 		context.system = this.document.system.toObject();
+		this.#linkedRoteIds.clear();
+		const withRote = (tag) => {
+			const rote = getLinkedRote(this.item, tag.id);
+			const worldLink = getWorldRoteLink(this.item, tag.id);
+			if (rote) this.#linkedRoteIds.add(rote.id);
+			return {
+				...tag,
+				hasRote: Boolean(rote || worldLink),
+				hasWorldLink: Boolean(worldLink),
+				hasActiveRote: rote?.system.isActive === true,
+				roteTooltip: worldLink
+					? "Litm.rote.open-source"
+					: this.item.isEmbedded
+						? rote
+							? "Litm.rote.configure"
+							: "Litm.rote.add"
+						: "Litm.rote.link-source",
+			};
+		};
+		context.system.themeTag = withRote(context.system.themeTag);
+		context.system.powerTags = context.system.powerTags.map(withRote);
 		context.document = this.document;
 		context.title = this.item.name;
 		context.isEmbedded = this.item.isEmbedded;
@@ -86,13 +118,52 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		super._onRender(context, options);
 		const form = this.element;
 
-		registerDataInputSync(form, this);
+		registerDataInputSync(form, this, (submission) => {
+			this.#pendingDataInputSubmit = submission;
+		});
 
 		form
 			.querySelectorAll("[data-click]")
 			.forEach((el) =>
 				el.addEventListener("click", this.#handleClicks.bind(this)),
 			);
+		form.querySelectorAll('[data-context="delete-rote"]').forEach((el) => {
+			el.addEventListener("contextmenu", async (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				if (await deleteTagRote(this.item, el.dataset.id)) this.render();
+			});
+		});
+		if (!this.#roteItemHooks.length) {
+			const refreshForRote = (item) => {
+				if (item.type !== "rote") return;
+				if (
+					item.getFlag("litm-rn", "roteLink")?.ownerUuid !== this.item.uuid &&
+					!this.#linkedRoteIds.has(item.id)
+				)
+					return;
+				this.render();
+			};
+			this.#roteItemHooks = [
+				Hooks.on("createItem", refreshForRote),
+				Hooks.on("updateItem", refreshForRote),
+				Hooks.on("deleteItem", refreshForRote),
+			];
+		}
+	}
+
+	/** @override */
+	async close(options) {
+		for (const [index, hook] of [
+			"createItem",
+			"updateItem",
+			"deleteItem",
+		].entries()) {
+			if (this.#roteItemHooks[index])
+				Hooks.off(hook, this.#roteItemHooks[index]);
+		}
+		this.#roteItemHooks = [];
+		return super.close(options);
 	}
 
 	async _processSubmitData(event, form, formData) {
@@ -119,6 +190,12 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 			case "toggle-secret":
 				this.#toggleSecret(t.dataset.field, id);
 				break;
+			case "configure-rote":
+				this.#configureRote(id);
+				break;
+			case "unlink-world-rote":
+				this.#unlinkWorldRote(id);
+				break;
 			case "open-levels":
 				this.#openlevels(event);
 				break;
@@ -141,6 +218,35 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		if (!tag) return;
 		tag.isPrivate = !tag.isPrivate;
 		await this.item.update({ [`system.${field}`]: tags });
+	}
+
+	async #configureRote(id) {
+		// Clicking the Rote button blurs a contenteditable tag and saves its form.
+		// Wait for that save before reading the tag or opening the picker.
+		await this.#pendingDataInputSubmit;
+		const tag =
+			this.system.themeTag?.id === id
+				? this.system.themeTag
+				: this.system.powerTags?.find((entry) => entry.id === id);
+		if (!tag) return;
+		await configureTagRote(this.item, tag, async (name) => {
+			if (this.system.themeTag?.id === id) {
+				await this.item.update({ "system.themeTag.name": name });
+				return;
+			}
+			const tags = foundry.utils.deepClone(this.system.powerTags);
+			const target = tags.find((entry) => entry.id === id);
+			if (!target) return;
+			target.name = name;
+			await this.item.update({ "system.powerTags": tags });
+		});
+		this.render();
+	}
+
+	async #unlinkWorldRote(id) {
+		await this.#pendingDataInputSubmit;
+		if (this.item.isEmbedded || !getWorldRoteLink(this.item, id)) return;
+		if (await deleteTagRote(this.item, id)) this.render();
 	}
 
 	#handleCloseLevels = (event) => {
@@ -209,8 +315,17 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	async #removeTag(button, type) {
 		const id = button.dataset.id;
 		const fixedType = type === "weaknessStoryTag" ? "weaknessTag" : "powerTag";
+		const tag = this.system[`${fixedType}s`].find((entry) => entry.id === id);
+		if (!tag || !(await confirmTagRoteRemoval(this.item, tag))) return;
 		const tags = this.system[`${fixedType}s`].filter((t) => t.id !== id);
-
-		await this.item.update({ [`system.${fixedType}s`]: tags });
+		const changes = { [`system.${fixedType}s`]: tags };
+		if (getWorldRoteLink(this.item, id)) {
+			const links = {
+				...(this.item.getFlag("litm-rn", "roteLinks") ?? {}),
+			};
+			delete links[id];
+			changes["flags.litm-rn.roteLinks"] = links;
+		}
+		await this.item.update(changes);
 	}
 }
