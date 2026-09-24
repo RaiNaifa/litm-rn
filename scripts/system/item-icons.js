@@ -3,6 +3,7 @@ const ICON_BASE = "systems/litm-rn/assets/media/icons/";
 /** Default images assigned to newly created item documents. */
 export const DEFAULT_ITEM_ICONS = Object.freeze({
 	fellowship: `${ICON_BASE}fellowship_icn.svg`,
+	rote: "icons/svg/daze.svg",
 	story: `${ICON_BASE}stabbed-note.svg`,
 	themebook: `${ICON_BASE}book-cover.svg`,
 	themekit: `${ICON_BASE}scroll-unfurled.svg`,

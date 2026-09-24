@@ -35,6 +35,8 @@ import {
 } from "./scripts/data/specials.js";
 import { FellowshipThemeData } from "./scripts/item/fellowship/fellowship-data.js";
 import { FellowshipThemeSheet } from "./scripts/item/fellowship/fellowship-sheet.js";
+import { RoteData } from "./scripts/item/rote/rote-data.js";
+import { RoteSheet } from "./scripts/item/rote/rote-sheet.js";
 import { StoryThemeData } from "./scripts/item/storytheme/storytheme-data.js";
 import { StoryThemeSheet } from "./scripts/item/storytheme/storytheme-sheet.js";
 import { ThemebookData } from "./scripts/item/themebook/themebook-data.js";
@@ -804,6 +806,7 @@ Hooks.once("init", () => {
 	CONFIG.Dice.terms[DENOMINATION] = DoubleSix;
 	CONFIG.Dice.rolls.push(LitmRoll);
 	CONFIG.Item.dataModels.fellowship = FellowshipThemeData;
+	CONFIG.Item.dataModels.rote = RoteData;
 	CONFIG.Item.dataModels.story = StoryThemeData;
 	CONFIG.Item.dataModels.threat = ThreatData;
 	CONFIG.Item.dataModels.themebook = ThemebookData;
@@ -834,6 +837,10 @@ Hooks.once("init", () => {
 	);
 	foundry.documents.collections.Items.registerSheet("litm-rn", ThreatSheet, {
 		types: ["threat"],
+		makeDefault: true,
+	});
+	foundry.documents.collections.Items.registerSheet("litm-rn", RoteSheet, {
+		types: ["rote"],
 		makeDefault: true,
 	});
 	foundry.documents.collections.Items.registerSheet(

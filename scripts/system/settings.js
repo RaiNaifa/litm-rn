@@ -193,6 +193,7 @@ export class LitmSettings {
 				auto: "Litm.settings.default-item-type-auto",
 				story: "TYPES.Item.story",
 				fellowship: "TYPES.Item.fellowship",
+				rote: "TYPES.Item.rote",
 				theme: "TYPES.Item.theme",
 				themebook: "TYPES.Item.themebook",
 				themekit: "TYPES.Item.themekit",

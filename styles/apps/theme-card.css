@@ -114,7 +114,7 @@
 .litm--tc-left {
 	position: relative;
 	z-index: 1;
-	width: 360px;
+	width: 380px;
 	flex-shrink: 0;
 	height: 100%;
 	min-height: 0;
@@ -501,7 +501,7 @@ button.litm--tc-themebook-preview {
 	align-items: center;
 	justify-content: center;
 	gap: var(--litm-space-2);
-	padding: 4px 45px 4px 20px;
+	padding: 4px 42px 4px 16px;
 	border-bottom: 1px solid rgb(255 255 255 / 0.12);
 
 	& .litm--tc-title-name {
@@ -542,7 +542,7 @@ button.litm--tc-themebook-preview {
 
 .litm--tc-tags {
 	list-style: none;
-	margin: 0 20px;
+	margin: 0 16px;
 	padding: 0;
 }
 
@@ -674,7 +674,7 @@ button.litm--tc-themebook-preview {
 }
 
 .litm--tc-weakness {
-	margin: 0 20px;
+	margin: 0 16px;
 	padding: 6px 0;
 	background-image: radial-gradient(
 		ellipse at top,

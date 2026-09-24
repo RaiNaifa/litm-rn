@@ -1,0 +1,94 @@
+<div class="litm--rote-sheet">
+	<header class="litm--rote-header">
+		<button type="button" class="litm--rote-image" data-action="editImage"
+			data-tooltip="{{localize 'Litm.ui.edit'}}" {{#unless canEdit}}disabled{{/unless}}>
+			<img src="{{document.img}}" alt="{{document.name}}">
+		</button>
+		<div class="litm--rote-heading">
+			<input class="litm--rote-name" type="text" name="name" value="{{document.name}}"
+				required {{#unless canEdit}}readonly{{/unless}} aria-label="{{localize 'Name'}}">
+		</div>
+	</header>
+
+	<label class="litm--sro" for="rote-description">{{localize "Litm.rote.description"}}</label>
+	<prose-mirror class="litm--rote-description" id="rote-description" name="system.description"
+		button="true" toggled="false" editable="{{canEdit}}" value="{{system.description}}">
+		{{#if system.description}}{{{descriptionHTML}}}{{else}}<span class="litm--rote-placeholder">{{localize "Litm.rote.description-placeholder"}}</span>{{/if}}
+	</prose-mirror>
+
+	<section class="litm--rote-section">
+		<div class="litm--rote-divider"><span></span><label>{{localize "Litm.rote.practitioners"}}</label><span></span></div>
+		<textarea class="litm--rote-textarea" name="system.practitioners" rows="1"
+			data-rote-autosize placeholder="{{localize 'Litm.rote.practitioners-placeholder'}}"
+			{{#unless canEdit}}readonly{{/unless}}>{{system.practitioners}}</textarea>
+	</section>
+
+	<section class="litm--rote-section">
+		<div class="litm--rote-divider"><span></span><label>{{localize "Litm.rote.power"}}</label><span></span></div>
+		<div class="litm--rote-power-row">
+			<img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_inactive.svg" alt=""
+				data-tooltip="{{localize 'Litm.rote.power-helping'}}">
+			<textarea class="litm--rote-textarea" name="system.powerHelping" rows="1" data-rote-autosize
+				placeholder="{{localize 'Litm.rote.power-helping'}}"
+				{{#unless canEdit}}readonly{{/unless}}>{{system.powerHelping}}</textarea>
+		</div>
+		<div class="litm--rote-power-row">
+			<img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_active.svg" alt=""
+				data-tooltip="{{localize 'Litm.rote.power-hindering'}}">
+			<textarea class="litm--rote-textarea" name="system.powerHindering" rows="1" data-rote-autosize
+				placeholder="{{localize 'Litm.rote.power-hindering'}}"
+				{{#unless canEdit}}readonly{{/unless}}>{{system.powerHindering}}</textarea>
+		</div>
+	</section>
+
+	<section class="litm--rote-section">
+		<div class="litm--rote-divider litm--rote-divider-with-add">
+			<span></span><label>{{localize "Litm.rote.success"}}</label><span></span>
+			{{#if canEdit}}<button type="button" data-rote-action="add-effect"
+				aria-label="{{localize 'Litm.rote.add-effect'}}"
+				data-tooltip="{{localize 'Litm.rote.add-effect'}}"><i class="far fa-plus"></i></button>{{/if}}
+		</div>
+		<ul class="litm--rote-effects">
+			{{#each effects as |effect index|}}
+			<li class="litm--rote-effect" data-rote-row="effect" data-id="{{effect.id}}">
+				<span class="litm--rote-effect-type">{{effect.typeLabel}}</span>
+				<prose-mirror class="litm--rote-effect-editor" name="system.effects.{{index}}.description"
+					button="true" toggled="false" editable="{{@root.canEdit}}" value="{{effect.description}}">
+					<div class="litm--rote-effect-content"
+						{{#if @root.canEdit}}data-tooltip="{{localize 'Litm.ui.context-open-menu'}}"{{/if}}>
+						{{#if effect.description}}{{{effect.descriptionHTML}}}{{else}}
+						<span class="litm--rote-placeholder">{{localize "Litm.rote.effect-placeholder"}}</span>
+						{{/if}}
+					</div>
+				</prose-mirror>
+			</li>
+			{{/each}}
+		</ul>
+	</section>
+
+	<section class="litm--rote-section">
+		<div class="litm--rote-divider litm--rote-divider-with-add">
+			<span></span><label>{{localize "Litm.rote.consequences"}}</label><span></span>
+			{{#if canEdit}}<button type="button" data-rote-action="add-consequence"
+				aria-label="{{localize 'Litm.rote.add-consequence'}}"
+				data-tooltip="{{localize 'Litm.rote.add-consequence'}}"><i class="far fa-plus"></i></button>{{/if}}
+		</div>
+		<ul class="litm--rote-consequences">
+			{{#each consequences as |consequence|}}
+			<li class="litm--rote-consequence" data-rote-row="consequence" data-id="{{consequence.index}}">
+				<prose-mirror class="litm--rote-consequence-editor"
+					name="system.consequences.{{consequence.index}}" button="true" toggled="false"
+					editable="{{@root.canEdit}}" value="{{consequence.value}}">
+					<div class="litm--rote-consequence-content"
+						{{#if @root.canEdit}}data-tooltip="{{localize 'Litm.ui.context-open-menu'}}"{{/if}}>
+						<img src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt="">
+						<div>{{#if consequence.value}}{{{consequence.html}}}{{else}}
+							<span class="litm--rote-placeholder">{{localize "Litm.rote.consequence-placeholder"}}</span>
+							{{/if}}</div>
+					</div>
+				</prose-mirror>
+			</li>
+			{{/each}}
+		</ul>
+	</section>
+</div>
