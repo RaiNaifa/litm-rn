@@ -38,7 +38,7 @@
 			"roll-one-active": "Only one Rote can be active at a time.",
 			"roll-edit": "Edit Rote",
 			"roll-preview": "Read Rote description and Power",
-			"roll-preview-hint": "Click the image to read the full description and Power.",
+			"roll-preview-hint": "Click the image to read the full description.",
 			"world-tag-name-locked": "This tag's name comes from its linked Rote.",
 			"world-link-name-failed": "The tag could not be renamed to match the Rote. The link was not created.",
 			"world-rename-no-gm": "A world Rote cannot be renamed without an active GM. The previous name was kept.",
