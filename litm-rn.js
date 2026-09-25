@@ -35,7 +35,13 @@ import {
 } from "./scripts/data/specials.js";
 import { FellowshipThemeData } from "./scripts/item/fellowship/fellowship-data.js";
 import { FellowshipThemeSheet } from "./scripts/item/fellowship/fellowship-sheet.js";
+import { runRoteAutomation } from "./scripts/item/rote/rote-automation.js";
 import { RoteData } from "./scripts/item/rote/rote-data.js";
+import {
+	RotesWindow,
+	registerRoteLauncherDrop,
+	useRote,
+} from "./scripts/item/rote/rote-launcher.js";
 import { registerRoteRollHandlers } from "./scripts/item/rote/rote-roll.js";
 import { RoteSheet } from "./scripts/item/rote/rote-sheet.js";
 import { StoryThemeData } from "./scripts/item/storytheme/storytheme-data.js";
@@ -897,6 +903,10 @@ Hooks.once("init", () => {
 	WorldMigrations.register();
 	Sockets.registerListeners();
 	registerRoteRollHandlers();
+	game.litm.runRoteAutomation = runRoteAutomation;
+	game.litm.useRote = useRote;
+	game.litm.RotesWindow = RotesWindow;
+	registerRoteLauncherDrop();
 	CampDialog.register();
 
 	game.litm._restoreRollSelections();

@@ -3,6 +3,7 @@ import { Sockets } from "../system/sockets.js";
 import {
 	dispatch,
 	getActorFellowshipId,
+	getActorTokenId,
 	getFellowshipActors,
 	getOwningDocument,
 	getOwningWindow,
@@ -288,6 +289,8 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				fellowshipId,
 				sceneId: canvas.scene?.id ?? null,
 				rollId: foundry.utils.randomID(),
+				tokenId: getActorTokenId(actorId, speaker?.token),
+				targetIds: [...(game.user.targets ?? [])].map((token) => token.id),
 				sacrifice,
 				isGroup,
 				rote: isGroup ? null : rote,
@@ -308,20 +311,52 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			.toMessage({
 				speaker,
 				flavor,
-				...(isCampAction
-					? { flags: { "litm-rn": { campAction: { method: "roll" } } } }
-					: {}),
+				flags: {
+					"litm-rn": {
+						...(isCampAction ? { campAction: { method: "roll" } } : {}),
+						...(rote
+							? {
+									roteAutomation: {
+										rollId: roll.litm.rollId,
+										actorId,
+										roteUuid: rote.uuid,
+										ref: rote.ref,
+										tagId: rote.tagId,
+									},
+								}
+							: {}),
+					},
+				},
 			})
 			.then(async (res) => {
 				Sockets.dispatch("clearRollApproval", { actorId });
 				if (game.user.isGM) {
+					const automation = await game.litm.runRoteAutomation?.({
+						actorId,
+						roteUuid: rote?.uuid,
+						roteRef: rote?.ref,
+						roteTagId: rote?.tagId,
+						rollId: roll.litm.rollId,
+						mode: "roll",
+						rollType: type,
+						outcome: roll.outcome?.label,
+						totalPower: roll.litm.totalPower,
+						isCampAction,
+						sceneId: roll.litm.sceneId,
+						initiatorId: game.user.id,
+						messageId: res?.id,
+						tokenId: roll.litm.tokenId,
+						targetIds: roll.litm.targetIds,
+					});
 					const report = await game.litm.LitmRoll.postRollProcessing(roll);
+					report.failed += automation?.failed ?? 0;
 					if (report?.failed > 0) {
 						ui.notifications.warn(t("Litm.ui.post-roll-partial-failure"));
 					}
 				} else {
-					Sockets.requestPostRollProcessing({
+					await Sockets.requestPostRollProcessing({
 						...roll.litm,
+						messageId: res?.id,
 						_total: roll.total,
 						_outcome: roll.outcome?.label ?? null,
 					});
@@ -1018,7 +1053,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 
 	async #rollRoteCandidates(tags, { fresh = false } = {}) {
-		if (this._currentTab === "group" || this._subtab || this.camp) return [];
+		if (this._currentTab === "group" || this._subtab === "sacrifice") return [];
 		const eligible = tags.filter(
 			(tag) =>
 				["themeTag", "powerTag"].includes(tag.type) &&
@@ -1880,7 +1915,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		const flatSelectedTags = this.#getAllSelectedTags();
 		const roteCandidates = await this.#rollRoteCandidates(flatSelectedTags);
 		this._roteCandidates = roteCandidates;
-		if (this._currentTab !== "group" && !this._subtab) {
+		if (this._currentTab !== "group" && this._subtab !== "sacrifice") {
 			await Promise.all(
 				flatSelectedTags.map(async (tag) => {
 					if (!["themeTag", "powerTag"].includes(tag.type) || tag.isScratched)
@@ -1893,7 +1928,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 		if (
 			this._currentTab !== "group" &&
-			!this._subtab &&
+			this._subtab !== "sacrifice" &&
 			this._selectedRoteKey &&
 			!roteCandidates.some((rote) => rote.key === this._selectedRoteKey)
 		) {
@@ -1905,7 +1940,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		const displayedRotes = await Promise.all(
 			roteCandidates.map((rote) => this.#displayRollRote(rote)),
 		);
-		if (this._currentTab !== "group" && !this._subtab) {
+		if (this._currentTab !== "group" && this._subtab !== "sacrifice") {
 			const sharedGroups = fellowGroups.filter(
 				(group) => group.type === "shared",
 			);
@@ -2794,7 +2829,12 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		const groupData = isGroup ? this.#getAllGroupTags() : null;
 		const tags = isGroup ? groupData.tags : this.#getAllSelectedTags();
 		let selectedRote = null;
-		if (shouldRoll && !isGroup && !this._subtab && this._selectedRoteKey) {
+		if (
+			shouldRoll &&
+			!isGroup &&
+			this._subtab !== "sacrifice" &&
+			this._selectedRoteKey
+		) {
 			const candidates = await this.#rollRoteCandidates(tags, { fresh: true });
 			selectedRote = candidates.find(
 				(rote) => rote.key === this._selectedRoteKey,
@@ -2861,6 +2901,8 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			isCampAction: !!this.camp,
 			rote: selectedRote
 				? {
+						ref: selectedRote.ref,
+						tagId: selectedRote.tagId,
 						uuid: selectedRote.uuid,
 						name: selectedRote.name,
 						img: selectedRote.img,
@@ -2898,6 +2940,19 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
 	async #resolveCampWithoutRoll() {
 		if (!this.camp || this.basePower < 1) return;
+		let selectedRote = null;
+		if (this._selectedRoteKey) {
+			const candidates = await this.#rollRoteCandidates(
+				this.#getAllSelectedTags(),
+				{ fresh: true },
+			);
+			selectedRote =
+				candidates.find((rote) => rote.key === this._selectedRoteKey) ?? null;
+			if (!selectedRote) {
+				ui.notifications.warn(t("Litm.rote.roll-unavailable"));
+				return;
+			}
+		}
 		const safePower = this.basePower;
 		const effects = Math.ceil(safePower / 2);
 		const filtered = LitmRollDialog.#filterTags(this.#getAllSelectedTags());
@@ -2907,6 +2962,8 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			{
 				actorId: this.actorId,
 				rollId: foundry.utils.randomID(),
+				tokenId: getActorTokenId(this.actorId, this.speaker?.token),
+				targetIds: [...(game.user.targets ?? [])].map((token) => token.id),
 				type: "tracked",
 				rollTypeLabel: this.rollTypeLabel,
 				...filtered,
@@ -2923,11 +2980,48 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				tradeMode: "",
 				sceneId: canvas.scene?.id ?? null,
 				campFellowshipId: this.camp.fellowshipId,
+				isCampAction: true,
+				rote: selectedRote
+					? {
+							uuid: selectedRote.uuid,
+							ref: selectedRote.ref,
+							tagId: selectedRote.tagId,
+							name: selectedRote.name,
+							img: selectedRote.img,
+							effects: selectedRote.effects,
+							consequences: selectedRote.consequences,
+						}
+					: null,
 				safeCamp: true,
 				_total: 0,
 				_outcome: null,
 			},
 		);
+		const enrich = (value) =>
+			foundry.applications.ux.TextEditor.implementation.enrichHTML(
+				value || "",
+				{ secrets: false },
+			);
+		const chatRote = selectedRote
+			? {
+					uuid: selectedRote.uuid,
+					name: selectedRote.name,
+					img: selectedRote.img,
+					effects: await Promise.all(
+						(selectedRote.effects ?? [])
+							.filter((effect) => effect.description?.trim())
+							.map(async (effect) => ({
+								label: t(`Litm.rote.types.${effect.type}`),
+								html: await enrich(effect.description),
+							})),
+					),
+					consequences: await Promise.all(
+						(selectedRote.consequences ?? [])
+							.filter((value) => value?.trim())
+							.map(enrich),
+					),
+				}
+			: null;
 		const content = await foundry.applications.handlebars.renderTemplate(
 			game.litm.LitmRoll.CHAT_TEMPLATE,
 			{
@@ -2938,6 +3032,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				total: safePower,
 				type: "tracked",
 				safeCamp: true,
+				rote: chatRote,
 				tradeMode: "",
 			},
 		);
@@ -2948,6 +3043,17 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			flags: {
 				"litm-rn": {
 					campAction: { method: "spend", power: safePower, effects },
+					...(selectedRote
+						? {
+								roteAutomation: {
+									rollId: preview.litm.rollId,
+									actorId: this.actorId,
+									roteUuid: selectedRote.uuid,
+									ref: selectedRote.ref,
+									tagId: selectedRote.tagId,
+								},
+							}
+						: {}),
 				},
 			},
 		});
@@ -2960,12 +3066,31 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		});
 		try {
 			if (game.user.isGM) {
+				const automation = await game.litm.runRoteAutomation?.({
+					actorId: this.actorId,
+					roteUuid: selectedRote?.uuid,
+					roteRef: selectedRote?.ref,
+					roteTagId: selectedRote?.tagId,
+					rollId: preview.litm.rollId,
+					mode: "campNoRoll",
+					rollType: "tracked",
+					outcome: "success",
+					totalPower: safePower,
+					isCampAction: true,
+					sceneId: preview.litm.sceneId,
+					initiatorId: game.user.id,
+					messageId: message?.id,
+					tokenId: preview.litm.tokenId,
+					targetIds: preview.litm.targetIds,
+				});
 				const report = await game.litm.LitmRoll.postRollProcessing(preview);
+				report.failed += automation?.failed ?? 0;
 				if (report?.failed > 0)
 					ui.notifications.warn(t("Litm.ui.post-roll-partial-failure"));
 			} else {
-				Sockets.requestPostRollProcessing({
+				await Sockets.requestPostRollProcessing({
 					...preview.litm,
+					messageId: message?.id,
 					_total: 0,
 					_outcome: null,
 				});

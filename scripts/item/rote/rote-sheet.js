@@ -24,6 +24,10 @@ const normalizeRoteName = (name) =>
 
 /** Sheet for authoring a Rote item. */
 export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
+	#automationView = false;
+	#automationSave = Promise.resolve();
+	#scriptDraft = null;
+	#scriptSaving = false;
 	#contextMenu = null;
 	#pendingEditor = null;
 	#scrollTop = 0;
@@ -39,6 +43,7 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		actions: {
 			editImage: RoteSheet.#onEditImage,
 			deleteLinkedRote: RoteSheet.#onDeleteLinkedRote,
+			toggleAutomation: RoteSheet.#onToggleAutomation,
 		},
 	};
 
@@ -52,14 +57,21 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	/** Show deletion only for a Rote attached to an actor's tag. */
 	_getHeaderControls() {
 		const controls = super._getHeaderControls();
+		const switchView = {
+			action: "toggleAutomation",
+			icon: "fa-solid fa-repeat",
+			label: "Litm.rote.toggle-view",
+			ownership: "OWNER",
+		};
 		if (
 			this.item.parent?.documentName !== "Actor" ||
 			!this.item.getFlag("litm-rn", "roteLink")?.tagId ||
 			(!game.user.isGM && !this.item.isOwner)
 		)
-			return controls;
+			return [...controls, switchView];
 		return [
 			...controls,
+			switchView,
 			{
 				action: "deleteLinkedRote",
 				icon: "fa-solid fa-trash",
@@ -67,6 +79,12 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 				ownership: "OWNER",
 			},
 		];
+	}
+
+	static async #onToggleAutomation() {
+		if (this.#automationView && !(await this.#resolveScriptDraft())) return;
+		this.#automationView = !this.#automationView;
+		await this.render({ force: true });
 	}
 
 	static async #onDeleteLinkedRote() {
@@ -95,6 +113,23 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
 		const system = this.item.system.toObject();
+		const automation = this.item.getFlag("litm-rn", "automation") ?? {};
+		const automationForView = {
+			...automation,
+			script: this.#scriptDraft ?? automation.script ?? "",
+		};
+		const automationMacros = await Promise.all(
+			(this.#automationView ? (automation.macros ?? []) : []).map(
+				async (uuid) => {
+					const macro = await fromUuid(uuid).catch(() => null);
+					return {
+						uuid,
+						name: macro?.name ?? uuid,
+						canOpen: macro?.testUserPermission(game.user, "OBSERVER") ?? false,
+					};
+				},
+			),
+		);
 		const enrich = (html) =>
 			TextEditor.enrichHTML(html || "", {
 				secrets: this.item.isOwner,
@@ -102,6 +137,9 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 			});
 		return {
 			...context,
+			automationView: this.#automationView,
+			automation: automationForView,
+			automationMacros,
 			canEdit: game.user.isGM || this.item.isOwner,
 			isLinked: Boolean(
 				this.item.isEmbedded && this.item.getFlag("litm-rn", "roteLink")?.tagId,
@@ -134,6 +172,55 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		this.#nameResizeObserver?.disconnect();
 		this.#textareaResizeObserver?.disconnect();
 		const form = this.element;
+		if (this.#automationView) {
+			form.querySelectorAll("[data-rote-macro-open]").forEach((button) => {
+				button.addEventListener("click", async () => {
+					const macro = await fromUuid(button.dataset.roteMacroOpen).catch(
+						() => null,
+					);
+					if (macro?.testUserPermission(game.user, "OBSERVER"))
+						macro.sheet.render({ force: true });
+				});
+			});
+			const scriptEditor = form.querySelector("[data-rote-script]");
+			const trackScript = (event) => {
+				event.stopPropagation();
+				this.#captureScriptDraft(scriptEditor);
+			};
+			scriptEditor?.addEventListener("input", trackScript);
+			scriptEditor?.addEventListener("change", trackScript);
+			scriptEditor?.addEventListener("focusout", () =>
+				this.#captureScriptDraft(scriptEditor),
+			);
+			form
+				.querySelector("[data-rote-script-save]")
+				?.addEventListener("pointerdown", (event) => event.preventDefault());
+			form
+				.querySelector("[data-rote-script-save]")
+				?.addEventListener("click", () =>
+					this.#saveScript().catch(console.error),
+				);
+			this.#updateScriptSaveButton();
+			form
+				.querySelector("[data-rote-macro-add]")
+				?.addEventListener("click", () => this.#addMacro());
+			const macroDrop = form.querySelector("[data-rote-macro-drop]");
+			macroDrop?.addEventListener("dragover", (event) =>
+				event.preventDefault(),
+			);
+			macroDrop?.addEventListener("drop", async (event) => {
+				event.preventDefault();
+				const data = TextEditor.getDragEventData(event);
+				if (data?.type !== "Macro" || !data.uuid) return;
+				await this.#addMacro(data.uuid);
+			});
+			form.querySelectorAll("[data-rote-macro-remove]").forEach((button) => {
+				button.addEventListener("click", () =>
+					this.#removeMacro(Number(button.dataset.roteMacroRemove)),
+				);
+			});
+			return;
+		}
 		const nameField = form.querySelector(".litm--rote-name");
 		nameField?.addEventListener("keydown", (event) => {
 			if (event.key === "Enter") event.preventDefault();
@@ -225,6 +312,116 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		}
 	}
 
+	async #saveAutomation(change) {
+		if (!this.item.isOwner && !game.user.isGM) return;
+		this.#automationSave = this.#automationSave
+			.catch(console.error)
+			.then(async () => {
+				const current = this.item.getFlag("litm-rn", "automation") ?? {};
+				await this.item.setFlag("litm-rn", "automation", {
+					...current,
+					...change,
+				});
+			});
+		return this.#automationSave;
+	}
+
+	#captureScriptDraft(
+		editor = this.element?.querySelector("[data-rote-script]"),
+	) {
+		if (!this.#automationView || !editor || typeof editor.value !== "string")
+			return;
+		const saved = this.item.getFlag("litm-rn", "automation")?.script ?? "";
+		this.#scriptDraft = editor.value === saved ? null : editor.value;
+		this.#updateScriptSaveButton();
+	}
+
+	#updateScriptSaveButton() {
+		const button = this.element?.querySelector("[data-rote-script-save]");
+		if (button) button.disabled = this.#scriptSaving;
+	}
+
+	async #saveScript() {
+		this.#captureScriptDraft();
+		if (this.#scriptDraft === null || this.#scriptSaving) return;
+		const script = this.#scriptDraft;
+		this.#scriptSaving = true;
+		this.#updateScriptSaveButton();
+		try {
+			await this.#saveAutomation({ script });
+			if ((this.item.getFlag("litm-rn", "automation")?.script ?? "") !== script)
+				throw new Error("Rote script was not stored on the Item");
+			if (this.#scriptDraft === script) this.#scriptDraft = null;
+		} catch (error) {
+			ui.notifications.error(t("Litm.rote.automation-save-error"));
+			throw error;
+		} finally {
+			this.#scriptSaving = false;
+			this.#updateScriptSaveButton();
+		}
+	}
+
+	async #resolveScriptDraft() {
+		this.#captureScriptDraft();
+		if (this.#scriptDraft === null) return true;
+		const choice = await DialogV2.wait({
+			window: { title: t("Litm.rote.automation-unsaved-title") },
+			content: `<p>${t("Litm.rote.automation-unsaved-hint")}</p>`,
+			buttons: [
+				{
+					action: "cancel",
+					label: t("Litm.ui.cancel"),
+					callback: () => "cancel",
+				},
+				{
+					action: "discard",
+					label: t("Litm.rote.automation-discard"),
+					callback: () => "discard",
+				},
+				{
+					action: "save",
+					label: t("Litm.rote.automation-save-script"),
+					callback: () => "save",
+				},
+			],
+			rejectClose: false,
+		});
+		if (choice === "discard") {
+			this.#scriptDraft = null;
+			return true;
+		}
+		if (choice !== "save") return false;
+		await this.#saveScript();
+		return this.#scriptDraft === null;
+	}
+
+	async #addMacro(droppedUuid = "") {
+		this.#captureScriptDraft();
+		const field = this.element.querySelector("[data-rote-macro-uuid]");
+		const uuid = droppedUuid || field?.value?.trim();
+		const macro = uuid ? await fromUuid(uuid).catch(() => null) : null;
+		if (macro?.documentName !== "Macro") {
+			ui.notifications.warn(t("Litm.rote.automation-invalid-macro"));
+			return;
+		}
+		const macros = [
+			...(this.item.getFlag("litm-rn", "automation")?.macros ?? []),
+			uuid,
+		];
+		await this.#saveAutomation({ macros });
+		this.render({ force: true });
+	}
+
+	async #removeMacro(index) {
+		this.#captureScriptDraft();
+		const macros = [
+			...(this.item.getFlag("litm-rn", "automation")?.macros ?? []),
+		];
+		macros.splice(index, 1);
+		await this.#saveAutomation({ macros });
+		this.render({ force: true });
+	}
+
 	/** @override Restore complete array entries before Foundry validates the form. */
 	_processFormData(event, form, formData) {
 		const data = super._processFormData(event, form, formData);
@@ -234,6 +431,7 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		if (!data.system) data.system = {};
 		const system = data.system;
 		if (
+			!this.#automationView &&
 			this.item.isEmbedded &&
 			this.item.getFlag("litm-rn", "roteLink")?.tagId
 		) {
@@ -264,12 +462,14 @@ export class RoteSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
 	/** @override */
 	async _processSubmitData(event, form, submitData, options) {
+		if (this.#automationView) return;
 		if (!game.user.isGM && !this.item.isOwner) return;
 		return super._processSubmitData(event, form, submitData, options);
 	}
 
 	/** @override */
 	async close(options) {
+		if (this.#automationView && !(await this.#resolveScriptDraft())) return;
 		this.#closeContextMenu();
 		return super.close(options);
 	}

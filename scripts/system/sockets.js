@@ -1,8 +1,15 @@
 import { getFellowshipActors } from "../utils.js";
+import {
+	executeRoteAutomation,
+	getApprovedRoteExecution,
+	prepareRoteAutomation,
+} from "../item/rote/rote-automation.js";
 const { fromUuid } = foundry.utils;
 
 export class Sockets {
 	static #pendingPostRoll = new Map();
+	static #pendingRoteExecution = new Map();
+	static #roteExecutionCleanup = new Map();
 	static #processedPostRollIds = new Set();
 
 	static dispatch(event, data) {
@@ -31,8 +38,8 @@ export class Sockets {
 		});
 	}
 
-	/** Send one post-roll snapshot to the active Narrator and warn only if it cannot be confirmed. */
-	static requestPostRollProcessing(data) {
+	/** Send the completed roll to the GM for post-roll processing and Rote automation. */
+	static async requestPostRollProcessing(data) {
 		const activeGM =
 			game.users.activeGM ??
 			game.users.find((user) => user.isGM && user.active);
@@ -44,6 +51,17 @@ export class Sockets {
 			return false;
 		}
 		const rollId = data.rollId || foundry.utils.randomID();
+		if (data.rote?.uuid) {
+			const executionTimeout = setTimeout(
+				() => this.#pendingRoteExecution.delete(rollId),
+				120000,
+			);
+			this.#pendingRoteExecution.set(rollId, {
+				messageId: data.messageId,
+				roteUuid: data.rote.uuid,
+				executionTimeout,
+			});
+		}
 		const timeout = setTimeout(() => {
 			this.#pendingPostRoll.delete(rollId);
 			ui.notifications.warn(
@@ -53,6 +71,27 @@ export class Sockets {
 		this.#pendingPostRoll.set(rollId, timeout);
 		this.dispatch("processPostRoll", { ...data, rollId });
 		return true;
+	}
+
+	static #roteAutomationData(data, initiatorId) {
+		return {
+			actorId: data.actorId,
+			roteUuid: data.rote?.uuid,
+			roteRef: data.rote?.ref,
+			roteTagId: data.rote?.tagId,
+			rollId: data.rollId,
+			mode: data.mode ?? (data.safeCamp ? "campNoRoll" : "roll"),
+			rollType: data.type,
+			outcome: data.safeCamp ? "success" : data._outcome,
+			totalPower: data.totalPower,
+			isCampAction: data.isCampAction,
+			sceneId: data.sceneId,
+			initiatorId,
+			messageId: data.messageId,
+			tokenId: data.tokenId,
+			targetIds: data.targetIds,
+			isGroup: data.isGroup,
+		};
 	}
 
 	static registerListeners() {
@@ -66,6 +105,7 @@ export class Sockets {
 		this.#registerSharedWeaknessExperienceListener();
 		this.#registerSharedTagBurnListener();
 		this.#registerPostRollListener();
+		this.#registerRoteExecutionListener();
 		this.#registerSacrificeListeners();
 		this.#registerFellowshipThemebookListener();
 
@@ -268,6 +308,87 @@ export class Sockets {
 		});
 	}
 
+	static #registerRoteExecutionListener() {
+		Hooks.once("ready", () => {
+			const activeGM =
+				game.users.activeGM ??
+				game.users.find((user) => user.isGM && user.active);
+			if (!game.user.isGM || activeGM?.id !== game.user.id) return;
+			for (const message of game.messages) {
+				if (
+					!message.getFlag("litm-rn", "roteAutomation") &&
+					!message.getFlag("litm-rn", "roteSimple")
+				)
+					continue;
+				const payload = message.getFlag("litm-rn", "roteExecution");
+				if (payload && (!payload.issuedAt || Date.now() - payload.issuedAt > 120000))
+					message
+						.unsetFlag("litm-rn", "roteExecution")
+						.catch((error) => console.error("LITM | Could not clear stale Rote execution", error));
+			}
+		});
+		Hooks.on("updateChatMessage", async (message, changes, _options, userId) => {
+			if (game.user.isGM || !this.#pendingRoteExecution.size) return;
+			const candidate =
+				changes?.flags?.["litm-rn"]?.roteExecution ??
+				changes?.["flags.litm-rn.roteExecution"];
+			if (!candidate?.rollId) return;
+			if (
+				!message.getFlag("litm-rn", "roteAutomation") &&
+				!message.getFlag("litm-rn", "roteSimple")
+			)
+				return;
+			const activeGM =
+				game.users.activeGM ??
+				game.users.find((user) => user.isGM && user.active);
+			if (!activeGM) return;
+			const pending = this.#pendingRoteExecution.get(candidate?.rollId);
+			const changedPayload = getApprovedRoteExecution(
+				message,
+				changes,
+				userId,
+				activeGM.id,
+				game.user.id,
+				pending,
+			);
+			if (!changedPayload) return;
+			clearTimeout(pending.executionTimeout);
+			this.#pendingRoteExecution.delete(changedPayload.rollId);
+			try {
+				const result = await executeRoteAutomation(changedPayload);
+				if (result.failed)
+					ui.notifications.warn(
+						game.i18n.localize("Litm.ui.post-roll-partial-failure"),
+					);
+			} catch (error) {
+				console.error("LITM | Rote execution failed", error);
+				ui.notifications.warn(
+					game.i18n.localize("Litm.ui.post-roll-partial-failure"),
+				);
+			} finally {
+				this.dispatch("roteExecutionAcknowledged", {
+					rollId: changedPayload.rollId,
+					messageId: message.id,
+				});
+			}
+		});
+		Sockets.on("roteExecutionAcknowledged", ({ data, senderId }) => {
+			if (!game.user.isGM) return;
+			const pending = this.#roteExecutionCleanup.get(data.rollId);
+			if (
+				pending?.initiatorId !== senderId ||
+				pending.messageId !== data.messageId
+			)
+				return;
+			clearTimeout(pending.timeout);
+			this.#roteExecutionCleanup.delete(data.rollId);
+			game.messages
+				.get(data.messageId)
+				?.unsetFlag("litm-rn", "roteExecution")
+				.catch((error) => console.error("LITM | Could not clear Rote execution", error));
+		});
+	}
+
 	static #registerPostRollListener() {
 		Sockets.on("processPostRoll", async ({ data, senderId }) => {
 			if (!game.user.isGM) return;
@@ -351,9 +472,30 @@ export class Sockets {
 				);
 			}
 			try {
+				const automation = await prepareRoteAutomation(
+					this.#roteAutomationData(data, senderId),
+				);
+				if (automation.payload) {
+					const message = game.messages.get(data.messageId);
+					const timeout = setTimeout(() => {
+						this.#roteExecutionCleanup.delete(data.rollId);
+						message
+							.unsetFlag("litm-rn", "roteExecution")
+							.catch((error) => console.error("LITM | Could not clear Rote execution", error));
+					}, 120000);
+					this.#roteExecutionCleanup.set(data.rollId, {
+						initiatorId: senderId,
+						messageId: message.id,
+						timeout,
+					});
+					await message.update({
+						"flags.litm-rn.roteExecution": automation.payload,
+					});
+				}
 				const report = await game.litm?.LitmRoll.postRollProcessing({
 					litm: data,
 				});
+				report.failed += automation.failed;
 				this.dispatch("postRollProcessed", {
 					rollId: data.rollId,
 					targetUserId: senderId,

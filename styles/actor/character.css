@@ -177,6 +177,67 @@
 		margin-top: auto;
 		filter: drop-shadow(0 4px 7px rgb(0 0 0 / 55%));
 	}
+	& button.litm--character-rotes-tab[data-click="open"] {
+		--litm-rotes-tab-background: radial-gradient(
+				ellipse 120px 32px at 56% 50%,
+				rgb(0 0 0 / 22%),
+				transparent 72%
+			), linear-gradient(37deg, rgb(105 57 40 / 34%), transparent 40%),
+			linear-gradient(to bottom, rgb(61 45 37 / 10%), rgb(22 21 20 / 30%)),
+			url("../../assets/media/paper-dark.webp") center 74% / 360px auto repeat;
+
+		position: absolute;
+		z-index: 0;
+		left: -434px;
+		top: 263px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		width: 214px;
+		height: 70px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 38px 0 0 0;
+		appearance: none;
+		background: var(--litm-rotes-tab-background);
+		color: var(--litm-color-primary-bg);
+		font-family: var(--litm-font-accent);
+		font-size: var(--font-size-20);
+		text-shadow: 4px 3px 3px rgb(0 0 0 / 20%);
+		outline: none;
+		box-shadow: none;
+		cursor: pointer;
+		translate: 218px 0;
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition: translate 0.35s ease, opacity 0.2s ease, visibility 0s linear
+			0.35s, filter 0.15s ease;
+
+		&.expanded {
+			translate: 0 0;
+			opacity: 1;
+			visibility: visible;
+			pointer-events: auto;
+			transition: translate 0.35s ease, opacity 0.2s ease, visibility 0s, filter
+				0.15s ease;
+		}
+
+		& i {
+			font-size: 27px;
+			color: #d4a75e;
+		}
+
+		&:is(:hover, :focus, :focus-visible, :active) {
+			background: var(--litm-rotes-tab-background);
+			color: var(--litm-color-primary-bg);
+			outline: none;
+			box-shadow: none;
+			filter: brightness(1.12);
+		}
+	}
 
 	& button.litm--notes-card-tab[data-click="toggle-notes-card"] {
 		--litm-notes-tab-background: linear-gradient(

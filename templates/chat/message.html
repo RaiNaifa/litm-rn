@@ -1,5 +1,6 @@
-<div class="litm dice-roll{{#if safeCamp}} litm--safe-camp-roll{{/if}}" data-type="{{type}}" data-result="{{#if safeCamp}}safe-camp{{else}}{{outcome.label}}{{/if}}" {{#unless rote}}data-action="expandRoll"{{/unless}}>
-	{{#if safeCamp}}
+<div class="litm dice-roll{{#if safeCamp}} litm--safe-camp-roll{{/if}}{{#if simple}} litm--simple-rote-roll{{/if}}" data-type="{{type}}" data-result="{{#if simple}}{{#if (eq outcome.label 'success')}}success{{else}}failure{{/if}}{{else if safeCamp}}safe-camp{{else}}{{outcome.label}}{{/if}}" {{#unless rote}}data-action="expandRoll"{{/unless}}>
+	{{#if simple}}
+	{{else if safeCamp}}
 	{{else if effect}}
 	<div class="dice-effect litm--reaction-effect-before">
 		<p><em>{{localize effect.description}}</em></p>
@@ -11,10 +12,10 @@
 	{{/if}}
 	<div class="dice-result">
 		<div class="dice-formula dice-total">
-			{{#if safeCamp}}{{localize "Litm.camp.without-roll"}}{{else}}{{total}}{{/if}}
+			{{#if (or safeCamp simple)}}{{localize "Litm.camp.without-roll"}}{{else}}{{total}}{{/if}}
 		</div>
 		{{{tooltip}}}
-		<h4 class="dice-total {{#if safeCamp}}success litm--safe-camp-result{{else}}{{outcome.label}}{{/if}}">
+		{{#unless simple}}<h4 class="dice-total {{#if safeCamp}}success litm--safe-camp-result{{else}}{{outcome.label}}{{/if}}">
 			{{#if safeCamp}}
 			<i class="fas fa-shield-heart"></i>
 			<span>{{power}} {{localize 'Litm.tags.power'}}</span>
@@ -22,10 +23,10 @@
 			{{#unless (eq type 'reaction')}}<span>{{#if (eq type "sacrifice")}}
 				{{localize (concat "Litm.ui.sacrifice-outcome-" outcome.label)}}
 				{{else}}{{localize outcome.label}}{{/if}}</span>{{/unless}}
-			{{#unless (or (eq type 'quick') (eq type 'sacrifice'))}}<span>{{power}}
+			{{#unless (or (eq type 'quick') (eq type 'sacrifice') (eq type 'simple'))}}<span>{{power}}
 				{{localize 'Litm.tags.power'}}</span>{{/unless}}
 			{{/if}}
-		</h4>
+		</h4>{{/unless}}
 		{{#if (eq type "sacrifice")}}
 		<div class="litm--sacrifice-chat">
 			<p><strong>{{localize "Litm.ui.sacrifice-level"}}:</strong> {{sacrifice.levelLabel}}</p>
@@ -83,14 +84,14 @@
 		{{#if rote.effects.length}}
 		<details><summary>{{localize 'Litm.rote.roll-effects'}}</summary>
 			{{#each rote.effects as |entry|}}
-			<div class="litm--chat-rote-entry"><b>{{entry.label}}</b> {{{entry.html}}}</div>
+			<div class="litm--chat-rote-entry litm--chat-rote-effect"><span class="litm--chat-rote-effect-type">{{entry.label}}</span> <div class="litm--chat-rote-effect-description">{{{entry.html}}}</div></div>
 			{{/each}}
 		</details>
 		{{/if}}
 		{{#if rote.consequences.length}}
 		<details><summary>{{localize 'Litm.rote.roll-consequences'}}</summary>
 			{{#each rote.consequences as |html|}}
-			<div class="litm--chat-rote-entry">{{{html}}}</div>
+			<div class="litm--chat-rote-entry litm--chat-rote-consequence"><img src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt=""> <div class="litm--chat-rote-consequence-text">{{{html}}}</div></div>
 			{{/each}}
 		</details>
 		{{/if}}

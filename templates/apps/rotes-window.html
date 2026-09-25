@@ -1,0 +1,11 @@
+<div class="litm--rotes-window-body">
+	<h2>{{localize "Litm.rote.window-title"}}</h2>
+	<p>{{localize "Litm.rote.window-hint"}}</p>
+	{{#if members.length}}<select data-rotes-actor aria-label="{{localize 'Litm.rote.window-actor'}}">{{#each members as |member|}}<option value="{{member.id}}" {{#if (eq member.id @root.actor.id)}}selected{{/if}}>{{member.name}}</option>{{/each}}</select>{{/if}}
+	<div class="litm--rotes-window-list">{{#each rotes as |rote|}}
+		<div class="litm--rotes-window-card{{#unless rote.system.isActive}} inactive{{/unless}}">
+			<button type="button" draggable="true" data-rotes-use="{{rote.uuid}}" data-rotes-name="{{rote.name}}" data-rotes-img="{{rote.img}}" data-tooltip="<strong>{{rote.name}}</strong><br>{{localize 'Litm.rote.window-use-click'}}<br>{{localize 'Litm.rote.window-use-drag'}}" aria-label="{{rote.name}}"><img src="{{rote.img}}" alt=""></button>
+			<div class="litm--rotes-window-actions"><button type="button" data-rotes-export="{{rote.uuid}}" data-tooltip="{{localize 'Litm.rote.export-world'}}" aria-label="{{localize 'Litm.rote.export-world'}}"><i class="fa-solid fa-file-export"></i></button><button type="button" data-rotes-edit="{{rote.uuid}}" data-tooltip="{{localize 'Litm.rote.roll-edit'}}" aria-label="{{localize 'Litm.rote.roll-edit'}}"><i class="fa-regular fa-pen-to-square"></i></button></div>
+		</div>
+	{{else}}<p>{{localize "Litm.rote.window-empty"}}</p>{{/each}}</div>
+</div>

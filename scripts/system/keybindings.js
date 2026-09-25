@@ -76,6 +76,48 @@ export class KeyBindings {
 			restricted: false,
 			precedence: CONST.KEYBINDING_PRECEDENCE.PRIORITY,
 		});
+		game.keybindings.register("litm-rn", "openRotesWindow", {
+			name: t("Litm.rote.window-title"),
+			hint: t("Litm.rote.window-keybinding-hint"),
+			editable: [],
+			onDown: () => {
+				let actor = canvas?.tokens?.controlled?.[0]?.actor;
+				if (actor?.type !== "character" || (!game.user.isGM && !actor.isOwner))
+					actor = null;
+				if (!actor && game.user.isGM && canvas?.mousePosition)
+					actor =
+						canvas.tokens?.placeables?.find(
+							(token) =>
+								token.hitArea?.contains(
+									canvas.mousePosition.x,
+									canvas.mousePosition.y,
+								) && token.actor?.type === "character",
+						)?.actor ?? null;
+				if (!actor && game.user.isGM) {
+					let fellowshipId = game.settings.get("litm-rn", "selectedFellowship");
+					if (!fellowshipId)
+						fellowshipId = game.actors.find(
+							(entry) =>
+								entry.type === "character" && entry.system.fellowshipId,
+						)?.system.fellowshipId;
+					actor =
+						(fellowshipId &&
+							game.actors.find(
+								(entry) =>
+									entry.type === "character" &&
+									entry.system.fellowshipId === fellowshipId,
+							)) ??
+						null;
+				}
+				if (!actor && !game.user.isGM) actor = game.user.character;
+				if (actor) game.litm.RotesWindow.toggle(actor.id);
+				else ui.notifications.warn(t("Litm.ui.warn-no-character"));
+				return true;
+			},
+			onUp: () => {},
+			restricted: false,
+			precedence: CONST.KEYBINDING_PRECEDENCE.PRIORITY,
+		});
 
 		game.keybindings.register("litm-rn", "openTagManager", {
 			name: t("Litm.ui.manage-tags"),

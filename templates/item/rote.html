@@ -1,4 +1,23 @@
 <div class="litm--rote-sheet">
+	{{#if automationView}}
+	<section class="litm--rote-automation">
+		<div class="litm--rote-automation-heading">
+			<h2>{{localize "Litm.rote.automation-title"}}</h2>
+			<button type="button" data-action="toggleAutomation" data-tooltip="{{localize 'Litm.rote.back-to-item'}}" aria-label="{{localize 'Litm.rote.back-to-item'}}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+		</div>
+		<p>{{localize "Litm.rote.automation-hint"}}</p>
+		<p class="litm--rote-automation-api">{{localize "Litm.rote.automation-api"}} <code>context.mode</code>, <code>context.rollType</code>, <code>context.outcome</code>, <code>context.roteName</code>, <code>context.actorId</code>, <code>context.messageId</code>, <code>api.getActor()</code>.</p>
+		<div class="litm--rote-automation-script-heading">
+			<label for="rote-automation-script">{{localize "Litm.rote.automation-script"}}</label>
+			{{#if canEdit}}<button type="button" data-rote-script-save><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{localize "Litm.rote.automation-save-script"}}</button>{{/if}}
+		</div>
+		<code-mirror id="rote-automation-script" data-rote-script language="javascript" managed {{#unless canEdit}}readonly{{/unless}}>{{automation.script}}</code-mirror>
+		<h3>{{localize "Litm.rote.automation-macros"}}</h3>
+		<ol>{{#each automationMacros as |macro index|}}<li><div class="litm--rote-automation-macro-row">{{#if macro.canOpen}}<button type="button" class="litm--rote-automation-macro-open" data-rote-macro-open="{{macro.uuid}}" data-tooltip="{{localize 'Litm.rote.automation-open-macro'}}">{{macro.name}}</button>{{else}}<span>{{macro.name}}</span>{{/if}}{{#if @root.canEdit}}<button type="button" data-rote-macro-remove="{{index}}" aria-label="{{localize 'Litm.ui.delete'}}"><i class="fa-solid fa-trash"></i></button>{{/if}}</div></li>{{/each}}</ol>
+		{{#if canEdit}}<div class="litm--rote-automation-add"><input data-rote-macro-uuid type="text" placeholder="Macro UUID" aria-label="Macro UUID"><button type="button" data-rote-macro-add>{{localize "Litm.rote.automation-add-macro"}}</button></div>{{/if}}
+		{{#if canEdit}}<div class="litm--rote-automation-drop" data-rote-macro-drop>{{localize "Litm.rote.automation-drop-macro"}}</div>{{/if}}
+	</section>
+	{{else}}
 	{{#if isLinked}}<div class="litm--rote-top-controls">
 		<label class="litm--rote-active">
 			<input type="checkbox" name="system.isActive" {{checked system.isActive}} {{#unless canEdit}}disabled{{/unless}}>
@@ -102,4 +121,5 @@
 			{{/each}}
 		</ul>
 	</section>
+	{{/if}}
 </div>

@@ -1310,6 +1310,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				this.element
 					.querySelector(".litm--character-notes-card")
 					?.classList.toggle("expanded", this.#notesCardExpanded);
+				this.element
+					.querySelector(".litm--character-rotes-tab")
+					?.classList.toggle("expanded", this.#notesCardExpanded);
 				t.classList.toggle("active", this.#notesCardExpanded);
 				break;
 			case "add-noticed-tag":
@@ -2658,6 +2661,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				break;
 			case "roll":
 				this.renderRollDialog();
+				break;
+			case "rotes":
+				game.litm.RotesWindow.toggle(this.actor.id);
 				break;
 		}
 	}

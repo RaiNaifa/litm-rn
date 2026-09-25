@@ -166,7 +166,6 @@ export class LitmSettings {
 			type: Boolean,
 			default: false,
 		});
-
 		game.settings.register("litm-rn", "defaultActorType", {
 			name: "Litm.settings.default-actor-type",
 			hint: "Litm.settings.default-actor-type-hint",

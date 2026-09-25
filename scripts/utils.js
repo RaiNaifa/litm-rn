@@ -27,6 +27,17 @@ export function localize(...key) {
 	return key.map((k) => game.i18n.localize(k)).join(" ");
 }
 
+/** Find the on-scene token for an actor, preferring its selected token. */
+export function getActorTokenId(actorId, speakerTokenId = null) {
+	const tokens = globalThis.canvas?.tokens;
+	return (
+		tokens?.controlled?.find((token) => token.actor?.id === actorId)?.id ??
+		speakerTokenId ??
+		tokens?.placeables?.find((token) => token.actor?.id === actorId)?.id ??
+		null
+	);
+}
+
 export function sortByName(a, b) {
 	return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
 }

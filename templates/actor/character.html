@@ -490,6 +490,10 @@
 			</div>
 		</div>
 	{{/if}}
+	<button type="button" class="litm--character-rotes-tab{{#if notesCard.expanded}} expanded{{/if}}" data-click="open" data-id="rotes" aria-label="{{localize 'Litm.rote.window-title'}}">
+		<span>{{localize "Litm.rote.window-title"}}</span>
+		<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+	</button>
 	<div class="litm--character-backpack-card litm--character-notes-card{{#if notesCard.expanded}} expanded{{/if}}{{#if (eq notesCard.id backpackHovered)}} hovered{{/if}}"
 		data-id="notes" data-item-id="notes">
 		<div class="litm--character-card-transition" aria-hidden="true"></div>
