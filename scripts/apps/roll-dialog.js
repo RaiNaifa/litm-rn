@@ -1901,15 +1901,19 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			this.#revokeRoteApproval();
 			this.#saveState();
 			this._dispatchUpdate();
-			ui.notifications.warn(t("Litm.rote.roll-unavailable"));
 		}
 		const displayedRotes = await Promise.all(
 			roteCandidates.map((rote) => this.#displayRollRote(rote)),
 		);
 		if (this._currentTab !== "group" && !this._subtab) {
-			const catalogTags = [...heroGroups, ...storyThemeGroups].flatMap(
-				(group) => [group.themeTag, ...(group.powerTags ?? [])],
+			const sharedGroups = fellowGroups.filter(
+				(group) => group.type === "shared",
 			);
+			const catalogTags = [
+				...heroGroups,
+				...storyThemeGroups,
+				...sharedGroups,
+			].flatMap((group) => [group.themeTag, ...(group.powerTags ?? [])]);
 			await Promise.all(
 				catalogTags.map(async (tag) => {
 					if (
@@ -2796,13 +2800,24 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				(rote) => rote.key === this._selectedRoteKey,
 			);
 			if (!selectedRote) {
+				const selectedRoteKey = this._selectedRoteKey;
+				const tagStillSelected = [...this.#getSelection()].some(
+					([ref, tagMap]) =>
+						[...tagMap].some(
+							([tagId, state]) =>
+								`${ref}::${tagId}` === selectedRoteKey &&
+								["positive", "burned"].includes(state),
+						),
+				);
 				this._selectedRoteKey = "";
 				this.#revokeRoteApproval();
 				this.#saveState();
 				this._dispatchUpdate();
-				this.render();
-				ui.notifications.warn(t("Litm.rote.roll-unavailable"));
-				return;
+				if (tagStillSelected) {
+					this.render();
+					ui.notifications.warn(t("Litm.rote.roll-unavailable"));
+					return;
+				}
 			}
 		}
 		const rollType = this.camp ? "tracked" : (type ?? this.type);

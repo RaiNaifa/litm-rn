@@ -87,6 +87,23 @@ function actorSnapshot(ref, tagId) {
 	return null;
 }
 
+function sharedSnapshot(targetActorId, shareId) {
+	const target = game.actors.get(targetActorId);
+	const sharedTag = game.litm?.getAcceptedSharedTag?.(targetActorId, shareId);
+	if (
+		target?.type !== "character" ||
+		sharedTag?.id !== shareId ||
+		sharedTag.targetActorId !== targetActorId ||
+		!["themeTag", "powerTag"].includes(sharedTag.type) ||
+		sharedTag.isScratched ||
+		!sharedTag.sourceTagId
+	)
+		return null;
+	const sender = game.actors.get(sharedTag.senderActorId);
+	if (sender?.type !== "character") return null;
+	return actorSnapshot(sender.uuid, sharedTag.sourceTagId);
+}
+
 /** Return the active Rote for a selected power tag without granting Item access. */
 export async function getRollRote(
 	ref,
@@ -94,13 +111,26 @@ export async function getRollRote(
 	{ fresh = false, actorId = null } = {},
 ) {
 	if (!ref || !tagId) return null;
-	if (!ref.startsWith("story-theme-")) return actorSnapshot(ref, tagId);
+	const shared = ref === "fellowship";
+	if (!shared && !ref.startsWith("story-theme-"))
+		return actorSnapshot(ref, tagId);
+	const sharedTag = shared
+		? game.litm?.getAcceptedSharedTag?.(actorId, tagId)
+		: null;
+	if (shared && !sharedTag) return null;
+	if (shared && !game.user.isGM) {
+		const sender = game.actors.get(sharedTag?.senderActorId);
+		if (sender?.testUserPermission(game.user, "OBSERVER"))
+			return sharedSnapshot(actorId, tagId);
+	}
 	const key = `${game.user.isGM ? "gm" : actorId}:${ref}:${tagId}`;
 	const cached = worldCache.get(key);
 	if (!fresh && cached && cached.expires > Date.now()) return cached.value;
 	const generation = cacheGeneration;
 	if (game.user.isGM) {
-		const result = await worldSnapshot(ref, tagId);
+		const result = shared
+			? sharedSnapshot(actorId, tagId)
+			: await worldSnapshot(ref, tagId);
 		if (generation !== cacheGeneration) return null;
 		worldCache.set(key, { value: result, expires: Number.POSITIVE_INFINITY });
 		return result;
@@ -145,7 +175,10 @@ export function registerRoteRollHandlers() {
 		if (!sender || !actor?.testUserPermission(sender, "OWNER")) return;
 		let rote = null;
 		try {
-			rote = await worldSnapshot(data.ref, data.tagId, sender);
+			rote =
+				data.ref === "fellowship"
+					? sharedSnapshot(data.actorId, data.tagId)
+					: await worldSnapshot(data.ref, data.tagId, sender);
 		} catch (error) {
 			console.error(error);
 		}
@@ -184,8 +217,25 @@ export function registerRoteRollHandlers() {
 			Sockets.dispatch("invalidateRollRotes", {});
 	});
 	Hooks.on("updateActor", (actor) => {
-		if (actor.type === "character") Hooks.callAll("litmRoteRollUpdated");
+		if (actor.type !== "character") return;
+		const hasAcceptedShare = game.messages.some((message) => {
+			const share = message.getFlag("litm-rn", "tagShare");
+			return share?.status === "accepted" && share.senderActorId === actor.id;
+		});
+		if (!hasAcceptedShare) {
+			Hooks.callAll("litmRoteRollUpdated");
+			return;
+		}
+		invalidateWorldCache();
+		if (game.user.isGM && activeGM()?.id === game.user.id)
+			Sockets.dispatch("invalidateRollRotes", {});
 	});
+	for (const event of ["updateChatMessage", "deleteChatMessage"]) {
+		Hooks.on(event, (message) => {
+			if (!message.getFlag("litm-rn", "tagShare")) return;
+			invalidateWorldCache();
+		});
+	}
 	Hooks.on("updateSetting", (setting) => {
 		if (setting.key === "litm-rn.storytags") invalidateWorldCache();
 	});
