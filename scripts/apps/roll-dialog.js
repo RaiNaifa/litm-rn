@@ -1,3 +1,4 @@
+import { getRollRote } from "../item/rote/rote-roll.js";
 import { Sockets } from "../system/sockets.js";
 import {
 	dispatch,
@@ -19,6 +20,17 @@ const getSceneForSelectionRef = (ref) => {
 };
 const currentSceneSelectionRef = () =>
 	canvas.scene?.id ? `scene:${canvas.scene.id}` : "scene";
+const hasVisibleRoteHTML = (value) => {
+	if (!value?.trim()) return false;
+	const container = document.createElement("div");
+	container.innerHTML = value;
+	return Boolean(
+		container.textContent?.trim() ||
+			container.querySelector(
+				"img, svg, video, audio, iframe, canvas, object, embed",
+			),
+	);
+};
 
 export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	static #instances = new Set();
@@ -133,6 +145,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		campLabel = "",
 		campFellowshipId = null,
 		isCampAction = false,
+		rote = null,
 	}) {
 		const {
 			burntTags,
@@ -277,6 +290,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				rollId: foundry.utils.randomID(),
 				sacrifice,
 				isGroup,
+				rote: isGroup ? null : rote,
 			},
 		);
 
@@ -422,6 +436,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	_currentTab = "quick";
 	_sourceTab = "hero";
 	_tooltipEl = null;
+	_roteTooltipEls = [];
 	_sacrificeSyncTimeout = null;
 	_storyTagsHookId = null;
 	_subtab = ""; // "" | "sacrifice" | "reaction"
@@ -434,6 +449,8 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		proposerId: "",
 	};
 	_rollApproval = { state: "draft", power: null, userId: "" };
+	_selectedRoteKey = "";
+	_roteCandidates = [];
 
 	constructor(actorId, options = {}) {
 		const {
@@ -474,6 +491,11 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				if (this.rendered) this.render({ force: true });
 			});
 		}
+		if (this._roteHookId == null) {
+			this._roteHookId = Hooks.on("litmRoteRollUpdated", () => {
+				if (this.rendered) this.render({ force: true });
+			});
+		}
 	}
 
 	async close(options) {
@@ -481,6 +503,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		clearTimeout(this._sacrificeSyncTimeout);
 		game.tooltip?.deactivate?.();
 		this._cleanupTooltip();
+		this.#cleanupRoteTooltips();
 		if (this._storyTagsHookId !== undefined) {
 			Hooks.off("litmStoryTagsUpdated", this._storyTagsHookId);
 			this._storyTagsHookId = undefined;
@@ -488,6 +511,10 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		if (this._selectionHookId !== undefined) {
 			Hooks.off("litmRollSelectionUpdated", this._selectionHookId);
 			this._selectionHookId = undefined;
+		}
+		if (this._roteHookId !== undefined) {
+			Hooks.off("litmRoteRollUpdated", this._roteHookId);
+			this._roteHookId = undefined;
 		}
 		LitmRollDialog.#instances.delete(this);
 		return super.close(options);
@@ -988,6 +1015,123 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 
 		return tags;
+	}
+
+	async #rollRoteCandidates(tags, { fresh = false } = {}) {
+		if (this._currentTab === "group" || this._subtab || this.camp) return [];
+		const eligible = tags.filter(
+			(tag) =>
+				["themeTag", "powerTag"].includes(tag.type) &&
+				["positive", "burned"].includes(tag.state) &&
+				!tag.isScratched &&
+				tag.id &&
+				tag._ref,
+		);
+		const resolved = await Promise.all(
+			eligible.map(async (tag) => {
+				const rote = await getRollRote(tag._ref, tag.id, {
+					fresh,
+					actorId: this.actorId,
+				});
+				return rote
+					? {
+							...rote,
+							tagId: tag.id,
+							ref: tag._ref,
+							key: `${tag._ref}::${tag.id}`,
+						}
+					: null;
+			}),
+		);
+		return resolved.filter(Boolean);
+	}
+
+	async #displayRollRote(rote, { full = false } = {}) {
+		const enrich = (html) =>
+			foundry.applications.ux.TextEditor.implementation.enrichHTML(html || "", {
+				secrets: false,
+			});
+		const descriptionHTML = await enrich(rote.description);
+		const hasDescription = hasVisibleRoteHTML(descriptionHTML);
+		const hasPowerHelping = Boolean(rote.powerHelping?.trim());
+		const hasPowerHindering = Boolean(rote.powerHindering?.trim());
+		const hasPower = hasPowerHelping || hasPowerHindering;
+		let effects;
+		let consequences;
+		if (full) {
+			effects = (
+				await Promise.all(
+					(rote.effects ?? []).map(async (effect) => ({
+						...effect,
+						typeLabel: t(`Litm.rote.types.${effect.type}`),
+						descriptionHTML: await enrich(effect.description),
+					})),
+				)
+			).filter((effect) => hasVisibleRoteHTML(effect.descriptionHTML));
+			consequences = (
+				await Promise.all(
+					(rote.consequences ?? []).map((value) => enrich(value)),
+				)
+			).filter(hasVisibleRoteHTML);
+		}
+		return {
+			...rote,
+			selected: this._selectedRoteKey === rote.key,
+			descriptionHTML: hasDescription ? descriptionHTML : "",
+			...(full ? { effects, consequences } : {}),
+			hasDescription,
+			hasPractitioners: Boolean(rote.practitioners?.trim()),
+			hasPower,
+			hasPowerHelping,
+			hasPowerHindering,
+			hasPreview: hasDescription || hasPower,
+			previewPowerHelping: hasPowerHelping ? rote.powerHelping : "—",
+			previewPowerHindering: hasPowerHindering ? rote.powerHindering : "—",
+		};
+	}
+
+	async #showRollRote(key) {
+		const rote = this._roteCandidates.find((entry) => entry.key === key);
+		if (!rote) return;
+		const data = await this.#displayRollRote(rote, { full: true });
+		const content = await foundry.applications.handlebars.renderTemplate(
+			"systems/litm-rn/templates/apps/roll-rote-viewer.html",
+			data,
+		);
+		const doc = getOwningDocument(this.element);
+		const dark =
+			doc.querySelector("#interface")?.classList.contains("theme-dark") ||
+			doc.body.classList.contains("theme-dark");
+		foundry.applications.api.DialogV2.wait({
+			window: { title: rote.name },
+			position: { width: 420 },
+			classes: [
+				"litm",
+				"litm--roll-rote-viewer",
+				dark ? "theme-dark" : "theme-light",
+			],
+			content,
+			buttons: [
+				{ action: "close", label: t("Litm.rote.close"), default: true },
+			],
+			rejectClose: false,
+		});
+	}
+
+	async #openRollRote(key) {
+		const roteData = this._roteCandidates.find((entry) => entry.key === key);
+		if (!roteData) return;
+		let rote = null;
+		try {
+			rote = await fromUuid(roteData.uuid);
+		} catch (_error) {
+			// The player may use a linked world Rote without Item access.
+		}
+		if (rote?.testUserPermission(game.user, "OWNER")) {
+			rote.sheet.render({ force: true });
+			return;
+		}
+		ui.notifications.warn(t("Litm.rote.roll-no-edit-access"));
 	}
 
 	get basePower() {
@@ -1734,6 +1878,53 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
 		// Entries remain in this list even with an empty state until explicitly removed.
 		const flatSelectedTags = this.#getAllSelectedTags();
+		const roteCandidates = await this.#rollRoteCandidates(flatSelectedTags);
+		this._roteCandidates = roteCandidates;
+		if (this._currentTab !== "group" && !this._subtab) {
+			await Promise.all(
+				flatSelectedTags.map(async (tag) => {
+					if (!["themeTag", "powerTag"].includes(tag.type) || tag.isScratched)
+						return;
+					tag.hasRollRote = Boolean(
+						await getRollRote(tag._ref, tag.id, { actorId: this.actorId }),
+					);
+				}),
+			);
+		}
+		if (
+			this._currentTab !== "group" &&
+			!this._subtab &&
+			this._selectedRoteKey &&
+			!roteCandidates.some((rote) => rote.key === this._selectedRoteKey)
+		) {
+			this._selectedRoteKey = "";
+			this.#revokeRoteApproval();
+			this.#saveState();
+			this._dispatchUpdate();
+			ui.notifications.warn(t("Litm.rote.roll-unavailable"));
+		}
+		const displayedRotes = await Promise.all(
+			roteCandidates.map((rote) => this.#displayRollRote(rote)),
+		);
+		if (this._currentTab !== "group" && !this._subtab) {
+			const catalogTags = [...heroGroups, ...storyThemeGroups].flatMap(
+				(group) => [group.themeTag, ...(group.powerTags ?? [])],
+			);
+			await Promise.all(
+				catalogTags.map(async (tag) => {
+					if (
+						!tag?.id ||
+						!tag._ref ||
+						tag.isScratched ||
+						!["themeTag", "powerTag"].includes(tag.type)
+					)
+						return;
+					tag.hasRollRote = Boolean(
+						await getRollRote(tag._ref, tag.id, { actorId: this.actorId }),
+					);
+				}),
+			);
+		}
 
 		// ── GM actor tabs ──
 		const actorTabs = [];
@@ -1817,6 +2008,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			subtab: this._subtab,
 			sourceTab: this._sourceTab,
 			flatSelectedTags,
+			roteCandidates: displayedRotes,
 			heroGroups,
 			hasHeroStoryThemes: heroGroups.some(
 				(group) => group.type === "storyTheme",
@@ -1885,6 +2077,55 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			const formData = new foundry.applications.ux.FormDataExtended(form);
 			this._processSubmitData(event, form, formData);
 		});
+		form.querySelectorAll("[data-roll-rote-select]").forEach((button) => {
+			button.addEventListener("click", () => {
+				const key = button.dataset.rollRoteSelect;
+				if (!this._roteCandidates.some((rote) => rote.key === key)) return;
+				this._selectedRoteKey = this._selectedRoteKey === key ? "" : key;
+				this.#revokeRoteApproval();
+				this.#saveState();
+				this._dispatchUpdate();
+				this.render();
+			});
+		});
+		form.querySelectorAll("[data-roll-rote-view]").forEach((button) => {
+			button.addEventListener("click", () =>
+				this.#showRollRote(button.dataset.rollRoteView),
+			);
+		});
+		form.querySelectorAll("[data-roll-rote-open]").forEach((button) => {
+			button.addEventListener("click", () =>
+				this.#openRollRote(button.dataset.rollRoteOpen),
+			);
+		});
+		this.#cleanupRoteTooltips();
+		for (const wrapper of form.querySelectorAll(
+			".litm--roll-rote-image-wrap",
+		)) {
+			const button = wrapper.querySelector(".litm--roll-rote-image");
+			const tooltip = wrapper.querySelector(".litm--roll-rote-tooltip");
+			if (!button || !tooltip) continue;
+			const doc = getOwningDocument(button);
+			tooltip.classList.toggle(
+				"theme-dark",
+				doc.querySelector("#interface")?.classList.contains("theme-dark") ||
+					doc.body.classList.contains("theme-dark"),
+			);
+			doc.body.appendChild(tooltip);
+			this._roteTooltipEls.push(tooltip);
+			button.addEventListener("mouseenter", () => {
+				tooltip.style.display = "block";
+				const rect = button.getBoundingClientRect();
+				const width = tooltip.offsetWidth;
+				const height = tooltip.offsetHeight;
+				const win = getOwningWindow(button);
+				tooltip.style.left = `${Math.max(12, Math.min(rect.left, win.innerWidth - width - 12))}px`;
+				tooltip.style.top = `${rect.bottom + height + 8 < win.innerHeight ? rect.bottom + 8 : Math.max(12, rect.top - height - 8)}px`;
+			});
+			button.addEventListener("mouseleave", () => {
+				tooltip.style.display = "none";
+			});
+		}
 
 		// Tab switching (main tabs: clear subtab)
 		form.querySelectorAll("[data-tab]:not([data-subtab])").forEach((el) => {
@@ -2280,6 +2521,19 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				if (t.id === id) return t;
 			}
 		}
+		// Embedded Story Themes use the actor's roll-selection ref as well.
+		for (const story of actor.items ?? []) {
+			if (story.type !== "story" || story.system.isArchived) continue;
+			for (const tag of [
+				story.system.themeTag,
+				...(story.system.powerTags ?? []),
+			]) {
+				if (tag?.id === id) return tag;
+			}
+			for (const tag of story.system.weaknessTags ?? []) {
+				if (tag.id === id) return tag;
+			}
+		}
 		// Character backpack tags
 		for (const t of actor.system.backpackTags ?? []) {
 			if (t.id === id) return t;
@@ -2486,6 +2740,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		this._modifier = 0;
 		this._might = 0;
 		this._tradeMode = "";
+		this._selectedRoteKey = "";
 		this._sacrifice = {
 			level: "painful",
 			themeId: "",
@@ -2534,6 +2789,22 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		const isGroup = this._currentTab === "group";
 		const groupData = isGroup ? this.#getAllGroupTags() : null;
 		const tags = isGroup ? groupData.tags : this.#getAllSelectedTags();
+		let selectedRote = null;
+		if (shouldRoll && !isGroup && !this._subtab && this._selectedRoteKey) {
+			const candidates = await this.#rollRoteCandidates(tags, { fresh: true });
+			selectedRote = candidates.find(
+				(rote) => rote.key === this._selectedRoteKey,
+			);
+			if (!selectedRote) {
+				this._selectedRoteKey = "";
+				this.#revokeRoteApproval();
+				this.#saveState();
+				this._dispatchUpdate();
+				this.render();
+				ui.notifications.warn(t("Litm.rote.roll-unavailable"));
+				return;
+			}
+		}
 		const rollType = this.camp ? "tracked" : (type ?? this.type);
 		const typeLabel =
 			rollType === "reaction" || rollType === "mitigate"
@@ -2573,6 +2844,15 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				: "",
 			campFellowshipId: this.camp?.fellowshipId ?? null,
 			isCampAction: !!this.camp,
+			rote: selectedRote
+				? {
+						uuid: selectedRote.uuid,
+						name: selectedRote.name,
+						img: selectedRote.img,
+						effects: selectedRote.effects,
+						consequences: selectedRote.consequences,
+					}
+				: null,
 		};
 
 		if (shouldRoll) {
@@ -2712,11 +2992,19 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			modifier: this._modifier,
 			might: this._might,
 			tradeMode: this._tradeMode,
+			selectedRoteKey: this._selectedRoteKey,
 			currentTab: this._currentTab,
 			subtab: this._subtab,
 			type: this.type,
 			camp: this.camp ? foundry.utils.deepClone(this.camp) : null,
 		};
+	}
+
+	/** Require fresh moderation after the chosen Rote changes. */
+	#revokeRoteApproval() {
+		if (this._rollApproval.state !== "approved") return;
+		this._rollApproval = { state: "draft", power: null, userId: "" };
+		Sockets.dispatch("clearRollApproval", { actorId: this.actorId });
 	}
 
 	/** Permanently revoke approval as soon as total power changes. */
@@ -2739,6 +3027,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			modifier: this._modifier,
 			might: this._might,
 			tradeMode: this._tradeMode,
+			selectedRoteKey: this._selectedRoteKey,
 			sacrifice: { ...this._sacrifice },
 			rollApproval: { ...this._rollApproval },
 		});
@@ -2752,12 +3041,14 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			this._modifier = state.modifier ?? 0;
 			this._might = state.might ?? 0;
 			this._tradeMode = state.tradeMode ?? "";
+			this._selectedRoteKey = state.selectedRoteKey ?? "";
 			this._sacrifice = { ...this._sacrifice, ...state.sacrifice };
 			this._rollApproval = { ...this._rollApproval, ...state.rollApproval };
 		} else {
 			this._modifier = 0;
 			this._might = 0;
 			this._tradeMode = "";
+			this._selectedRoteKey = "";
 			this._sacrifice = {
 				level: "painful",
 				themeId: "",
@@ -2776,6 +3067,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			modifier: this._modifier,
 			might: this._might,
 			tradeMode: this._tradeMode,
+			selectedRoteKey: this._selectedRoteKey,
 			camp: this.camp ? foundry.utils.deepClone(this.camp) : null,
 		});
 	}
@@ -2998,6 +3290,11 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		this._tooltipEl = null;
 	}
 
+	#cleanupRoteTooltips() {
+		for (const tooltip of this._roteTooltipEls) tooltip.remove();
+		this._roteTooltipEls = [];
+	}
+
 	/** Build the groupSelected object for the Group tab top block */
 	#buildGroupSelected(fellowshipId, fellowshipItem) {
 		const result = { heroes: [], fellowship: [], story: [] };
@@ -3215,6 +3512,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		modifier,
 		might,
 		tradeMode,
+		selectedRoteKey,
 		sacrifice,
 		openSacrifice = false,
 		rollApproval,
@@ -3229,6 +3527,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				modifier: modifier ?? state.modifier ?? 0,
 				might: might ?? state.might ?? 0,
 				tradeMode: tradeMode ?? state.tradeMode ?? "",
+				selectedRoteKey: selectedRoteKey ?? state.selectedRoteKey ?? "",
 				sacrifice: sacrifice
 					? { ...state.sacrifice, ...sacrifice }
 					: state.sacrifice,
@@ -3241,6 +3540,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		if (modifier !== undefined) this._modifier = modifier;
 		if (might !== undefined) this._might = might;
 		if (tradeMode !== undefined) this._tradeMode = tradeMode;
+		if (selectedRoteKey !== undefined) this._selectedRoteKey = selectedRoteKey;
 		if (sacrifice) this._sacrifice = { ...this._sacrifice, ...sacrifice };
 		if (rollApproval)
 			this._rollApproval = { ...this._rollApproval, ...rollApproval };

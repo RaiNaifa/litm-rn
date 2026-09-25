@@ -288,6 +288,67 @@
 	}
 }
 
+.litm.dice-roll .litm--chat-rote {
+	order: 4;
+	width: 100%;
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--litm-color-accent);
+	color: var(--litm-color-primary-bg);
+
+	& .litm--chat-rote-heading {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-family: var(--litm-font-heading);
+		font-size: var(--font-size-16);
+	}
+
+	& .litm--chat-rote-open {
+		flex: none;
+		width: 34px;
+		height: 34px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 4px;
+		background: transparent;
+		outline: none !important;
+		box-shadow: none !important;
+		overflow: hidden;
+		cursor: pointer;
+
+		&:is(:hover, :focus, :focus-visible, :active) {
+			border-radius: 4px;
+			outline: none !important;
+			box-shadow: none !important;
+		}
+
+		& img {
+			width: 34px;
+			height: 34px;
+			border-radius: inherit;
+			object-fit: cover;
+		}
+	}
+
+	& details {
+		margin-top: 6px;
+	}
+
+	& summary {
+		cursor: pointer;
+		font-family: var(--litm-font-heading);
+		font-size: 16px;
+	}
+
+	& .litm--chat-rote-entry {
+		margin: 5px 0 8px 8px;
+		font-family: var(--litm-font-text);
+		font-size: var(--font-size-14);
+	}
+}
+
 /* Moderation message */
 .chat-message.message {
 	& .gmOnly {

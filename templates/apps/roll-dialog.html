@@ -12,6 +12,7 @@
 	{{#if (eq tag.type 'might')}}{{#if tag._mightIconUrl}}<span class="litm--roll-tag-might-icon" style="background-image:url({{tag._mightIconUrl}})"></span>{{/if}}{{/if}}
 	{{#if tag.isPermanent}}<i class="litm--roll-tag-permanent-icon fas fa-infinity" data-tooltip="{{localize 'Litm.tags.isPermanent'}}"></i>{{/if}}
 	{{#if tag.isCrispy}}{{#if (eq tag.type 'powerCrispy')}}{{else if (eq tag.type 'themeCrispy')}}{{else}}<i class="litm--roll-tag-crispy-icon fas fa-hourglass-half"></i>{{/if}}{{/if}}
+	{{#if tag.hasRollRote}}<i class="litm--roll-tag-rote-icon fa-solid fa-wand-magic-sparkles" aria-label="{{localize 'Litm.rote.active-roll'}}"></i>{{/if}}
 	{{#if selectedView}}{{#unless (eq tag._canRemove false)}}<button type="button" class="litm--roll-tag-remove" data-click="remove-selected-tag" data-id="{{tag.id}}" data-ref="{{tag._ref}}" data-selection-actor-id="{{tag._selectionActorId}}" data-selection-kind="{{tag._selectionKind}}" aria-label="Remove"><i class="fas fa-xmark"></i></button>{{/unless}}{{/if}}
 </div>
 {{/inline}}
@@ -293,6 +294,39 @@
 	<div class="litm--roll-selected-tags">
 		{{#each flatSelectedTags}}{{> tagBlock tag=this selectedView=true}}{{/each}}
 		{{#unless flatSelectedTags.length}}<p class="litm--roll-empty">{{localize "Litm.ui.no-selected-tags"}}</p>{{/unless}}
+		{{#if roteCandidates.length}}
+		<div class="litm--roll-rotes">
+			{{#each roteCandidates as |rote|}}
+			<div class="litm--roll-rote-card{{#if rote.selected}} is-selected{{/if}}">
+				<div class="litm--roll-rote-image-wrap">
+					<button type="button" class="litm--roll-rote-image" data-roll-rote-view="{{rote.key}}" aria-label="{{localize 'Litm.rote.roll-preview'}}">
+						<img src="{{rote.img}}" alt="" />
+					</button>
+					{{#if rote.hasPreview}}<div class="litm litm--rote litm--roll-rote-tooltip">
+						<strong>{{rote.name}}</strong>
+						{{#if rote.hasDescription}}<div class="litm--roll-rote-description">{{{rote.descriptionHTML}}}</div>{{/if}}
+						{{#if rote.hasPower}}<div class="litm--rote-section">
+							<div class="litm--rote-divider"><span></span><label>{{localize 'Litm.rote.power'}}</label><span></span></div>
+							<div class="litm--rote-power-row litm--rote-power-row--helping">
+								<span class="litm--rote-power-icon"><img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_inactive.svg" alt=""></span>
+								<div class="litm--rote-power-text">{{rote.previewPowerHelping}}</div>
+							</div>
+							<div class="litm--rote-power-row litm--rote-power-row--hindering">
+								<span class="litm--rote-power-icon"><img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_active.svg" alt=""></span>
+								<div class="litm--rote-power-text">{{rote.previewPowerHindering}}</div>
+							</div>
+						</div>{{/if}}
+						<small class="litm--roll-rote-preview-hint">{{localize 'Litm.rote.roll-preview-hint'}}</small>
+					</div>{{/if}}
+				</div>
+				<div class="litm--roll-rote-actions">
+					<button type="button" class="litm--roll-rote-select{{#if rote.selected}} active{{/if}}" data-roll-rote-select="{{rote.key}}" aria-label="{{localize (ifThen rote.selected 'Litm.rote.roll-deactivate' 'Litm.rote.roll-select')}}" aria-pressed="{{rote.selected}}" data-tooltip="<strong>{{localize (ifThen rote.selected 'Litm.rote.roll-deactivate' 'Litm.rote.roll-select')}}</strong><br>{{localize 'Litm.rote.roll-one-active'}}"><span class="litm--roll-rote-check" aria-hidden="true"><i class="fa-solid fa-check"></i></span></button>
+					<button type="button" class="litm--roll-rote-open" data-roll-rote-open="{{rote.key}}" aria-label="{{localize 'Litm.rote.roll-edit'}}" data-tooltip="{{localize 'Litm.rote.roll-edit'}}"><i class="fa-regular fa-pen-to-square"></i></button>
+				</div>
+			</div>
+			{{/each}}
+		</div>
+		{{/if}}
 	</div>
 
 	<nav class="litm--roll-source-tabs">

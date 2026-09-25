@@ -36,6 +36,7 @@ import {
 import { FellowshipThemeData } from "./scripts/item/fellowship/fellowship-data.js";
 import { FellowshipThemeSheet } from "./scripts/item/fellowship/fellowship-sheet.js";
 import { RoteData } from "./scripts/item/rote/rote-data.js";
+import { registerRoteRollHandlers } from "./scripts/item/rote/rote-roll.js";
 import { RoteSheet } from "./scripts/item/rote/rote-sheet.js";
 import { StoryThemeData } from "./scripts/item/storytheme/storytheme-data.js";
 import { StoryThemeSheet } from "./scripts/item/storytheme/storytheme-sheet.js";
@@ -895,6 +896,7 @@ Hooks.once("init", () => {
 	LitmHooks.register();
 	WorldMigrations.register();
 	Sockets.registerListeners();
+	registerRoteRollHandlers();
 	CampDialog.register();
 
 	game.litm._restoreRollSelections();

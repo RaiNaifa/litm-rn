@@ -1,8 +1,10 @@
 import { TokenTooltip } from "../apps/token-tooltip.js";
 import {
+	changesLinkedWorldTagName,
 	deleteOwnerRotes,
 	syncLinkedRoteNames,
 	syncTagNameFromRote,
+	syncWorldStoryTagNames,
 } from "../item/rote/rote-links.js";
 import { info } from "../logger.js";
 import { dispatch, localize as t } from "../utils.js";
@@ -52,9 +54,111 @@ export class LitmHooks {
 		LitmHooks.#refreshRollOnEffectUpdate();
 		LitmHooks.#normalizeThemeProgress();
 		LitmHooks.#syncRoteNames();
+		LitmHooks.#openRoteFromRollMessage();
+	}
+
+	static #openRoteFromRollMessage() {
+		Hooks.on("renderChatMessageHTML", (_message, html) => {
+			html
+				.querySelectorAll(".litm.dice-roll:has(.litm--chat-rote)")
+				.forEach((roll) => {
+					roll.addEventListener("click", (event) => {
+						if (event.target.closest(".litm--chat-rote details")) return;
+						roll.classList.toggle("expanded");
+					});
+				});
+			html.querySelectorAll("[data-litm-rote-uuid]").forEach((button) => {
+				button.addEventListener("click", async (event) => {
+					event.stopPropagation();
+					let rote = null;
+					try {
+						rote = await fromUuid(button.dataset.litmRoteUuid);
+					} catch (_error) {
+						// Viewing the roll does not grant access to its source Item.
+					}
+					if (rote?.testUserPermission(game.user, "OBSERVER")) {
+						rote.sheet.render({ force: true });
+						return;
+					}
+					ui.notifications.warn(t("Litm.rote.roll-no-item-access"));
+				});
+			});
+		});
 	}
 
 	static #syncRoteNames() {
+		const activeGM = () =>
+			game.users.activeGM ??
+			game.users.find((user) => user.isGM && user.active);
+		const syncWorldName = async (rote, previousName, requesterId) => {
+			try {
+				await syncWorldStoryTagNames(rote);
+			} catch (error) {
+				console.error(error);
+				if (previousName !== undefined && rote.name !== previousName) {
+					try {
+						await rote.update(
+							{ name: previousName },
+							{ litmWorldRoteRollback: true },
+						);
+					} catch (rollbackError) {
+						console.error(rollbackError);
+					}
+				}
+				if (requesterId === game.user.id)
+					ui.notifications.error(t("Litm.rote.world-rename-failed"));
+				else
+					Sockets.dispatch("worldRoteNameSyncFailed", { userId: requesterId });
+			}
+		};
+		Sockets.on("worldRoteNameSyncFailed", ({ data, senderId }) => {
+			if (data.userId !== game.user.id || senderId !== activeGM()?.id) return;
+			ui.notifications.error(t("Litm.rote.world-rename-failed"));
+		});
+		Sockets.on("syncWorldRoteNames", async ({ data, senderId }) => {
+			if (activeGM()?.id !== game.user.id) return;
+			const sender = game.users.get(senderId);
+			let rote = null;
+			try {
+				rote = await fromUuid(data.uuid);
+			} catch (error) {
+				console.error(error);
+			}
+			if (
+				rote?.type !== "rote" ||
+				rote.parent?.documentName === "Actor" ||
+				!sender ||
+				!rote.testUserPermission(sender, "OWNER") ||
+				rote.name !== data.name
+			)
+				return;
+			await syncWorldName(rote, data.previousName, senderId);
+		});
+		Hooks.on("preUpdateItem", (item, changes, options) => {
+			if (
+				item.type === "story" &&
+				!(game.user.isGM && options?.litmWorldRoteNameSync) &&
+				!options?.litmWorldRoteLinkAttach
+			) {
+				if (changesLinkedWorldTagName(item, changes)) {
+					ui.notifications.warn(t("Litm.rote.world-tag-name-locked"));
+					return false;
+				}
+			}
+			if (
+				item.type !== "rote" ||
+				item.parent?.documentName === "Actor" ||
+				(game.user.isGM && options?.litmWorldRoteRollback) ||
+				changes.name === undefined ||
+				changes.name === item.name
+			)
+				return;
+			if (!activeGM()) {
+				ui.notifications.error(t("Litm.rote.world-rename-no-gm"));
+				return false;
+			}
+			options.litmWorldRoteOldName = item.name;
+		});
 		const refreshRoteOwner = (item) => {
 			if (item.type === "rote" && item.parent?.documentName === "Actor")
 				Hooks.callAll("litmActorDataUpdated", item.parent.uuid);
@@ -69,11 +173,40 @@ export class LitmHooks {
 				return;
 			syncLinkedRoteNames(actor).catch(console.error);
 		});
-		Hooks.on("updateItem", (item, changes, _options, userId) => {
+		Hooks.on("updateItem", (item, changes, options, userId) => {
 			refreshRoteOwner(item);
+			if (
+				item.type === "rote" &&
+				item.parent?.documentName !== "Actor" &&
+				!(game.user.isGM && options?.litmWorldRoteRollback) &&
+				changes.name !== undefined &&
+				userId === game.user.id
+			) {
+				if (activeGM()?.id === game.user.id)
+					syncWorldName(item, options?.litmWorldRoteOldName, userId);
+				else
+					Sockets.dispatch("syncWorldRoteNames", {
+						uuid: item.uuid,
+						name: item.name,
+						previousName: options?.litmWorldRoteOldName,
+					});
+			}
 			if (userId !== game.user.id) return;
 			if (item.type === "story") {
-				syncLinkedRoteNames(item).catch(console.error);
+				const paths = Object.keys(changes);
+				const tagsChanged =
+					changes["system.themeTag"] !== undefined ||
+					changes["system.themeTag.name"] !== undefined ||
+					changes["system.powerTags"] !== undefined ||
+					changes.system?.themeTag !== undefined ||
+					changes.system?.powerTags !== undefined ||
+					paths.some(
+						(path) =>
+							path.startsWith("system.themeTag.") ||
+							path.startsWith("system.powerTags."),
+					);
+				if (tagsChanged && !options?.litmRoteNameSync)
+					syncLinkedRoteNames(item).catch(console.error);
 			} else if (item.type === "rote" && changes.name !== undefined) {
 				syncTagNameFromRote(item).catch(console.error);
 			}

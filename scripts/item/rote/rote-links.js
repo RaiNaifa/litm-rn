@@ -17,6 +17,11 @@ const findTag = (owner, tagId) => {
 	return tags.find((tag) => tag?.id === tagId) ?? null;
 };
 
+const plainTags = (tags) =>
+	(tags ?? []).map((tag) =>
+		tag?.toObject ? tag.toObject() : foundry.utils.deepClone(tag),
+	);
+
 const makeLinkedRoteData = (source, ownerUuid, tagId, name) => {
 	const data = source?.toObject() ?? { type: "rote" };
 	delete data._id;
@@ -51,19 +56,63 @@ export function getWorldRoteLink(owner, tagId) {
 	return owner.getFlag(FLAG_SCOPE, WORLD_LINKS_KEY)?.[tagId] ?? null;
 }
 
-async function setWorldRoteLink(owner, tagId, uuid) {
-	const links = { ...(owner.getFlag(FLAG_SCOPE, WORLD_LINKS_KEY) ?? {}) };
+async function setWorldRoteLink(owner, tagId, uuid, name) {
+	const previousLinks = {
+		...(owner.getFlag(FLAG_SCOPE, WORLD_LINKS_KEY) ?? {}),
+	};
+	const previousName = findTag(owner, tagId)?.name;
+	if (previousName === undefined) return false;
+	const links = { ...previousLinks };
 	links[tagId] = uuid;
-	await owner.setFlag(FLAG_SCOPE, WORLD_LINKS_KEY, links);
+	const rename = async (newName) => {
+		if (owner.system.themeTag?.id === tagId) {
+			await owner.update(
+				{ "system.themeTag.name": newName },
+				{ litmWorldRoteLinkAttach: true },
+			);
+			return;
+		}
+		const tags = plainTags(owner.system.powerTags);
+		const tag = tags.find((entry) => entry.id === tagId);
+		if (!tag) return;
+		tag.name = newName;
+		await owner.update(
+			{ "system.powerTags": tags },
+			{ litmWorldRoteLinkAttach: true },
+		);
+	};
+	try {
+		await owner.setFlag(FLAG_SCOPE, WORLD_LINKS_KEY, links);
+		if (getWorldRoteLink(owner, tagId) === uuid) {
+			if (findTag(owner, tagId)?.name !== name) await rename(name);
+			if (findTag(owner, tagId)?.name === name) return true;
+		}
+	} catch (error) {
+		console.error(error);
+	}
+	try {
+		if (Object.keys(previousLinks).length)
+			await owner.setFlag(FLAG_SCOPE, WORLD_LINKS_KEY, previousLinks);
+		else await owner.unsetFlag(FLAG_SCOPE, WORLD_LINKS_KEY);
+		if (findTag(owner, tagId)?.name !== previousName)
+			await rename(previousName);
+	} catch (error) {
+		console.error(error);
+	}
+	return false;
 }
 
 async function removeWorldRoteLink(owner, tagId) {
 	const links = { ...(owner.getFlag(FLAG_SCOPE, WORLD_LINKS_KEY) ?? {}) };
-	if (!links[tagId]) return;
-	delete links[tagId];
-	if (Object.keys(links).length)
-		await owner.setFlag(FLAG_SCOPE, WORLD_LINKS_KEY, links);
-	else await owner.unsetFlag(FLAG_SCOPE, WORLD_LINKS_KEY);
+	if (!links[tagId]) return true;
+	if (Object.keys(links).length === 1) {
+		await owner.unsetFlag(FLAG_SCOPE, WORLD_LINKS_KEY);
+	} else {
+		await owner.update({
+			[`flags.${FLAG_SCOPE}.${WORLD_LINKS_KEY}.-=${tagId}`]: null,
+		});
+	}
+	return !getWorldRoteLink(owner, tagId);
 }
 
 /** Find the Rote attached to a tag on an actor or Story Theme. */
@@ -149,6 +198,16 @@ export async function configureTagRote(owner, tag, renameTag) {
 			// A broken UUID can be replaced through the same picker.
 		}
 		if (source?.type === "rote") {
+			if (
+				game.user.isGM &&
+				findTag(owner, tag.id)?.name !== source.name &&
+				!(await setWorldRoteLink(owner, tag.id, source.uuid, source.name))
+			) {
+				ui.notifications.error(
+					game.i18n.localize("Litm.rote.world-link-name-failed"),
+				);
+				return null;
+			}
 			source.sheet.render({ force: true });
 			return source;
 		}
@@ -156,6 +215,8 @@ export async function configureTagRote(owner, tag, renameTag) {
 	}
 	const linked = getLinkedRote(owner, tag.id);
 	if (linked) {
+		if (owner.type === "story" && findTag(owner, tag.id)?.name !== linked.name)
+			await renameTag(linked.name);
 		linked.sheet.render({ force: true });
 		return linked;
 	}
@@ -313,12 +374,19 @@ export async function configureTagRote(owner, tag, renameTag) {
 			if (choice !== "rote" && (choice !== "tag" || worldStory)) return null;
 			if (choice === "rote") {
 				name = source.name;
-				await renameTag(name);
+				if (!worldStory && owner.type !== "story") {
+					await renameTag(name);
+				}
 			}
 		}
 	}
 	if (worldStory) {
-		await setWorldRoteLink(owner, tag.id, source.uuid);
+		if (!(await setWorldRoteLink(owner, tag.id, source.uuid, source.name))) {
+			ui.notifications.error(
+				game.i18n.localize("Litm.rote.world-link-name-failed"),
+			);
+			return null;
+		}
 		if (!findTag(owner, tag.id)) {
 			await removeWorldRoteLink(owner, tag.id);
 			return null;
@@ -326,6 +394,16 @@ export async function configureTagRote(owner, tag, renameTag) {
 		return source;
 	}
 	const rote = await createLinkedRote(owner, { id: tag.id, name }, source);
+	if (rote && owner.type === "story" && findTag(owner, tag.id)?.name !== name) {
+		await renameTag(name);
+		if (findTag(owner, tag.id)?.name !== name) {
+			await rote.delete();
+			ui.notifications.error(
+				game.i18n.localize("Litm.rote.world-link-name-failed"),
+			);
+			return null;
+		}
+	}
 	rote?.sheet.render({ force: true });
 	return rote;
 }
@@ -333,14 +411,22 @@ export async function configureTagRote(owner, tag, renameTag) {
 /** Delete an actor-owned Rote or remove a world Story Theme's source link. */
 export async function deleteTagRote(owner, tagId) {
 	if (getWorldRoteLink(owner, tagId)) {
-		const confirmed = await foundry.applications.api.DialogV2.confirm({
+		const confirmed = await foundry.applications.api.DialogV2.wait({
 			window: { title: game.i18n.localize("Litm.rote.unlink-source") },
+			classes: ["litm"],
 			content: `<p>${game.i18n.localize("Litm.rote.unlink-source-hint")}</p>`,
+			buttons: [
+				{ action: "cancel", label: game.i18n.localize("Litm.ui.cancel") },
+				{
+					action: "unlink",
+					label: game.i18n.localize("Litm.rote.unlink-source"),
+					callback: () => true,
+				},
+			],
 			rejectClose: false,
 		});
-		if (!confirmed) return false;
-		await removeWorldRoteLink(owner, tagId);
-		return true;
+		if (confirmed !== true) return null;
+		return removeWorldRoteLink(owner, tagId);
 	}
 	const rote = getLinkedRote(owner, tagId);
 	if (!rote) return false;
@@ -486,6 +572,7 @@ export async function syncTagNameFromRote(rote) {
 				tag.name = rote.name;
 				await owner.update({ "system.themes": themes }, { validate: false });
 			}
+			refreshRoteOwnerViews(owner);
 			return;
 		}
 		return;
@@ -493,13 +580,128 @@ export async function syncTagNameFromRote(rote) {
 	if (owner.type !== "story") return;
 	if (owner.system.themeTag?.id === link.tagId) {
 		if (owner.system.themeTag.name !== rote.name)
-			await owner.update({ "system.themeTag.name": rote.name });
+			await owner.update(
+				{ "system.themeTag.name": rote.name },
+				{ litmRoteNameSync: true },
+			);
+		refreshRoteOwnerViews(owner);
 		return;
 	}
-	const tags = foundry.utils.deepClone(owner.system.powerTags ?? []);
+	const tags = plainTags(owner.system.powerTags);
 	const tag = tags.find((entry) => entry.id === link.tagId);
 	if (tag && tag.name !== rote.name) {
 		tag.name = rote.name;
-		await owner.update({ "system.powerTags": tags });
+		await owner.update(
+			{ "system.powerTags": tags },
+			{ litmRoteNameSync: true },
+		);
 	}
+	refreshRoteOwnerViews(owner);
+}
+
+/** Rename every world Story Theme tag linked to a world or compendium Rote. */
+export async function syncWorldStoryTagNames(rote) {
+	if (rote?.type !== "rote" || rote.parent?.documentName === "Actor") return;
+	const updated = [];
+	try {
+		for (const story of game.items.filter((item) => item.type === "story")) {
+			const links = story.getFlag(FLAG_SCOPE, WORLD_LINKS_KEY) ?? {};
+			const tagIds = Object.entries(links)
+				.filter(([, uuid]) => uuid === rote.uuid)
+				.map(([tagId]) => tagId);
+			if (!tagIds.length) continue;
+			const changes = {};
+			const previous = {};
+			if (
+				tagIds.includes(story.system.themeTag?.id) &&
+				story.system.themeTag.name !== rote.name
+			) {
+				changes["system.themeTag.name"] = rote.name;
+				previous["system.themeTag.name"] = story.system.themeTag.name;
+			}
+			const powerTags = plainTags(story.system.powerTags);
+			const previousPowerTags = foundry.utils.deepClone(powerTags);
+			let powerChanged = false;
+			for (const tag of powerTags) {
+				if (!tagIds.includes(tag.id) || tag.name === rote.name) continue;
+				tag.name = rote.name;
+				powerChanged = true;
+			}
+			if (powerChanged) {
+				changes["system.powerTags"] = powerTags;
+				previous["system.powerTags"] = previousPowerTags;
+			}
+			if (Object.keys(changes).length) {
+				await story.update(changes, { litmWorldRoteNameSync: true });
+				updated.push({ story, previous });
+				refreshRoteOwnerViews(story);
+			}
+		}
+	} catch (error) {
+		for (const { story, previous } of updated.reverse()) {
+			try {
+				await story.update(previous, { litmWorldRoteNameSync: true });
+			} catch (rollbackError) {
+				console.error(rollbackError);
+			}
+		}
+		throw error;
+	}
+}
+
+function refreshRoteOwnerViews(owner) {
+	if (owner.sheet?.rendered) owner.sheet.render({ force: true });
+	const actor = owner.documentName === "Actor" ? owner : owner.parent;
+	if (actor?.documentName === "Actor")
+		Hooks.callAll("litmActorDataUpdated", actor.uuid);
+}
+
+/** Return whether an update tries to rename a world tag linked to a Rote. */
+export function changesLinkedWorldTagName(story, changes) {
+	if (!isWorldStory(story)) return false;
+	const links = story.getFlag(FLAG_SCOPE, WORLD_LINKS_KEY) ?? {};
+	const themeId = story.system.themeTag?.id;
+	const themeName =
+		changes["system.themeTag.name"] ??
+		changes["system.themeTag"]?.name ??
+		changes.system?.themeTag?.name;
+	if (
+		links[themeId] &&
+		themeName !== undefined &&
+		themeName !== story.system.themeTag.name
+	)
+		return true;
+	const powerTags = changes["system.powerTags"] ?? changes.system?.powerTags;
+	if (Array.isArray(powerTags)) {
+		for (const [index, tag] of powerTags.entries()) {
+			const previous =
+				story.system.powerTags?.find((entry) => entry.id === tag.id) ??
+				story.system.powerTags?.[index];
+			if (
+				previous &&
+				links[previous.id] &&
+				tag.name !== undefined &&
+				tag.name !== previous.name
+			)
+				return true;
+		}
+	} else if (powerTags && typeof powerTags === "object") {
+		for (const [index, tag] of Object.entries(powerTags)) {
+			const previous = story.system.powerTags?.[Number(index)];
+			if (
+				previous &&
+				links[previous.id] &&
+				tag?.name !== undefined &&
+				tag.name !== previous.name
+			)
+				return true;
+		}
+	}
+	for (const [key, name] of Object.entries(changes)) {
+		const match = /^system\.powerTags\.(\d+)\.name$/.exec(key);
+		if (!match) continue;
+		const tag = story.system.powerTags?.[Number(match[1])];
+		if (tag && links[tag.id] && name !== tag.name) return true;
+	}
+	return false;
 }

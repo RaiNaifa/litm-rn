@@ -121,6 +121,35 @@ export class LitmRoll extends foundry.dice.Roll {
 		if (!this._evaluated) await this.evaluate({ async: true });
 
 		const sacrificeOutcome = this.outcome.label;
+		const rote = this.litm.rote;
+		const enrichRote = (value) =>
+			foundry.applications.ux.TextEditor.implementation.enrichHTML(
+				value || "",
+				{
+					secrets: false,
+				},
+			);
+		const chatRote =
+			rote && !isPrivate
+				? {
+						uuid: rote.uuid,
+						name: rote.name,
+						img: rote.img,
+						effects: await Promise.all(
+							(rote.effects ?? [])
+								.filter((effect) => effect.description?.trim())
+								.map(async (effect) => ({
+									label: t(`Litm.rote.types.${effect.type}`),
+									html: await enrichRote(effect.description),
+								})),
+						),
+						consequences: await Promise.all(
+							(rote.consequences ?? [])
+								.filter((value) => value?.trim())
+								.map((value) => enrichRote(value)),
+						),
+					}
+				: null;
 		const sacrificeLevel = this.litm.sacrifice?.level;
 		let sacrificeConsequence = "";
 		if (this.litm.type === "sacrifice") {
@@ -158,6 +187,7 @@ export class LitmRoll extends foundry.dice.Roll {
 			spendPower: isPrivate ? "???" : (this.litm.spendPower ?? this.power),
 			user: game.user.id,
 			isOwner: game.user.isGM || this.actor.isOwner,
+			rote: chatRote,
 			sacrifice: this.litm.sacrifice
 				? {
 						...this.litm.sacrifice,

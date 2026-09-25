@@ -28,6 +28,7 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		form: { submitOnChange: true },
 		actions: {
 			editImage: StoryThemeSheet.#onEditImage,
+			unlinkWorldRote: StoryThemeSheet.#onUnlinkWorldRote,
 		},
 	};
 
@@ -114,6 +115,12 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		}).render();
 	}
 
+	static async #onUnlinkWorldRote(event, target) {
+		event.preventDefault();
+		event.stopPropagation();
+		await this.#unlinkWorldRote(target.dataset.id);
+	}
+
 	_onRender(context, options) {
 		super._onRender(context, options);
 		const form = this.element;
@@ -167,10 +174,26 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	}
 
 	async _processSubmitData(event, form, formData) {
+		const hasLockedWorldRote = (tagId) =>
+			Boolean(getWorldRoteLink(this.item, tagId));
+		if (
+			formData.system?.themeTag &&
+			hasLockedWorldRote(this.system.themeTag?.id)
+		)
+			formData.system.themeTag.name = this.system.themeTag.name;
+		const powerTags = formData.system?.powerTags;
+		if (powerTags) {
+			for (const [index, submitted] of Object.entries(powerTags)) {
+				const tag =
+					this.system.powerTags?.find((entry) => entry.id === submitted.id) ??
+					this.system.powerTags?.[Number(index)];
+				if (tag && hasLockedWorldRote(tag.id)) submitted.name = tag.name;
+			}
+		}
 		await super._processSubmitData(event, form, formData);
 	}
 
-	#handleClicks(event) {
+	async #handleClicks(event) {
 		const t = event.currentTarget;
 		const action = t.dataset.click;
 		const id = t.dataset.id;
@@ -192,9 +215,6 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 				break;
 			case "configure-rote":
 				this.#configureRote(id);
-				break;
-			case "unlink-world-rote":
-				this.#unlinkWorldRote(id);
 				break;
 			case "open-levels":
 				this.#openlevels(event);
@@ -223,7 +243,7 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	async #configureRote(id) {
 		// Clicking the Rote button blurs a contenteditable tag and saves its form.
 		// Wait for that save before reading the tag or opening the picker.
-		await this.#pendingDataInputSubmit;
+		await this.#pendingDataInputSubmit.catch(() => {});
 		const tag =
 			this.system.themeTag?.id === id
 				? this.system.themeTag
@@ -234,19 +254,26 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 				await this.item.update({ "system.themeTag.name": name });
 				return;
 			}
-			const tags = foundry.utils.deepClone(this.system.powerTags);
+			const tags = (this.system.powerTags ?? []).map((tag) =>
+				tag?.toObject ? tag.toObject() : foundry.utils.deepClone(tag),
+			);
 			const target = tags.find((entry) => entry.id === id);
 			if (!target) return;
 			target.name = name;
 			await this.item.update({ "system.powerTags": tags });
 		});
-		this.render();
+		await this.render();
 	}
 
 	async #unlinkWorldRote(id) {
-		await this.#pendingDataInputSubmit;
+		await this.#pendingDataInputSubmit.catch(() => {});
 		if (this.item.isEmbedded || !getWorldRoteLink(this.item, id)) return;
-		if (await deleteTagRote(this.item, id)) this.render();
+		const removed = await deleteTagRote(this.item, id);
+		if (removed === true) {
+			await this.render({ force: true });
+			return;
+		}
+		if (removed === false) ui.notifications.error(t("Litm.rote.unlink-failed"));
 	}
 
 	#handleCloseLevels = (event) => {

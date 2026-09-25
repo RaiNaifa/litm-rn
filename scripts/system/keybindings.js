@@ -31,7 +31,7 @@ export class KeyBindings {
 				},
 			],
 			onDown: () => {
-				const token = canvas.tokens.controlled[0];
+				const token = canvas?.tokens?.controlled?.[0];
 				const actor = token?.actor;
 
 				if (actor?.sheet) {

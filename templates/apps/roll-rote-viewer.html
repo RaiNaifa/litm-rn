@@ -1,0 +1,55 @@
+<div class="litm litm--rote litm--rote-preview">
+	<div class="litm--rote-sheet">
+		<header class="litm--rote-header">
+			<div class="litm--rote-image"><img src="{{img}}" alt=""></div>
+			<div class="litm--rote-heading"><h1 class="litm--rote-name">{{name}}</h1></div>
+		</header>
+
+		{{#if hasDescription}}<div class="litm--rote-description"><div class="editor-content">{{{descriptionHTML}}}</div></div>{{/if}}
+
+		<section class="litm--rote-section">
+			<div class="litm--rote-divider"><span></span><label>{{localize "Litm.rote.practitioners"}}</label><span></span></div>
+			{{#if hasPractitioners}}<div class="litm--rote-textarea">{{practitioners}}</div>{{/if}}
+		</section>
+
+		<section class="litm--rote-section">
+			<div class="litm--rote-divider"><span></span><label>{{localize "Litm.rote.power"}}</label><span></span></div>
+			{{#if hasPowerHelping}}<div class="litm--rote-power-row litm--rote-power-row--helping">
+				<span class="litm--rote-power-icon"><img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_inactive.svg" alt="" data-tooltip="{{localize 'Litm.rote.power-helping'}}"></span>
+				<div class="litm--rote-power-text">{{powerHelping}}</div>
+			</div>{{/if}}
+			{{#if hasPowerHindering}}<div class="litm--rote-power-row litm--rote-power-row--hindering">
+				<span class="litm--rote-power-icon"><img src="systems/litm-rn/assets/media/icons/weakness-marker-litm_active.svg" alt="" data-tooltip="{{localize 'Litm.rote.power-hindering'}}"></span>
+				<div class="litm--rote-power-text">{{powerHindering}}</div>
+			</div>{{/if}}
+		</section>
+
+		<section class="litm--rote-section">
+			<div class="litm--rote-divider"><span></span><label>{{localize "Litm.rote.success"}}</label><span></span></div>
+			<ul class="litm--rote-effects">
+				{{#each effects as |effect|}}
+				<li class="litm--rote-effect">
+					<div class="litm--rote-effect-content">
+						<span class="litm--rote-effect-type">{{effect.typeLabel}}</span>
+						<div class="litm--rote-effect-description">{{{effect.descriptionHTML}}}</div>
+					</div>
+				</li>
+				{{/each}}
+			</ul>
+		</section>
+
+		<section class="litm--rote-section">
+			<div class="litm--rote-divider"><span></span><label>{{localize "Litm.rote.consequences"}}</label><span></span></div>
+			<ul class="litm--rote-consequences">
+				{{#each consequences as |html|}}
+				<li class="litm--rote-consequence">
+					<div class="litm--rote-consequence-content">
+						<img src="systems/litm-rn/assets/media/icons/litm_fail_icn.svg" alt="">
+						<div class="litm--rote-consequence-text">{{{html}}}</div>
+					</div>
+				</li>
+				{{/each}}
+			</ul>
+		</section>
+	</div>
+</div>

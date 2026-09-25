@@ -743,7 +743,9 @@
 	}
 }
 
-:is(#interface.theme-dark, body.theme-dark) .litm.litm--rote {
+:is(#interface.theme-dark, body.theme-dark) .litm.litm--rote,
+.litm.litm--rote.litm--roll-rote-tooltip.theme-dark,
+.litm--roll-rote-viewer.theme-dark .litm.litm--rote {
 	--rote-ink: #dfd2c2;
 	--rote-rule: rgb(227 191 148 / 45%);
 	--rote-hover: rgb(235 197 149 / 12%);

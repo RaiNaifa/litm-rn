@@ -1,4 +1,4 @@
-<div class="litm dice-roll{{#if safeCamp}} litm--safe-camp-roll{{/if}}" data-type="{{type}}" data-result="{{#if safeCamp}}safe-camp{{else}}{{outcome.label}}{{/if}}" data-action="expandRoll">
+<div class="litm dice-roll{{#if safeCamp}} litm--safe-camp-roll{{/if}}" data-type="{{type}}" data-result="{{#if safeCamp}}safe-camp{{else}}{{outcome.label}}{{/if}}" {{#unless rote}}data-action="expandRoll"{{/unless}}>
 	{{#if safeCamp}}
 	{{else if effect}}
 	<div class="dice-effect litm--reaction-effect-before">
@@ -72,6 +72,28 @@
 		<p>{{localize effect.action}}</p>
 		<p><strong>{{localize 'Litm.other.cost'}}:
 			</strong>{{localize effect.cost}}</p>
+	</div>
+	{{/if}}
+	{{#if rote}}
+	<div class="litm--chat-rote">
+		<div class="litm--chat-rote-heading">
+			<button type="button" class="litm--chat-rote-open" data-litm-rote-uuid="{{rote.uuid}}" aria-label="{{localize 'Litm.rote.roll-open-item'}}"><img src="{{rote.img}}" alt="" /></button>
+			<strong>{{rote.name}}</strong>
+		</div>
+		{{#if rote.effects.length}}
+		<details><summary>{{localize 'Litm.rote.roll-effects'}}</summary>
+			{{#each rote.effects as |entry|}}
+			<div class="litm--chat-rote-entry"><b>{{entry.label}}</b> {{{entry.html}}}</div>
+			{{/each}}
+		</details>
+		{{/if}}
+		{{#if rote.consequences.length}}
+		<details><summary>{{localize 'Litm.rote.roll-consequences'}}</summary>
+			{{#each rote.consequences as |html|}}
+			<div class="litm--chat-rote-entry">{{{html}}}</div>
+			{{/each}}
+		</details>
+		{{/if}}
 	</div>
 	{{/if}}
 </div>
