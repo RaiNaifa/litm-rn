@@ -1,9 +1,9 @@
-import { getFellowshipActors } from "../utils.js";
 import {
 	executeRoteAutomation,
 	getApprovedRoteExecution,
 	prepareRoteAutomation,
 } from "../item/rote/rote-automation.js";
+import { getFellowshipActors } from "../utils.js";
 const { fromUuid } = foundry.utils;
 
 export class Sockets {
@@ -321,57 +321,68 @@ export class Sockets {
 				)
 					continue;
 				const payload = message.getFlag("litm-rn", "roteExecution");
-				if (payload && (!payload.issuedAt || Date.now() - payload.issuedAt > 120000))
+				if (
+					payload &&
+					(!payload.issuedAt || Date.now() - payload.issuedAt > 120000)
+				)
 					message
 						.unsetFlag("litm-rn", "roteExecution")
-						.catch((error) => console.error("LITM | Could not clear stale Rote execution", error));
+						.catch((error) =>
+							console.error(
+								"LITM | Could not clear stale Rote execution",
+								error,
+							),
+						);
 			}
 		});
-		Hooks.on("updateChatMessage", async (message, changes, _options, userId) => {
-			if (game.user.isGM || !this.#pendingRoteExecution.size) return;
-			const candidate =
-				changes?.flags?.["litm-rn"]?.roteExecution ??
-				changes?.["flags.litm-rn.roteExecution"];
-			if (!candidate?.rollId) return;
-			if (
-				!message.getFlag("litm-rn", "roteAutomation") &&
-				!message.getFlag("litm-rn", "roteSimple")
-			)
-				return;
-			const activeGM =
-				game.users.activeGM ??
-				game.users.find((user) => user.isGM && user.active);
-			if (!activeGM) return;
-			const pending = this.#pendingRoteExecution.get(candidate?.rollId);
-			const changedPayload = getApprovedRoteExecution(
-				message,
-				changes,
-				userId,
-				activeGM.id,
-				game.user.id,
-				pending,
-			);
-			if (!changedPayload) return;
-			clearTimeout(pending.executionTimeout);
-			this.#pendingRoteExecution.delete(changedPayload.rollId);
-			try {
-				const result = await executeRoteAutomation(changedPayload);
-				if (result.failed)
+		Hooks.on(
+			"updateChatMessage",
+			async (message, changes, _options, userId) => {
+				if (game.user.isGM || !this.#pendingRoteExecution.size) return;
+				const candidate =
+					changes?.flags?.["litm-rn"]?.roteExecution ??
+					changes?.["flags.litm-rn.roteExecution"];
+				if (!candidate?.rollId) return;
+				if (
+					!message.getFlag("litm-rn", "roteAutomation") &&
+					!message.getFlag("litm-rn", "roteSimple")
+				)
+					return;
+				const activeGM =
+					game.users.activeGM ??
+					game.users.find((user) => user.isGM && user.active);
+				if (!activeGM) return;
+				const pending = this.#pendingRoteExecution.get(candidate?.rollId);
+				const changedPayload = getApprovedRoteExecution(
+					message,
+					changes,
+					userId,
+					activeGM.id,
+					game.user.id,
+					pending,
+				);
+				if (!changedPayload) return;
+				clearTimeout(pending.executionTimeout);
+				this.#pendingRoteExecution.delete(changedPayload.rollId);
+				try {
+					const result = await executeRoteAutomation(changedPayload);
+					if (result.failed)
+						ui.notifications.warn(
+							game.i18n.localize("Litm.ui.post-roll-partial-failure"),
+						);
+				} catch (error) {
+					console.error("LITM | Rote execution failed", error);
 					ui.notifications.warn(
 						game.i18n.localize("Litm.ui.post-roll-partial-failure"),
 					);
-			} catch (error) {
-				console.error("LITM | Rote execution failed", error);
-				ui.notifications.warn(
-					game.i18n.localize("Litm.ui.post-roll-partial-failure"),
-				);
-			} finally {
-				this.dispatch("roteExecutionAcknowledged", {
-					rollId: changedPayload.rollId,
-					messageId: message.id,
-				});
-			}
-		});
+				} finally {
+					this.dispatch("roteExecutionAcknowledged", {
+						rollId: changedPayload.rollId,
+						messageId: message.id,
+					});
+				}
+			},
+		);
 		Sockets.on("roteExecutionAcknowledged", ({ data, senderId }) => {
 			if (!game.user.isGM) return;
 			const pending = this.#roteExecutionCleanup.get(data.rollId);
@@ -385,7 +396,9 @@ export class Sockets {
 			game.messages
 				.get(data.messageId)
 				?.unsetFlag("litm-rn", "roteExecution")
-				.catch((error) => console.error("LITM | Could not clear Rote execution", error));
+				.catch((error) =>
+					console.error("LITM | Could not clear Rote execution", error),
+				);
 		});
 	}
 
@@ -481,7 +494,9 @@ export class Sockets {
 						this.#roteExecutionCleanup.delete(data.rollId);
 						message
 							.unsetFlag("litm-rn", "roteExecution")
-							.catch((error) => console.error("LITM | Could not clear Rote execution", error));
+							.catch((error) =>
+								console.error("LITM | Could not clear Rote execution", error),
+							);
 					}, 120000);
 					this.#roteExecutionCleanup.set(data.rollId, {
 						initiatorId: senderId,

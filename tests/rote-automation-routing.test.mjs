@@ -31,7 +31,7 @@ const sourceMacro = {
 	type: "script",
 	command: "globalThis.__roteRuns.push('macro:' + game.user.id)",
 	canUserExecute: () => false,
-	execute: () => runs.push("source:" + game.user.id),
+	execute: () => runs.push(`source:${game.user.id}`),
 };
 const message = {
 	id: "message",
@@ -167,11 +167,25 @@ test("only the active GM's update of the initiating player's roll can deliver co
 	const changes = { flags: { "litm-rn": { roteExecution: payload } } };
 	const pending = { messageId: message.id, roteUuid: rote.uuid };
 	assert.equal(
-		getApprovedRoteExecution(message, changes, gm.id, gm.id, player.id, pending),
+		getApprovedRoteExecution(
+			message,
+			changes,
+			gm.id,
+			gm.id,
+			player.id,
+			pending,
+		),
 		payload,
 	);
 	assert.equal(
-		getApprovedRoteExecution(message, changes, player.id, gm.id, player.id, pending),
+		getApprovedRoteExecution(
+			message,
+			changes,
+			player.id,
+			gm.id,
+			player.id,
+			pending,
+		),
 		null,
 	);
 	assert.equal(

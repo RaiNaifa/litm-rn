@@ -61,7 +61,7 @@ jobs:
         run: |
           zip -r "$RUNNER_TEMP/litm-rn.zip" . \
             -x '.git/*' '.github/*' '.gitignore' '.gitattributes' '.editorconfig' \
-               'AGENTS.md' 'biome.json' 'jsconfig.json' 'version.sh' \
+               'AGENTS.md' 'biome.json' 'jsconfig.json' 'version.sh' 'tests/*' \
                '*.lock'
 
       - name: Upload release assets

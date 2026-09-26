@@ -107,7 +107,10 @@ export async function prepareRoteAutomation(data) {
 			});
 		} catch (error) {
 			failed += 1;
-			console.error(`LITM | Rote Macro could not be prepared: ${rote.name} (${uuid})`, error);
+			console.error(
+				`LITM | Rote Macro could not be prepared: ${rote.name} (${uuid})`,
+				error,
+			);
 		}
 	}
 	if (!script && !macros.length) return { payload: null, failed };
@@ -189,7 +192,10 @@ export async function executeRoteAutomation(payload) {
 			});
 		} catch (error) {
 			failed += 1;
-			console.error(`LITM | Rote Macro failed: ${context.roteName} (${entry.name})`, error);
+			console.error(
+				`LITM | Rote Macro failed: ${context.roteName} (${entry.name})`,
+				error,
+			);
 		}
 	}
 	return { failed };
