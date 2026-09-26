@@ -181,6 +181,30 @@
 			height: auto;
 		}
 
+		&.active {
+			min-height: 110px;
+		}
+
+		&.active .editor-container {
+			min-height: 80px;
+		}
+
+		&.active .editor-content {
+			position: relative;
+		}
+
+		& .menu-container {
+			min-height: var(--menu-height);
+		}
+
+		& menu.editor-menu {
+			overflow-x: auto;
+		}
+
+		& menu.editor-menu > li {
+			flex-shrink: 0;
+		}
+
 		& :is(.editor-content, .ProseMirror) {
 			text-align: left;
 		}
@@ -556,6 +580,7 @@
 		display: block;
 		width: 100%;
 		min-height: 30px;
+		height: auto;
 		margin: 0;
 		padding: 0;
 
@@ -566,6 +591,15 @@
 		&.active .editor-container {
 			width: calc(100% - 32px);
 			margin-left: 32px;
+		}
+
+		&.active .menu-container {
+			position: absolute;
+			z-index: 2;
+			top: 0;
+			left: 0;
+			width: 28px;
+			height: 28px;
 		}
 
 		& menu {
@@ -589,6 +623,10 @@
 				padding: 0;
 				color: var(--litm-journey-ink);
 			}
+		}
+
+		& .menu-container menu {
+			inset: 0;
 		}
 
 		& .editor-container {
