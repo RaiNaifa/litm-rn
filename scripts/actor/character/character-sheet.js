@@ -6,7 +6,7 @@ import { ThemeAdvancementApp } from "../../apps/theme-advancement.js";
 import {
 	cloneStoryRotes,
 	confirmTagRoteRemoval,
-	getActiveRoteTagIds,
+	getActiveRoteTagIdsForActor,
 } from "../../item/rote/rote-links.js";
 import { createPrivate } from "../../system/private-creation.js";
 import { ThemeAdvancement } from "../../system/theme-advancement.js";
@@ -494,7 +494,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 		// Backpack
 		const backpackData = this.system.backpack;
-		const enrichedNote = await TextEditor.enrichHTML(this.system.note || "");
+		const enrichedNote = context.note;
 		const storyEntries = await Promise.all(
 			this.items
 				.filter((i) => i.type === "story")
@@ -508,12 +508,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 					};
 				}),
 		);
-		context.activeRoteTagIds = [
-			...getActiveRoteTagIds(this.actor),
-			...this.items
-				.filter((item) => item.type === "story")
-				.flatMap((item) => [...getActiveRoteTagIds(item)]),
-		];
+		context.activeRoteTagIds = [...getActiveRoteTagIdsForActor(this.actor)];
 		const stories = storyEntries.filter(
 			(story) => story.data.system.isArchived !== true,
 		);

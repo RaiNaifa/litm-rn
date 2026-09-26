@@ -138,6 +138,23 @@ export function getActiveRoteTagIds(owner) {
 	return ids;
 }
 
+/** Return active Rote tag IDs for a character and its embedded Story Themes in one pass. */
+export function getActiveRoteTagIdsForActor(actor) {
+	const owners = new Set([
+		actor.uuid,
+		...actor.items
+			.filter((item) => item.type === "story")
+			.map((item) => item.uuid),
+	]);
+	const ids = new Set();
+	for (const item of actor.items) {
+		if (item.type !== "rote" || item.system.isActive !== true) continue;
+		const link = item.getFlag(FLAG_SCOPE, FLAG_KEY);
+		if (owners.has(link?.ownerUuid) && link.tagId) ids.add(link.tagId);
+	}
+	return ids;
+}
+
 /** Confirm removal of a tag that has a linked Rote. */
 export async function confirmTagRoteRemoval(owner, tag) {
 	if (getWorldRoteLink(owner, tag?.id)) {
