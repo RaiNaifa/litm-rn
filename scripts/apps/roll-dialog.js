@@ -2545,12 +2545,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	/** Search all sources on a specific actor for a tag by id */
 	#findTagOnActor(id, actor) {
 		if (!actor) return null;
-		// Effects (storyTags, statuses)
-		const { storyTags, statuses } = this.#getActorEffects(actor);
-		for (const e of [...storyTags, ...statuses]) {
-			if (e.id === id) return e;
-		}
-		// Character themes
+		// Structured tags take precedence over their mirrored ActiveEffects.
 		for (const theme of actor.system.themes || []) {
 			if (theme.themeTag?.id === id) return theme.themeTag;
 			for (const t of theme.powerTags ?? []) {
@@ -2584,6 +2579,11 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 					? relationship.toObject()
 					: { ...relationship };
 			return { ...source, type: "hero" };
+		}
+		// Effects (story tags and statuses)
+		const { storyTags, statuses } = this.#getActorEffects(actor);
+		for (const effect of [...storyTags, ...statuses]) {
+			if (effect.id === id) return effect;
 		}
 		// Fellowship
 		if (actor.system?.fellowship) {

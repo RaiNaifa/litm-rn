@@ -191,6 +191,39 @@
 	}
 }
 
+.litm--hero-creation-archive {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	width: 100%;
+	min-height: 58px;
+	margin: 0;
+	padding: 14px 16px;
+	border: 0 !important;
+	border-left: 3px solid
+		color-mix(in srgb, var(--hero-creation-accent) 72%, transparent) !important;
+	border-radius: 0;
+	background: color-mix(in srgb, var(--hero-creation-accent) 8%, transparent) !important;
+	color: var(--hero-creation-text);
+	box-shadow: none !important;
+	text-align: left;
+}
+
+.litm--hero-creation-archive i {
+	font-size: 24px;
+	opacity: 0.65;
+}
+
+.litm--hero-creation-archive span {
+	font-family: var(--litm-font-heading) !important;
+	font-size: var(--font-size-20);
+}
+
+.litm--hero-creation-archive:is(:hover, :focus-visible) {
+	border-left-color: var(--hero-creation-accent) !important;
+	background: color-mix(in srgb, var(--hero-creation-accent) 18%, transparent) !important;
+}
+
 .litm--hero-creation-trope > i {
 	font-size: 30px;
 	opacity: 0.55;
@@ -242,6 +275,11 @@ body.theme-dark .litm--hero-creation-backpack,
 .theme-dark .litm--hero-creation-options,
 body.theme-dark .litm--hero-creation-options {
 	background: rgb(0 0 0 / 20%);
+}
+
+:is(#interface.theme-dark, body.theme-dark)
+	.litm--hero-creation-archive:not(:hover, :focus-visible) {
+	background: rgb(0 0 0 / 20%) !important;
 }
 
 @media (max-width: 780px) {

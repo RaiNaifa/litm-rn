@@ -161,6 +161,7 @@
 	& .litm--threat-desc { font-style: italic; }
 
 	& button[data-click="add-consequence"] {
+		align-self: center;
 		margin-inline: 2rem;
 		padding-bottom: var(--litm-space-2);
 		width: auto;

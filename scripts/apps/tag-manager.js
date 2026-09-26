@@ -1511,7 +1511,9 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		const tag = this.#findTag(ref, id);
 		if (!tag) return;
 		const isBurnableTag =
-			["tag", "powerTag", "themeTag"].includes(tag.type) && !tag.isCrispy;
+			["tag", "powerTag", "themeTag"].includes(tag.type) &&
+			!tag.isCrispy &&
+			!tag.isScratched;
 		const playerActorId = !game.user.isGM ? game.user.character?.id : null;
 		const isBurnedInRoll = playerActorId
 			? game.litm?.rollSelection
@@ -1651,14 +1653,17 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		if (isBurnableTag && !game.user.isGM && game.user.character) {
 			const actorId = game.user.character.id;
 			if (!isBurnedInRoll)
-				addOption(t("Litm.ui.burn-in-roll"), "fa-solid fa-fire", () =>
+				addOption(t("Litm.ui.burn-in-roll"), "fa-solid fa-fire", () => {
+					const currentTag = this.#findTag(ref, id);
+					if (!currentTag || currentTag.isScratched || currentTag.isCrispy)
+						return;
 					game.litm?.addTagToRoll?.(
 						actorId,
 						this.#rollSelectionRef(ref),
 						id,
 						"burned",
-					),
-				);
+					);
+				});
 		}
 		if (canManage && tag.type === "tag") {
 			addOption(
@@ -2594,8 +2599,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		if (!id) return;
 		if (target.dataset.tagType === "limit") return;
 		const tag = this.#findTag(ref || "story", id);
-		if (ref === "fellowship" && tag?.isScratched && tag.type !== "weaknessTag")
-			return;
+		if (!tag || tag.isScratched) return;
 
 		const tagName = target.textContent?.trim() || "";
 		const result = await RollTargetPopup.show(event, {
@@ -2626,8 +2630,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			return;
 		const tag = this.#findTag(ref, id);
 		if (!tag || ["limit", "might"].includes(tag.type)) return;
-		if (ref === "fellowship" && tag.isScratched && tag.type !== "weaknessTag")
-			return;
+		if (tag.isScratched) return;
 		const actorId = game.user.character.id;
 		const selectionRef = this.#rollSelectionRef(ref);
 		const selected = game.litm?.rollSelection

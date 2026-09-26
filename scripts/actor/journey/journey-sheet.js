@@ -277,6 +277,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		);
 		this.#syncStoryActorButton();
 		this.#activatePendingConsequence();
+		if (this.#contextMenuPersistent) this.#restoreContextMenu();
 		requestAnimationFrame(() => {
 			this.#restoreScrollPosition(content, "content");
 			this.#restoreScrollPosition(wrapper, "wrapper");
@@ -619,10 +620,10 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				menu.style.top = `${Math.max(8, win.innerHeight - rect.height - 8)}px`;
 			}
 		});
-		setTimeout(
-			() => doc.addEventListener("pointerdown", this.#onContextMenuOutside),
-			0,
-		);
+		setTimeout(() => {
+			if (this.#contextMenu === menu)
+				doc.addEventListener("pointerdown", this.#onContextMenuOutside);
+		}, 0);
 	}
 
 	async #removeConsequence(id) {
@@ -634,9 +635,12 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		await this.actor.update({ "system.consequences": consequences });
 	}
 
-	#openContextMenu(event) {
+	#contextMenuPersistent = false;
+
+	#openContextMenu(event, restoring = false) {
 		event.preventDefault();
 		event.stopPropagation();
+		if (!restoring) this.#contextMenuPersistent = false;
 		this.#closeContextMenu(false);
 		const entity = event.currentTarget;
 		const kind = entity.dataset.contextEntity;
@@ -662,8 +666,9 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			button.innerHTML = `<i class="${icon}" aria-hidden="true"></i><span>${label}</span>`;
 			button.addEventListener("click", async () => {
 				if (!keepOpen) this.#closeContextMenu();
+				else this.#contextMenuPersistent = true;
 				await callback();
-				if (keepOpen) reopen();
+				if (keepOpen && this.#contextMenuPersistent) reopen();
 			});
 			menu.append(button);
 		};
@@ -680,8 +685,9 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				button.dataset.tooltip = value.tooltip || value.label;
 				button.textContent = value.label || "";
 				button.addEventListener("click", async () => {
+					this.#contextMenuPersistent = true;
 					await callback(value.value);
-					reopen();
+					if (this.#contextMenuPersistent) reopen();
 				});
 				group.append(button);
 			}
@@ -799,10 +805,10 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			if (rect.bottom > win.innerHeight)
 				menu.style.top = `${Math.max(8, win.innerHeight - rect.height - 8)}px`;
 		});
-		setTimeout(
-			() => doc.addEventListener("pointerdown", this.#onContextMenuOutside),
-			0,
-		);
+		setTimeout(() => {
+			if (this.#contextMenu === menu)
+				doc.addEventListener("pointerdown", this.#onContextMenuOutside);
+		}, 0);
 	}
 
 	#onContextMenuOutside = (event) => {
@@ -820,13 +826,16 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				element.dataset.id === anchor.id,
 		);
 		if (!trigger) return this.#closeContextMenu();
-		this.#openContextMenu({
-			preventDefault() {},
-			stopPropagation() {},
-			currentTarget: trigger,
-			clientX: anchor.x,
-			clientY: anchor.y,
-		});
+		this.#openContextMenu(
+			{
+				preventDefault() {},
+				stopPropagation() {},
+				currentTarget: trigger,
+				clientX: anchor.x,
+				clientY: anchor.y,
+			},
+			true,
+		);
 	}
 
 	#closeContextMenu(clearAnchor = true) {
@@ -836,7 +845,10 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		);
 		this.#contextMenu?.remove();
 		this.#contextMenu = null;
-		if (clearAnchor) this.#contextMenuAnchor = null;
+		if (clearAnchor) {
+			this.#contextMenuAnchor = null;
+			this.#contextMenuPersistent = false;
+		}
 	}
 
 	async #updateEffectFlags(id, update) {

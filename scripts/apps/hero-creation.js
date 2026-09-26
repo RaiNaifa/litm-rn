@@ -1,4 +1,5 @@
 import { TropeSheet } from "../item/trope/trope-sheet.js";
+import { ThemeArchiveApp } from "./theme-archive.js";
 import { TropePicker } from "./trope-picker.js";
 
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } =
@@ -111,6 +112,10 @@ export class HeroCreationApp extends HandlebarsApplicationMixin(ApplicationV2) {
 		event.preventDefault();
 		const button = event.currentTarget;
 		const action = button.dataset.creationAction;
+		if (action === "open-theme-archive") {
+			new ThemeArchiveApp(this.actor.uuid).render({ force: true });
+			return;
+		}
 		if (action === "choose-trope") {
 			new TropePicker({
 				selectedUuid: this.actor.system.themeCreationDraft?.tropeUuid,

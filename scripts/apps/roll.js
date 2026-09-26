@@ -528,7 +528,40 @@ export class LitmRoll extends foundry.dice.Roll {
 
 			if (actor) {
 				const effect = actor.effects.get(tag.id);
-				if (effect) {
+				const themeTag = (actor.system?.themes ?? []).some(
+					(theme) => theme.themeTag?.id === tag.id,
+				);
+				const powerTag = (actor.system?.themes ?? []).some((theme) =>
+					(theme.powerTags ?? []).some((entry) => entry.id === tag.id),
+				);
+				const storyTag = [...(actor.items ?? [])].find(
+					(item) =>
+						item.type === "story" &&
+						(item.system.themeTag?.id === tag.id ||
+							item.system.powerTags?.some((entry) => entry.id === tag.id)),
+				);
+				const backpackTag = actor.system?.backpackTags?.some(
+					(entry) => entry.id === tag.id,
+				);
+				const structuredType =
+					themeTag || storyTag?.system.themeTag?.id === tag.id
+						? "themeTag"
+						: powerTag || storyTag
+							? "powerTag"
+							: backpackTag
+								? "backpack"
+								: null;
+				if (
+					structuredType &&
+					typeof actor.sheet.toggleScratchTag === "function"
+				) {
+					await actor.sheet.toggleScratchTag(
+						{ ...tag, type: structuredType },
+						{ scratched: true },
+					);
+					game.litm?.removeTagFromAllRolls?.(tag.id);
+					game.litm?.gmRemoveTagFromAllRolls?.(tag.id);
+				} else if (effect) {
 					game.litm?.removeTagFromAllRolls?.(tag.id);
 					game.litm?.gmRemoveTagFromAllRolls?.(tag.id);
 					await effect.delete();

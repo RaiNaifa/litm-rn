@@ -11,8 +11,8 @@
   <div class="litm--tm-tag-inner">
     {{! Tag name (editable or not) — pushed left }}
     <div class="litm--tm-tag-name{{#if (and tag.isScratched readonly)}} litm--tm-scratched-text{{/if}}"
-      {{#if (and @root.isGM (ne tag.type 'limit') (not (and (eq ref 'fellowship') tag.isScratched (ne tag.type 'weaknessTag'))))}}data-action="select"
-      {{else if (and @root.hasPlayerCharacter (not (and (eq ref 'fellowship') tag.isScratched (ne tag.type 'weaknessTag'))) (or (eq tag.type 'tag') (eq tag.type 'status') (eq tag.type 'powerTag') (eq tag.type 'weaknessTag') (eq tag.type 'weaknessStoryTag') (eq tag.type 'themeTag') (eq tag.type 'powerCrispy') (eq tag.type 'themeCrispy')))}}data-action="player-select"{{/if}}
+      {{#if (and @root.isGM (ne tag.type 'limit') (not tag.isScratched))}}data-action="select"
+      {{else if (and @root.hasPlayerCharacter (not tag.isScratched) (or (eq tag.type 'tag') (eq tag.type 'status') (eq tag.type 'powerTag') (eq tag.type 'weaknessTag') (eq tag.type 'weaknessStoryTag') (eq tag.type 'themeTag') (eq tag.type 'powerCrispy') (eq tag.type 'themeCrispy')))}}data-action="player-select"{{/if}}
       contenteditable="{{ifThen (eq tag.id editingId) 'true' 'false'}}"
       data-id="{{tag.id}}" data-ref="{{ref}}"
       data-tag-type="{{tag.type}}" data-is-scratched="{{tag.isScratched}}"

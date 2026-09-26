@@ -3,7 +3,6 @@ import { FellowshipAdvancementApp } from "../../apps/fellowship-advancement.js";
 import { HeroCreationApp } from "../../apps/hero-creation.js";
 import { PromiseFulfillmentApp } from "../../apps/promise-fulfillment.js";
 import { ThemeAdvancementApp } from "../../apps/theme-advancement.js";
-import { ThemeArchiveApp } from "../../apps/theme-archive.js";
 import {
 	cloneStoryRotes,
 	confirmTagRoteRemoval,
@@ -40,7 +39,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			editImage: CharacterSheet.#onEditImage,
 			sendQuintessence: CharacterSheet.#onSendQuintessence,
 			configureAvatarPosition: CharacterSheet.#onConfigureAvatarPosition,
-			openThemeArchive: CharacterSheet.#onOpenThemeArchive,
 			openHeroCreation: CharacterSheet.#onOpenHeroCreation,
 		},
 	};
@@ -188,10 +186,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		new AvatarPositionApp(this.actor).render({ force: true });
 	}
 
-	static #onOpenThemeArchive() {
-		new ThemeArchiveApp(this.actor.uuid).render({ force: true });
-	}
-
 	static #onOpenHeroCreation() {
 		new HeroCreationApp(this.actor.uuid).render({ force: true });
 	}
@@ -204,12 +198,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				action: "configureAvatarPosition",
 				icon: "fas fa-image",
 				label: "Litm.ui.avatar-position",
-				ownership: "OWNER",
-			},
-			{
-				action: "openThemeArchive",
-				icon: "fas fa-box-archive",
-				label: "Litm.archive.title",
 				ownership: "OWNER",
 			},
 			{
@@ -1626,17 +1614,25 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			});
 			portraits.append(button);
 		}
-		share.append(portraits);
-		menu.append(share);
+		if (!resolved.tag.isScratched) {
+			share.append(portraits);
+			menu.append(share);
+		}
 
 		const isBurnedInRoll = [
 			...(game.litm?.rollSelection?.get(this.actor.id)?.values() || []),
 		].some((tagMap) => tagMap.get(resolved.tag.id) === "burned");
 		if (
-			(["theme-title", "theme-power", "story-title", "backpack"].includes(
-				resolved.kind,
-			) ||
+			([
+				"theme-title",
+				"theme-power",
+				"story-title",
+				"story-tag",
+				"backpack",
+			].includes(resolved.kind) ||
 				(resolved.kind === "effect" && resolved.tag.type === "tag")) &&
+			!resolved.tag.isScratched &&
+			!resolved.tag.isHindering &&
 			!resolved.tag.isCrispy &&
 			!isBurnedInRoll
 		) {
@@ -1745,6 +1741,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	#burnTagInRoll(tag) {
 		if (
+			this.#findCharacterTag(tag.id)?.tag.isScratched ||
+			tag.isScratched ||
+			tag.isHindering ||
 			tag.isCrispy ||
 			["crispy", "powerCrispy", "themeCrispy"].includes(tag.type)
 		)
@@ -1766,7 +1765,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	async #shareTagInRoll({ tag, kind }, targetActor) {
-		if (targetActor.type !== "character") return;
+		if (
+			targetActor.type !== "character" ||
+			tag.isScratched ||
+			this.#findCharacterTag(tag.id)?.tag.isScratched
+		)
+			return;
 
 		const senderUser = getAssignedUser(this.actor) ?? game.user;
 		const targetUser = getAssignedUser(targetActor);
@@ -2746,7 +2750,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			tag.isHindering ||
 			tag.type === "weaknessTag" ||
 			tag.type === "weaknessStoryTag";
-		if (!selected && tag.isScratched && !isWeakness) return;
+		if (!selected && tag.isScratched) return;
 
 		if (selected) {
 			game.litm?.removeTagFromActorRoll?.(this.actor.id, id);
