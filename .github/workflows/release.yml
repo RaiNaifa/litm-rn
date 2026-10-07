@@ -56,13 +56,29 @@ jobs:
           echo "verified=$(jq -r '.compatibility.verified' system.json)" >> "$GITHUB_OUTPUT"
           echo "maximum=$(jq -r '.compatibility.maximum' system.json)" >> "$GITHUB_OUTPUT"
 
+      - name: Run unit tests
+        run: node --test tests/*.test.mjs
+
       - name: Create system archive
         shell: bash
         run: |
-          zip -r "$RUNNER_TEMP/litm-rn.zip" . \
-            -x '.git/*' '.github/*' '.gitignore' '.gitattributes' '.editorconfig' \
-               'AGENTS.md' 'biome.json' 'jsconfig.json' 'version.sh' 'tests/*' \
-               '*.lock'
+          git archive --format=zip --output="$RUNNER_TEMP/litm-rn.zip" HEAD \
+            LICENSE NOTICE.md README.md system.json litm-rn.js litm-rn.css \
+            assets docs lang scripts styles templates
+          python3 - "$RUNNER_TEMP/litm-rn.zip" <<'PY'
+          import sys
+          import zipfile
+
+          with zipfile.ZipFile(sys.argv[1]) as archive:
+              names = set(archive.namelist())
+          required = {"system.json", "litm-rn.js", "litm-rn.css"}
+          if missing := required - names:
+              raise SystemExit(f"Missing package files: {sorted(missing)}")
+          forbidden = (".git/", ".github/", ".claude/", ".codex/", "tests/")
+          if unexpected := sorted(name for name in names if name.startswith(forbidden)):
+              raise SystemExit(f"Development files in package: {unexpected}")
+          print(f"Package contains {len(names)} files")
+          PY
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2

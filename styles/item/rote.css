@@ -927,7 +927,9 @@
 	background-image: url("../../assets/media/paper-dark.webp");
 }
 :is(#interface.theme-dark, body.theme-dark)
-	.litm.litm--rotes-window .litm--rotes-window-body select {
+	.litm.litm--rotes-window
+	.litm--rotes-window-body
+	select {
 	background-image: url("../../assets/media/paper-dark.webp");
 
 	& option {

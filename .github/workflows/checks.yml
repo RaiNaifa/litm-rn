@@ -36,3 +36,6 @@ jobs:
           while IFS= read -r file; do
             node --input-type=module --check < "$file"
           done < <(git ls-files '*.js')
+
+      - name: Run unit tests
+        run: node --test tests/*.test.mjs

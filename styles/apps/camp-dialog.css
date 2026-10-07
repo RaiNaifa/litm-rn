@@ -1128,7 +1128,11 @@
 
 	&:is(:hover, :focus-visible) {
 		border-color: var(--litm-roll-highlight-border);
-		background: color-mix(in srgb, var(--litm-roll-highlight-bg) 26%, transparent);
+		background: color-mix(
+			in srgb,
+			var(--litm-roll-highlight-bg) 26%,
+			transparent
+		);
 		color: var(--litm-roll-highlight-border);
 	}
 }
