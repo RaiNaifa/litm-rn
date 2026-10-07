@@ -1,6 +1,12 @@
+import {
+	KeyedCollectionField,
+	KeyedDataModelMixin,
+} from "../../data/keyed-collections.js";
 import { error } from "../../logger.js";
 
-export class CharacterData extends foundry.abstract.TypeDataModel {
+export class CharacterData extends KeyedDataModelMixin(
+	foundry.abstract.TypeDataModel,
+) {
 	static defineSchema() {
 		const fields = foundry.data.fields;
 		const abstract = game.litm.data;
@@ -12,7 +18,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 				initial: null,
 			}),
 			bio: new fields.HTMLField(),
-			quintessences: new fields.ArrayField(
+			quintessences: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.SpecialData),
 				{ initial: () => [] },
 			),
@@ -27,18 +33,18 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 				min: 0,
 				initial: 0,
 			}),
-			fulfillment: new fields.ArrayField(new fields.StringField(), {
+			fulfillment: new KeyedCollectionField(new fields.StringField(), {
 				initial: () => [],
 			}),
-			relationships: new fields.ArrayField(
+			relationships: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.RelationshipData),
 				{ initial: () => [] },
 			),
-			backpackTags: new fields.ArrayField(
+			backpackTags: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{ initial: () => [] },
 			),
-			backpackDraftTags: new fields.ArrayField(
+			backpackDraftTags: new KeyedCollectionField(
 				new fields.SchemaField({
 					id: new fields.StringField({
 						required: true,
@@ -48,11 +54,11 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 				}),
 				{ initial: () => [] },
 			),
-			backpackArchive: new fields.ArrayField(
+			backpackArchive: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{ initial: () => [] },
 			),
-			noticedTags: new fields.ArrayField(
+			noticedTags: new KeyedCollectionField(
 				new fields.SchemaField({
 					id: new fields.StringField({
 						required: true,
@@ -66,7 +72,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 				}),
 				{ initial: () => [] },
 			),
-			themeArchive: new fields.ArrayField(new fields.ObjectField(), {
+			themeArchive: new KeyedCollectionField(new fields.ObjectField(), {
 				initial: () => [],
 			}),
 			themeCreationDraft: new fields.ObjectField({
@@ -80,7 +86,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 			}),
 			shortDescription: new fields.StringField({ initial: "" }),
 			heroTitle: new fields.StringField({ initial: "" }),
-			themes: new fields.ArrayField(
+			themes: new KeyedCollectionField(
 				new fields.SchemaField({
 					id: new fields.StringField({ required: true }),
 					type: new fields.StringField({ initial: "theme" }),
@@ -95,7 +101,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 					themebookCustom: new fields.BooleanField({ initial: true }),
 					themekitUuid: new fields.StringField({ initial: "", blank: true }),
 					themekitName: new fields.StringField({ initial: "", blank: true }),
-					themebookAnswers: new fields.ArrayField(
+					themebookAnswers: new KeyedCollectionField(
 						new fields.SchemaField({
 							id: new fields.StringField({ required: true }),
 							sourceUuid: new fields.StringField({ initial: "", blank: true }),
@@ -121,15 +127,15 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 					),
 					level: new fields.StringField({ initial: "origin" }),
 					themeTag: new fields.EmbeddedDataField(abstract.TagData),
-					powerTags: new fields.ArrayField(
+					powerTags: new KeyedCollectionField(
 						new fields.EmbeddedDataField(abstract.TagData),
 						{ initial: () => [] },
 					),
-					weaknessTags: new fields.ArrayField(
+					weaknessTags: new KeyedCollectionField(
 						new fields.EmbeddedDataField(abstract.TagData),
 						{ initial: () => [] },
 					),
-					draftTags: new fields.ArrayField(
+					draftTags: new KeyedCollectionField(
 						new fields.SchemaField({
 							id: new fields.StringField({
 								initial: () => foundry.utils.randomID(),
@@ -139,7 +145,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 						}),
 						{ initial: () => [] },
 					),
-					specials: new fields.ArrayField(
+					specials: new KeyedCollectionField(
 						new fields.EmbeddedDataField(abstract.SpecialData),
 						{ initial: () => [] },
 					),
@@ -184,7 +190,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 						max: 2,
 						initial: 0,
 					}),
-					claimedSpecials: new fields.ArrayField(
+					claimedSpecials: new KeyedCollectionField(
 						new fields.SchemaField({
 							sourceUuid: new fields.StringField({ initial: "", blank: true }),
 							specialId: new fields.StringField({ initial: "", blank: true }),
@@ -223,8 +229,8 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 
 	get backpack() {
 		return {
-			contents: this._source.backpackTags ?? [],
-			specials: this._source.quintessences ?? [],
+			contents: this.backpackTags ?? [],
+			specials: this.quintessences ?? [],
 		};
 	}
 
@@ -234,15 +240,15 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	#schemaThemes() {
-		return (this._source.themes ?? []).filter((theme) => !theme.isEmpty);
+		return (this.themes ?? []).filter((theme) => !theme.isEmpty);
 	}
 
 	get embeddedTags() {
-		const heroRels = (this._source.relationships ?? []).map((r) => ({
+		const heroRels = (this.relationships ?? []).map((r) => ({
 			...r,
 			type: "hero",
 		}));
-		const heroTags = this._source.backpackTags ?? [];
+		const heroTags = this.backpackTags ?? [];
 		const themeEntries = this.#schemaThemes();
 		const themeTags = themeEntries.flatMap((t) => [
 			...(t.powerTags ?? []),
@@ -343,7 +349,7 @@ export class CharacterData extends foundry.abstract.TypeDataModel {
 	}
 
 	get availableRelationships() {
-		return (this._source.relationships ?? []).filter((tag) => !tag.isScratched);
+		return (this.relationships ?? []).filter((tag) => !tag.isScratched);
 	}
 
 	get storyTags() {

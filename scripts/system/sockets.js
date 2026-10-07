@@ -4,6 +4,7 @@ import {
 	prepareRoteAutomation,
 } from "../item/rote/rote-automation.js";
 import { getFellowshipActors } from "../utils.js";
+import { SharedStorage } from "./shared-storage.js";
 const { fromUuid } = foundry.utils;
 
 export class Sockets {
@@ -143,9 +144,18 @@ export class Sockets {
 				"system.claimedSpecials",
 			]);
 			const updates = Object.fromEntries(
-				Object.entries(data.updates ?? {}).filter(
-					([path, value]) => allowed.has(path) && Array.isArray(value),
-				),
+				Object.entries(data.updates ?? {}).filter(([path]) => {
+					const parts = path.split(".");
+					if (!allowed.has(parts.slice(0, 2).join("."))) return false;
+					if (!/^r[0-9a-f]+(?:_[0-9a-f]+)*$/.test(parts[2] ?? "")) return false;
+					return parts
+						.slice(3)
+						.every(
+							(part) =>
+								/^[A-Za-z0-9_]+$/.test(part) &&
+								!["__proto__", "constructor", "prototype"].includes(part),
+						);
+				}),
 			);
 			if (!Object.keys(updates).length) return;
 			await fellowship.update(updates);
@@ -785,11 +795,11 @@ export class Sockets {
 				data.type === "update" &&
 				game.user.isGM
 			) {
-				const config = game.settings.get("litm-rn", "storytags") || {};
-				await game.settings.set("litm-rn", "storytags", {
-					...config,
-					helpingTags: data.helpingTags,
-				});
+				const config = SharedStorage.readStoryConfig() || {};
+				await SharedStorage.updateStoryConfig(
+					{ helpingTags: data.helpingTags },
+					config,
+				);
 			}
 		});
 	}

@@ -1,3 +1,5 @@
+import { cloneCollection } from "../data/keyed-collections.js";
+import { SharedStorage } from "../system/shared-storage.js";
 import { ThemeAdvancement } from "../system/theme-advancement.js";
 import { addOrStackActorStatus, localize as t } from "../utils.js";
 const { fromUuidSync } = foundry.utils;
@@ -371,9 +373,9 @@ export class LitmRoll extends foundry.dice.Roll {
 			// Permanent Story, Scene, and campsite tags may be burned for Power,
 			// but the burn must never scratch or remove their source tag.
 			if (tag?._ref === "story") {
-				const source = game.settings
-					.get("litm-rn", "storytags")
-					?.tags?.find((entry) => entry.id === tag.id);
+				const source = SharedStorage.readStoryConfig()?.tags?.find(
+					(entry) => entry.id === tag.id,
+				);
 				if (tag.isPermanent || source?.isPermanent) return;
 			} else if (tag?._ref === "camp") {
 				const session = game.litm?.CampDialog?.getSession?.(
@@ -387,10 +389,9 @@ export class LitmRoll extends foundry.dice.Roll {
 				const sceneId = tag._ref.startsWith("scene:")
 					? tag._ref.slice("scene:".length)
 					: opts.sceneId;
-				const source = game.scenes
-					?.get(sceneId)
-					?.getFlag("litm-rn", "scenetags")
-					?.tags?.find((entry) => entry.id === tag.id);
+				const source = SharedStorage.readSceneConfig(
+					game.scenes?.get(sceneId),
+				)?.tags?.find((entry) => entry.id === tag.id);
 				if (tag.isPermanent || source?.isPermanent) return;
 			}
 			const sharedTargetActorId =
@@ -498,15 +499,12 @@ export class LitmRoll extends foundry.dice.Roll {
 				}
 			}
 
-			const config = game.settings.get("litm-rn", "storytags");
+			const config = SharedStorage.readStoryConfig();
 			const isGlobalStoryTag = config?.tags?.some((t) => t.id === tag.id);
 
 			if (isGlobalStoryTag) {
 				const newTags = config.tags.filter((t) => t.id !== tag.id);
-				await game.settings.set("litm-rn", "storytags", {
-					...config,
-					tags: newTags,
-				});
+				await SharedStorage.updateStoryConfig({ tags: newTags }, config);
 				return;
 			}
 
@@ -515,14 +513,15 @@ export class LitmRoll extends foundry.dice.Roll {
 				: tag._ref === "scene"
 					? game.scenes?.get(opts.sceneId)
 					: null;
-			const sceneConfig = scene?.getFlag("litm-rn", "scenetags") || {};
+			const sceneConfig = SharedStorage.readSceneConfig(scene) || {};
 			const isSceneTag = sceneConfig.tags?.some((t) => t.id === tag.id);
 			if (isSceneTag) {
 				const newTags = sceneConfig.tags.filter((t) => t.id !== tag.id);
-				await scene.setFlag("litm-rn", "scenetags", {
-					...sceneConfig,
-					tags: newTags,
-				});
+				await SharedStorage.updateSceneConfig(
+					scene,
+					{ tags: newTags },
+					sceneConfig,
+				);
 				return;
 			}
 
@@ -677,7 +676,7 @@ export class LitmRoll extends foundry.dice.Roll {
 		}
 		if (!shouldScratchOne && !shouldScratchAll) return;
 
-		const themes = foundry.utils.duplicate(actor.system.themes ?? []);
+		const themes = cloneCollection(actor.system.themes ?? []);
 		const theme = themes.find((entry) => entry.id === sacrifice.themeId);
 		if (!theme) return;
 		const scratchableTags = [

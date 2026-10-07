@@ -1,5 +1,11 @@
+import {
+	KeyedCollectionField,
+	KeyedDataModelMixin,
+} from "../../data/keyed-collections.js";
 import { localize as t } from "../../utils.js";
-export class ChallengeData extends foundry.abstract.TypeDataModel {
+export class ChallengeData extends KeyedDataModelMixin(
+	foundry.abstract.TypeDataModel,
+) {
 	static defineSchema() {
 		const fields = foundry.data.fields;
 		return {
@@ -13,7 +19,7 @@ export class ChallengeData extends foundry.abstract.TypeDataModel {
 				max: 5,
 			}),
 			note: new fields.HTMLField(),
-			specials: new fields.ArrayField(
+			specials: new KeyedCollectionField(
 				new fields.SchemaField({
 					id: new fields.StringField({
 						required: true,
@@ -28,8 +34,11 @@ export class ChallengeData extends foundry.abstract.TypeDataModel {
 					}),
 				}),
 			),
-			secrets: new fields.ArrayField(
+			secrets: new KeyedCollectionField(
 				new fields.SchemaField({
+					id: new fields.StringField({
+						initial: () => foundry.utils.randomID(),
+					}),
 					name: new fields.StringField({
 						initial: () => t("Litm.ui.new-secret"),
 					}),
@@ -39,13 +48,16 @@ export class ChallengeData extends foundry.abstract.TypeDataModel {
 					isRevealed: new fields.BooleanField({ initial: false }),
 				}),
 			),
-			limits: new fields.ArrayField(
+			limits: new KeyedCollectionField(
 				new fields.SchemaField({
+					id: new fields.StringField({
+						initial: () => foundry.utils.randomID(),
+					}),
 					name: new fields.StringField(),
 					value: new fields.NumberField({ min: 0, max: 6, nullable: true }),
 					consequence: new fields.StringField({ initial: "" }),
 					isPrivate: new fields.BooleanField({ initial: false }),
-					statusIds: new fields.ArrayField(new fields.StringField(), {
+					statusIds: new KeyedCollectionField(new fields.StringField(), {
 						initial: () => [],
 					}),
 				}),

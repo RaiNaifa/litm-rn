@@ -3,12 +3,14 @@ import { FellowshipAdvancementApp } from "../../apps/fellowship-advancement.js";
 import { HeroCreationApp } from "../../apps/hero-creation.js";
 import { PromiseFulfillmentApp } from "../../apps/promise-fulfillment.js";
 import { ThemeAdvancementApp } from "../../apps/theme-advancement.js";
+import { cloneCollection } from "../../data/keyed-collections.js";
 import {
 	cloneStoryRotes,
 	confirmTagRoteRemoval,
 	getActiveRoteTagIdsForActor,
 } from "../../item/rote/rote-links.js";
 import { createPrivate } from "../../system/private-creation.js";
+import { SharedStorage } from "../../system/shared-storage.js";
 import { ThemeAdvancement } from "../../system/theme-advancement.js";
 import {
 	addOrStackActorStatus,
@@ -123,6 +125,9 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		const selectedIds =
 			game.litm?.getSelectedTagIds?.(this.actor.id) ?? new Set();
 		const burnedIds = new Set();
+		const helpingIds = new Set(
+			(SharedStorage.readStoryConfig().helpingTags ?? []).map((tag) => tag.id),
+		);
 		for (const tagMap of game.litm?.rollSelection
 			?.get(this.actor.id)
 			?.values() ?? []) {
@@ -142,6 +147,11 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			if (!tagId) continue;
 			element.toggleAttribute("data-selected", selectedIds.has(tagId));
 			element.toggleAttribute("data-burned", burnedIds.has(tagId));
+			if (element.matches(".litm--theme-title, .litm--weakness"))
+				element.classList.toggle(
+					"litm--theme-helping-tag",
+					helpingIds.has(tagId),
+				);
 		}
 	}
 
@@ -164,7 +174,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	get config() {
-		const config = game.settings.get("litm-rn", "storytags");
+		const config = SharedStorage.readStoryConfig();
 		if (!config || foundry.utils.isEmpty(config))
 			return { actors: [], tags: [], selectedTags: [], helpingTags: [] };
 		return { helpingTags: [], ...config };
@@ -259,7 +269,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		const nextScratchState = (current) => scratched ?? !current;
 		switch (tag.type) {
 			case "hero": {
-				const rels = foundry.utils.duplicate(this.system.relationships ?? []);
+				const rels = cloneCollection(this.system.relationships ?? []);
 				const match = rels.find((i) => i.id === tag.id);
 				if (match) {
 					match.isScratched = nextScratchState(match.isScratched);
@@ -283,7 +293,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 					t.powerTags?.some((pt) => pt.id === tag.id),
 				);
 				if (themeIdx !== -1 && themeIdx !== undefined) {
-					const themes = foundry.utils.duplicate(this.system.themes);
+					const themes = cloneCollection(this.system.themes);
 					const pt = themes[themeIdx].powerTags.find((pt) => pt.id === tag.id);
 					if (pt) {
 						pt.isScratched = nextScratchState(pt.isScratched);
@@ -322,7 +332,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 					(t) => t.themeTag?.id === tag.id,
 				);
 				if (themeIdx !== -1 && themeIdx !== undefined) {
-					const themes = foundry.utils.duplicate(this.system.themes);
+					const themes = cloneCollection(this.system.themes);
 					themes[themeIdx].themeTag.isScratched = nextScratchState(
 						themes[themeIdx].themeTag.isScratched,
 					);
@@ -348,7 +358,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				break;
 			}
 			case "backpack": {
-				const tags = foundry.utils.duplicate(this.system.backpackTags ?? []);
+				const tags = cloneCollection(this.system.backpackTags ?? []);
 				const match = tags.find((i) => i.id === tag.id);
 				if (match) {
 					match.isScratched = nextScratchState(match.isScratched);
@@ -453,7 +463,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		const themeEntries = this.system.themes || [];
 		context.themes = await Promise.all(
 			themeEntries.map(async (t, idx) => {
-				const system = foundry.utils.duplicate(t);
+				const system = cloneCollection(t);
 				system.improveTrackLength = Number(t.improveTrackLength ?? 3);
 				system.improvementsPerTrack = Number(t.improvementsPerTrack ?? 1);
 				system.specials = await Promise.all(
@@ -612,8 +622,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		}
 		context.burntTags = [...burntTagIds].map((id) => ({ id }));
 
-		context.helpingTags =
-			game.settings.get("litm-rn", "storytags")?.helpingTags || [];
+		context.helpingTags = SharedStorage.readStoryConfig()?.helpingTags || [];
 
 		// UI state
 		context.tagsFocused = this.#tagsFocused;
@@ -950,7 +959,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		}
 		if (!this.#storyTagsHookId) {
 			this.#storyTagsHookId = Hooks.on("litmStoryTagsUpdated", (opts = {}) => {
-				if (opts.sourceAppId !== this.appId && this.rendered) this.render();
+				if (opts.sourceAppId !== this.appId && this.rendered)
+					this.updateRollSelectionDisplay();
 			});
 		}
 		if (!this.#actorDataUpdateHookId) {
@@ -1082,7 +1092,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 		if (backpackElement && data.type === "tag") {
 			// Dropped on backpack but not on a story-theme — add to backpack contents
-			const tags = foundry.utils.duplicate(this.system.backpackTags ?? []);
+			const tags = cloneCollection(this.system.backpackTags ?? []);
 			tags.push({
 				id: foundry.utils.randomID(),
 				name: data.name,
@@ -1522,9 +1532,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		}
 
 		const found = this.system.allTags.find((tag) => tag.id === id);
-		return found
-			? { tag: foundry.utils.duplicate(found), kind: "other" }
-			: null;
+		return found ? { tag: cloneCollection(found), kind: "other" } : null;
 	}
 
 	#openTagContextMenu(event, id, trigger) {
@@ -1840,7 +1848,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	async #moveBackpackTagToTracking(tag) {
-		const tags = foundry.utils.duplicate(this.system.backpackTags ?? []);
+		const tags = cloneCollection(this.system.backpackTags ?? []);
 		const index = tags.findIndex((entry) => entry.id === tag.id);
 		if (index < 0 || tags[index].isScratched) return;
 		const [movedTag] = tags.splice(index, 1);
@@ -1881,7 +1889,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	async #moveEffectTagToBackpack({ tag }) {
-		const tags = foundry.utils.duplicate(this.system.backpackTags ?? []);
+		const tags = cloneCollection(this.system.backpackTags ?? []);
 		tags.push({
 			id: tag.id,
 			name: tag.name,
@@ -1998,7 +2006,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		} else if (
 			["theme-title", "theme-power", "theme-weakness"].includes(kind)
 		) {
-			const themes = foundry.utils.duplicate(this.system.themes ?? []);
+			const themes = cloneCollection(this.system.themes ?? []);
 			for (const theme of themes) {
 				if (theme.themeTag?.id === tag.id) theme.themeTag.isPrivate = isPrivate;
 				const powerTag = theme.powerTags?.find((entry) => entry.id === tag.id);
@@ -2010,7 +2018,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			}
 			await this.actor.update({ "system.themes": themes }, { validate: false });
 		} else if (kind === "backpack") {
-			const tags = foundry.utils.duplicate(this.system.backpackTags ?? []);
+			const tags = cloneCollection(this.system.backpackTags ?? []);
 			const match = tags.find((entry) => entry.id === tag.id);
 			if (match) match.isPrivate = isPrivate;
 			await this.actor.update(
@@ -2018,9 +2026,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				{ validate: false },
 			);
 		} else if (kind === "hero") {
-			const relationships = foundry.utils.duplicate(
-				this.system.relationships ?? [],
-			);
+			const relationships = cloneCollection(this.system.relationships ?? []);
 			const match = relationships.find((entry) => entry.id === tag.id);
 			if (match) match.isPrivate = isPrivate;
 			await this.actor.update(
@@ -2031,8 +2037,8 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			if (kind === "story-title") {
 				await story.update({ "system.themeTag.isPrivate": isPrivate });
 			} else {
-				const powerTags = foundry.utils.duplicate(story.system.powerTags ?? []);
-				const weakness = foundry.utils.duplicate(story.system.weakness ?? []);
+				const powerTags = cloneCollection(story.system.powerTags ?? []);
+				const weakness = cloneCollection(story.system.weakness ?? []);
 				const powerTag = powerTags.find((entry) => entry.id === tag.id);
 				const weaknessTag = weakness.find((entry) => entry.id === tag.id);
 				if (powerTag) powerTag.isPrivate = isPrivate;
@@ -2144,7 +2150,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		)
 			return;
 
-		const themes = foundry.utils.duplicate(this.actor.system.themes ?? []);
+		const themes = cloneCollection(this.actor.system.themes ?? []);
 		if (!themes[sourceIndex] || !themes[targetIndex]) return;
 		[themes[sourceIndex], themes[targetIndex]] = [
 			themes[targetIndex],
@@ -2409,7 +2415,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	async #addBackpackTag(event) {
-		const tags = foundry.utils.duplicate(this.system.backpackTags ?? []);
+		const tags = cloneCollection(this.system.backpackTags ?? []);
 		const id = foundry.utils.randomID();
 		tags.push({
 			id,
@@ -2434,7 +2440,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		const field =
 			event.currentTarget.dataset.backpackTagField || "backpackTags";
 		const name = event.currentTarget.textContent.trim();
-		const tags = foundry.utils.duplicate(this.system[field] ?? []);
+		const tags = cloneCollection(this.system[field] ?? []);
 		const tag = tags.find((entry) => entry.id === id);
 		if (!tag) return;
 
@@ -2449,7 +2455,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	/** Add a tag directly to the Backpack archive and focus its editor. */
 	async #addArchivedBackpackTag(event) {
-		const tags = foundry.utils.duplicate(this.system.backpackArchive ?? []);
+		const tags = cloneCollection(this.system.backpackArchive ?? []);
 		const id = foundry.utils.randomID();
 		tags.push({
 			id,
@@ -2469,7 +2475,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	/** Create a noticed tag and focus its inline editor. */
 	async #addNoticedTag() {
-		const tags = foundry.utils.duplicate(this.system.noticedTags ?? []);
+		const tags = cloneCollection(this.system.noticedTags ?? []);
 		const id = foundry.utils.randomID();
 		tags.push({ id, name: "", type: "tag" });
 		this.#editingNoticedTagId = id;
@@ -2484,7 +2490,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	async #onNoticedTagEditorBlur(event) {
 		const id = event.currentTarget.dataset.noticedTagEditor;
 		const name = event.currentTarget.textContent.trim();
-		const tags = foundry.utils.duplicate(this.system.noticedTags ?? []);
+		const tags = cloneCollection(this.system.noticedTags ?? []);
 		const tag = tags.find((entry) => entry.id === id);
 		if (!tag) return;
 		this.#editingNoticedTagId = null;
@@ -2727,7 +2733,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		// Try to find tag in allTags (items/effects)
 		if (!tag) {
 			const found = this.system.allTags.find((t) => t.id === id);
-			tag = found ? foundry.utils.duplicate(found) : undefined;
+			tag = found ? cloneCollection(found) : undefined;
 		}
 
 		// If not found in allTags, try story tags (global effects)
@@ -2830,10 +2836,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	async setHelpingTags(helpingTags) {
-		await game.settings.set("litm-rn", "storytags", {
-			...this.config,
-			helpingTags,
-		});
+		await SharedStorage.updateStoryConfig({ helpingTags }, this.config);
 	}
 
 	#onSpecialDragStart(event) {

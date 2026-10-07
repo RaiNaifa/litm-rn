@@ -2,6 +2,7 @@
 <div class="litm--tm-tag-item litm--tm-tag-{{tag.type}}{{ifThen tag.isPrivate ' litm--tm-private' ''}}{{ifThen tag.isHindering ' litm--tm-hindering' ''}}{{ifThen (and tag.isScratched readonly) ' litm--tm-scratched' ''}}{{#if (eq tag.type 'might')}} litm--tm-might-val-{{ifThen (eq tag.value 0) 'origin' (ifThen (eq tag.value 6) 'greatness' 'adventure')}}{{/if}}{{#if tag.isCrispy}} litm--tm-crispy{{/if}}{{#if tag.isPermanent}} litm--tm-permanent{{/if}}{{#if (and @root.isGM (lookup @root.rollSelMap tag.id))}} litm--tag-roll-selected{{/if}}"
   data-context-tag
   data-tag-id="{{tag.id}}" data-ref="{{ref}}" data-tag-type="{{tag.type}}"
+  data-source-id="{{ifThen (eq ref 'story') @root.storyProfileId (ifThen (eq ref 'scene') @root.sceneId ref)}}"
   data-readonly="{{readonly}}"
   {{#if (lookup @root.playerRollSelMap (concat ref ":" tag.id))}}data-selected{{/if}}
   {{#if (eq (lookup @root.playerRollSelMap (concat ref ":" tag.id)) "burned")}}data-burned{{/if}}
@@ -13,7 +14,7 @@
     <div class="litm--tm-tag-name{{#if (and tag.isScratched readonly)}} litm--tm-scratched-text{{/if}}"
       {{#if (and @root.isGM (ne tag.type 'limit') (not tag.isScratched))}}data-action="select"
       {{else if (and @root.hasPlayerCharacter (not tag.isScratched) (or (eq tag.type 'tag') (eq tag.type 'status') (eq tag.type 'powerTag') (eq tag.type 'weaknessTag') (eq tag.type 'weaknessStoryTag') (eq tag.type 'themeTag') (eq tag.type 'powerCrispy') (eq tag.type 'themeCrispy')))}}data-action="player-select"{{/if}}
-      contenteditable="{{ifThen (eq tag.id editingId) 'true' 'false'}}"
+      contenteditable="{{ifThen (and (eq tag.id editingId) (eq ref @root.editingRef)) 'true' 'false'}}"
       data-id="{{tag.id}}" data-ref="{{ref}}"
       data-tag-type="{{tag.type}}" data-is-scratched="{{tag.isScratched}}"
       >{{#if (or (eq tag.type 'powerCrispy') (eq tag.type 'powerTag') (eq tag.type 'themeCrispy') (eq tag.type 'themeTag'))}}<i class="litm--tm-type-icon" style="background-image:url('systems/litm-rn/assets/media/icons/weakness-marker-litm_inactive.svg')"></i>{{/if}}{{#if (eq tag.type 'weaknessTag')}}<i class="litm--tm-type-icon" style="background-image:url('systems/litm-rn/assets/media/icons/weakness-marker-litm_active.svg')"></i>{{/if}}<span class="litm--tm-tag-text">{{tag.name}}</span>
@@ -209,7 +210,7 @@
   {{#if tags.length}}
   <div class="litm--tm-tag-list">
     {{#each tags}}{{#if (eq this.type 'limit')}}
-    <div class="litm--tm-limit-wrapper{{ifThen this.isPrivate ' litm--tm-private' ''}}" data-limit-id="{{this.id}}" data-ref="{{../ref}}">
+    <div class="litm--tm-limit-wrapper{{ifThen this.isPrivate ' litm--tm-private' ''}}" data-limit-id="{{this.id}}" data-ref="{{../ref}}" data-source-id="{{ifThen (eq ../ref 'story') @root.storyProfileId (ifThen (eq ../ref 'scene') @root.sceneId ../ref)}}">
       {{> tagItem tag=this ref=../ref isOwner=../isOwner readonly=../readonly editingId=../editingId}}
       {{#if this.containedStatuses.length}}
       <div class="litm--tm-limit-contents">
@@ -404,7 +405,7 @@
       {{#if storyThemes.length}}
       <div class="litm--tm-story-themes">
         {{#each storyThemes as |theme|}}
-        <div class="litm--tm-fellowship-selected litm--tm-story-theme">
+        <div class="litm--tm-fellowship-selected litm--tm-story-theme" data-item-id="{{theme.id}}">
           <div class="litm--tm-fellowship-header">
             <img src="{{theme.img}}" alt="" class="litm--tm-fellowship-img"
               data-action="open-story-theme" data-item-id="{{theme.id}}"

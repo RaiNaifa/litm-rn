@@ -1,3 +1,4 @@
+import { SharedStorage } from "../system/shared-storage.js";
 import {
 	getFellowshipActors,
 	getOwningDocument,
@@ -41,11 +42,11 @@ export class RollTargetPopup {
 
 		// Check if the SOURCE actor (whose tag is being clicked) is in the tag manager
 		// in either Story Tags or Scene Tags.
-		const storyConfig = game.settings.get("litm-rn", "storytags") || {
+		const storyConfig = SharedStorage.readStoryConfig() || {
 			actors: [],
 		};
 		const storyActorRefs = new Set(storyConfig.actors || []);
-		const sceneConfig = canvas.scene?.getFlag("litm-rn", "scenetags") || {
+		const sceneConfig = SharedStorage.readSceneConfig(canvas.scene) || {
 			actors: [],
 		};
 		const sceneActorRefs = new Set(

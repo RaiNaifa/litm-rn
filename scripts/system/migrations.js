@@ -2,13 +2,15 @@ import { ReferenceHandbook } from "../apps/reference-handbook.js";
 import { StoryProfileSettings } from "../apps/story-profile-settings.js";
 import { error, info } from "../logger.js";
 import { getLegacyDefaultItemIconReplacement } from "./item-icons.js";
+import { migrateDocumentSource } from "./keyed-documents.js";
 import { LegacyItemMigration } from "./legacy-item-migration.js";
+import { SharedStorage } from "./shared-storage.js";
 import { ThemeAdvancement } from "./theme-advancement.js";
 import { ThemeSources } from "./theme-sources.js";
 
 const SYSTEM_ID = "litm-rn";
 const SCHEMA_VERSION_SETTING = "dataSchemaVersion";
-export const CURRENT_DATA_SCHEMA_VERSION = 2;
+export const CURRENT_DATA_SCHEMA_VERSION = 3;
 const LEGACY_CHARACTER_ITEM_TYPES = new Set(["hero", "backpack", "theme"]);
 
 /** Run persistent world-data migrations from publicly released system formats. */
@@ -34,11 +36,13 @@ export class WorldMigrations {
 	 */
 	static async run() {
 		if (WorldMigrations.#running) return WorldMigrations.#running;
+		if (game.litm) game.litm.worldDataMigrationRunning = true;
 		WorldMigrations.#running = WorldMigrations.#runPending();
 		try {
 			await WorldMigrations.#running;
 		} finally {
 			WorldMigrations.#running = null;
+			if (game.litm) game.litm.worldDataMigrationRunning = false;
 		}
 	}
 
@@ -65,6 +69,15 @@ export class WorldMigrations {
 			version = 2;
 			info(
 				`World data schema 2 complete: ${items} default item icon(s) updated.`,
+			);
+		}
+
+		if (version < 3) {
+			await WorldMigrations.#migrateIndependentRecords();
+			await game.settings.set(SYSTEM_ID, SCHEMA_VERSION_SETTING, 3);
+			version = 3;
+			info(
+				"World data schema 3 complete: shared and document collections use independent records.",
 			);
 		}
 
@@ -109,6 +122,52 @@ export class WorldMigrations {
 		return summary;
 	}
 
+	static async #migrateIndependentRecords() {
+		await SharedStorage.migrate();
+		const migrate = async (document, type) => {
+			const token = document.isToken
+				? document.token
+				: document.parent?.isToken
+					? document.parent.token
+					: null;
+			const delta = token?.delta?._source;
+			const localFlags = token
+				? type === "Actor"
+					? delta?.flags?.[SYSTEM_ID]
+					: delta?.items?.find((item) => item._id === document.id)?.flags?.[
+							SYSTEM_ID
+						]
+				: document.flags?.[SYSTEM_ID];
+			if (localFlags?.keyedCollectionsVersion === 1) return;
+			const publicSource = document.toObject();
+			const source = migrateDocumentSource(document._source, type);
+			const updates = {
+				system: source.system,
+				[`flags.${SYSTEM_ID}.keyedCollectionsVersion`]: 1,
+			};
+			if (!localFlags?.keyedCollectionsBackup)
+				updates[`flags.${SYSTEM_ID}.keyedCollectionsBackup`] =
+					publicSource.system;
+			await document.update(updates, {
+				litmCollectionMigration: true,
+				diff: false,
+				render: false,
+			});
+		};
+		for (const actor of game.actors) {
+			await migrate(actor, "Actor");
+			for (const item of actor.items) await migrate(item, "Item");
+		}
+		for (const item of game.items) await migrate(item, "Item");
+		for (const scene of game.scenes) {
+			for (const token of scene.tokens) {
+				if (token.actorLink || !token.actor) continue;
+				await migrate(token.actor, "Actor");
+				for (const item of token.actor.items) await migrate(item, "Item");
+			}
+		}
+	}
+
 	static async #normalizeStoryActorReferences() {
 		const config = foundry.utils.deepClone(
 			game.settings.get(SYSTEM_ID, "storytags") || {},
@@ -137,7 +196,7 @@ export class WorldMigrations {
 		);
 
 		if (!alreadyMigrated) {
-			const source = actor._source.system ?? {};
+			const source = actor.toObject().system ?? {};
 			const updates = {};
 			const hero = legacyItems.find((item) => item.type === "hero");
 			const backpack = legacyItems.find((item) => item.type === "backpack");
@@ -182,7 +241,11 @@ export class WorldMigrations {
 			}
 
 			updates[`flags.${SYSTEM_ID}.migratedToCharacter`] = true;
-			await actor.update(updates, { validate: false, render: false });
+			await actor.update(updates, {
+				validate: false,
+				render: false,
+				litmCollectionMigration: true,
+			});
 			changed = true;
 		}
 
@@ -253,12 +316,16 @@ export class WorldMigrations {
 		ThemeAdvancement.normalizeImproveTracks(themes);
 		if (JSON.stringify(themes) !== before) updates["system.themes"] = themes;
 		if (!Object.keys(updates).length) return false;
-		await actor.update(updates, { validate: false, render: false });
+		await actor.update(updates, {
+			validate: false,
+			render: false,
+			litmCollectionMigration: true,
+		});
 		return true;
 	}
 
 	static #themeSource(item) {
-		const source = foundry.utils.deepClone(item._source.system ?? {});
+		const source = foundry.utils.deepClone(item.toObject().system ?? {});
 		return {
 			id: foundry.utils.randomID(),
 			type: "theme",
@@ -372,7 +439,7 @@ export class WorldMigrations {
 	}
 
 	static async #migrateChallenge(actor) {
-		const source = foundry.utils.deepClone(actor._source.system ?? {});
+		const source = foundry.utils.deepClone(actor.toObject().system ?? {});
 		const updates = {};
 		let changed = false;
 
@@ -429,7 +496,11 @@ export class WorldMigrations {
 		}
 
 		if (changed)
-			await actor.update(updates, { validate: false, render: false });
+			await actor.update(updates, {
+				validate: false,
+				render: false,
+				litmCollectionMigration: true,
+			});
 		const namespaceChanges =
 			await WorldMigrations.#migrateLegacyEffectNamespace(actor);
 		const normalized = await WorldMigrations.#normalizeEffectTypes(actor);
@@ -511,7 +582,7 @@ export class WorldMigrations {
 			if (changed)
 				await actor.update(
 					{ "system.limits": limits },
-					{ validate: false, render: false },
+					{ validate: false, render: false, litmCollectionMigration: true },
 				);
 		}
 		return updates.length + deletions.length;

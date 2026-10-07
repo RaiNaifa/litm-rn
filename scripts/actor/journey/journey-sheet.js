@@ -3,8 +3,10 @@ import {
 	ThemeContentBackgroundApp,
 	positionThemeContentArt,
 } from "../../apps/theme-content-background.js";
+import { KeyedSheetMixin } from "../../mixins/keyed-sheet.js";
 import { registerDataInputSync } from "../../mixins/sheet-utils.js";
 import { createPrivate } from "../../system/private-creation.js";
+import { SharedStorage } from "../../system/shared-storage.js";
 import { confirmDelete, localize as t } from "../../utils.js";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -14,7 +16,9 @@ const FilePicker = foundry.applications.apps.FilePicker.implementation;
 const DEFAULT_ICON = "systems/litm-rn/assets/media/icons/treasure-map.svg";
 
 /** Independent ApplicationV2 sheet for Journey actors. */
-export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
+export class JourneySheet extends HandlebarsApplicationMixin(
+	KeyedSheetMixin(ActorSheetV2),
+) {
 	static DEFAULT_OPTIONS = {
 		classes: ["litm", "litm--journey"],
 		tag: "form",
@@ -169,7 +173,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 					return data;
 				}),
 		);
-		const story = game.settings.get("litm-rn", "storytags") || { actors: [] };
+		const story = SharedStorage.readStoryConfig() || { actors: [] };
 		context.isStoryActor = this.#isStoryActor(story.actors || []);
 		context.isDefaultIcon = this.actor.img === DEFAULT_ICON;
 		return context;
@@ -449,7 +453,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		const consequences = this.actor.system.consequences || [];
 		this.#pendingConsequenceIndex = consequences.length;
 		await this.actor.update({
-			"system.consequences": [...consequences, t("Litm.ui.name-consequence")],
+			"system.consequences": consequences.concat(t("Litm.ui.name-consequence")),
 		});
 	}
 
@@ -522,7 +526,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	async #moveToStory() {
-		const config = game.settings.get("litm-rn", "storytags") || {
+		const config = SharedStorage.readStoryConfig() || {
 			actors: [],
 			tags: [],
 		};
@@ -531,10 +535,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		const nextActors = this.#isStoryActor(actors)
 			? actors.filter((ref) => !refs.has(ref))
 			: [...actors, this.#storyRef];
-		await game.settings.set("litm-rn", "storytags", {
-			...config,
-			actors: nextActors,
-		});
+		await SharedStorage.updateStoryConfig({ actors: nextActors }, config);
 		Hooks.callAll("litmStoryTagsUpdated");
 		await this.render({ force: true });
 	}
@@ -542,7 +543,7 @@ export class JourneySheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	#syncStoryActorButton = () => {
 		const button = this.element?.querySelector('[data-click="move-to-story"]');
 		if (!button) return;
-		const config = game.settings.get("litm-rn", "storytags") || { actors: [] };
+		const config = SharedStorage.readStoryConfig() || { actors: [] };
 		const active = this.#isStoryActor(config.actors || []);
 		const label = t(
 			active

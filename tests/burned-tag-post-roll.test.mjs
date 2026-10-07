@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 globalThis.foundry = {
+	data: { fields: { TypedObjectField: class {} } },
 	applications: { api: { DialogV2: class {} } },
 	dice: { Roll: class {} },
 	utils: { fromUuidSync: () => null },

@@ -7,6 +7,12 @@ import { ThemeSourceSettings } from "../apps/theme-source-settings.js";
 
 export class LitmSettings {
 	static register() {
+		game.settings.register("litm-rn", "sharedDataDocument", {
+			scope: "world",
+			config: false,
+			type: String,
+			default: "",
+		});
 		game.settings.register("litm-rn", "dataSchemaVersion", {
 			scope: "world",
 			config: false,

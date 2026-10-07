@@ -1,6 +1,12 @@
+import {
+	KeyedCollectionField,
+	KeyedDataModelMixin,
+} from "../../data/keyed-collections.js";
 import { localize as t } from "../../utils.js";
 
-export class FellowshipThemeData extends foundry.abstract.DataModel {
+export class FellowshipThemeData extends KeyedDataModelMixin(
+	foundry.abstract.DataModel,
+) {
 	static defineSchema() {
 		const fields = foundry.data.fields;
 		const abstract = game.litm.data;
@@ -11,7 +17,7 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 			}),
 			themebookUuid: new fields.StringField({ initial: "", blank: true }),
 			themebookCustom: new fields.BooleanField({ initial: true }),
-			themebookAnswers: new fields.ArrayField(
+			themebookAnswers: new KeyedCollectionField(
 				new fields.SchemaField({
 					id: new fields.StringField({ required: true }),
 					sourceUuid: new fields.StringField({ initial: "", blank: true }),
@@ -35,7 +41,7 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 				}),
 				{ initial: () => [] },
 			),
-			members: new fields.ArrayField(
+			members: new KeyedCollectionField(
 				new fields.SchemaField({
 					actorId: new fields.StringField({
 						required: true,
@@ -65,7 +71,7 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 					isScratched: false,
 				}),
 			}),
-			powerTags: new fields.ArrayField(
+			powerTags: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{
 					initial: () =>
@@ -79,7 +85,7 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 							})),
 				},
 			),
-			weaknessTags: new fields.ArrayField(
+			weaknessTags: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{
 					initial: () =>
@@ -93,7 +99,7 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 							})),
 				},
 			),
-			draftTags: new fields.ArrayField(
+			draftTags: new KeyedCollectionField(
 				new fields.SchemaField({
 					id: new fields.StringField({
 						initial: () => foundry.utils.randomID(),
@@ -109,13 +115,13 @@ export class FellowshipThemeData extends foundry.abstract.DataModel {
 					initial: () => [],
 				},
 			),
-			specials: new fields.ArrayField(
+			specials: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.SpecialData),
 				{
 					initial: () => [],
 				},
 			),
-			claimedSpecials: new fields.ArrayField(
+			claimedSpecials: new KeyedCollectionField(
 				new fields.SchemaField({
 					sourceUuid: new fields.StringField({ initial: "", blank: true }),
 					specialId: new fields.StringField({ initial: "", blank: true }),

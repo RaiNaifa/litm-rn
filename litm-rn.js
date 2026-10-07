@@ -25,6 +25,7 @@ import { ToggledInput } from "./scripts/components/toggled-input.js";
 import { TagData } from "./scripts/data/abstract.js";
 import { RelationshipData } from "./scripts/data/abstract.js";
 import { SpecialData } from "./scripts/data/abstract.js";
+import { cloneCollection } from "./scripts/data/keyed-collections.js";
 import {
 	DRAG_TYPE,
 	addSpecialToContainer,
@@ -66,8 +67,10 @@ import {
 } from "./scripts/system/handlebars.js";
 import { LitmHooks } from "./scripts/system/hooks.js";
 import { KeyBindings } from "./scripts/system/keybindings.js";
+import { registerKeyedDocuments } from "./scripts/system/keyed-documents.js";
 import { WorldMigrations } from "./scripts/system/migrations.js";
 import { LitmSettings } from "./scripts/system/settings.js";
+import { SharedStorage } from "./scripts/system/shared-storage.js";
 import { Sockets } from "./scripts/system/sockets.js";
 import { ThemeAdvancement } from "./scripts/system/theme-advancement.js";
 import { ThemeSources } from "./scripts/system/theme-sources.js";
@@ -476,7 +479,7 @@ Hooks.once("init", () => {
 			await message.update({ "flags.litm-rn.tagShare.burnProcessed": true });
 			try {
 				let scratched = false;
-				const themes = foundry.utils.duplicate(actor.system.themes ?? []);
+				const themes = cloneCollection(actor.system.themes ?? []);
 				for (const theme of themes) {
 					if (theme.themeTag?.id === sourceTagId) {
 						theme.themeTag.isScratched = true;
@@ -493,9 +496,7 @@ Hooks.once("init", () => {
 				if (scratched) {
 					await actor.update({ "system.themes": themes }, { validate: false });
 				} else {
-					const backpackTags = foundry.utils.duplicate(
-						actor.system.backpackTags ?? [],
-					);
+					const backpackTags = cloneCollection(actor.system.backpackTags ?? []);
 					const backpackTag = backpackTags.find(
 						(tag) => tag.id === sourceTagId,
 					);
@@ -519,9 +520,7 @@ Hooks.once("init", () => {
 						if (story.system.themeTag?.id === sourceTagId) {
 							await story.update({ "system.themeTag.isScratched": true });
 						} else {
-							const powerTags = foundry.utils.duplicate(
-								story.system.powerTags ?? [],
-							);
+							const powerTags = cloneCollection(story.system.powerTags ?? []);
 							const powerTag = powerTags.find((tag) => tag.id === sourceTagId);
 							if (powerTag) {
 								powerTag.isScratched = true;
@@ -533,7 +532,7 @@ Hooks.once("init", () => {
 				}
 
 				if (!scratched) {
-					const relationships = foundry.utils.duplicate(
+					const relationships = cloneCollection(
 						actor.system.relationships ?? [],
 					);
 					const relationship = relationships.find(
@@ -633,7 +632,7 @@ Hooks.once("init", () => {
 			this._persistGmRollSelections();
 			for (const actor of game.actors) {
 				if (actor.sheet?.rendered && actor.type === "character")
-					actor.sheet.render();
+					actor.sheet.updateRollSelectionDisplay?.(change);
 			}
 			if (ui.combat?.rendered) ui.combat.render();
 			if (game.litm?._tmPopOut?.rendered) game.litm._tmPopOut.render();
@@ -891,6 +890,9 @@ Hooks.once("init", () => {
 	Fonts.register();
 	KeyBindings.register();
 	LitmSettings.register();
+	registerKeyedDocuments();
+	SharedStorage.register();
+	game.litm.sharedStorage = SharedStorage;
 
 	// Replace Combat Tracker with Tag Manager
 	CONFIG.ui.combat = TagManager;

@@ -1,4 +1,5 @@
 import { FellowshipAdvancementApp } from "../../apps/fellowship-advancement.js";
+import { KeyedSheetMixin } from "../../mixins/keyed-sheet.js";
 import { ThemeAdvancement } from "../../system/theme-advancement.js";
 import { ThemeSources } from "../../system/theme-sources.js";
 import { getOwningDocument, localize as t } from "../../utils.js";

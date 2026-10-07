@@ -95,10 +95,9 @@ export class HeroCreationApp extends HandlebarsApplicationMixin(ApplicationV2) {
 				this.actor.toObject().system.backpackDraftTags ?? [],
 			);
 			const existingIds = new Set(drafts.map((tag) => tag.id));
-			updates["system.backpackDraftTags"] = [
-				...drafts,
-				...available.filter((tag) => !existingIds.has(tag.id)),
-			];
+			updates["system.backpackDraftTags"] = drafts.concat(
+				available.filter((tag) => !existingIds.has(tag.id)),
+			);
 		}
 		this.#updatingOptions = true;
 		try {
@@ -216,17 +215,16 @@ export class HeroCreationApp extends HandlebarsApplicationMixin(ApplicationV2) {
 				theme: foundry.utils.deepClone(theme),
 			});
 		}
-		const themes = Array.from({ length: 4 }, (_, index) =>
+		const themes = this.actor.system.themes.map((_, index) =>
 			this.#emptyTheme(index),
 		);
 		await this.actor.update(
 			{
 				"system.themeCreationDraft": draft,
-				"system.backpackTags": [...existing, ...selection.backpackTags],
-				"system.backpackDraftTags": [
-					...existingDrafts,
-					...(useBackpackDrafts ? selection.backpackDraftTags : []),
-				],
+				"system.backpackTags": existing.concat(selection.backpackTags),
+				"system.backpackDraftTags": existingDrafts.concat(
+					useBackpackDrafts ? selection.backpackDraftTags : [],
+				),
 				"system.themeArchive": archive,
 				"system.themes": themes,
 			},

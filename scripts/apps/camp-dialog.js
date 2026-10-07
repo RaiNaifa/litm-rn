@@ -1,3 +1,5 @@
+import { cloneCollection } from "../data/keyed-collections.js";
+import { SharedStorage } from "../system/shared-storage.js";
 import { Sockets } from "../system/sockets.js";
 import { localize as t } from "../utils.js";
 
@@ -106,7 +108,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		session.state = "active";
 		session.startedAt = Date.now();
 		session.startedBy = game.user.id;
-		await this.#saveSession(session);
+		await this.#saveSession(session, null);
 		Sockets.dispatch("campOpen", { fellowshipId });
 		return session;
 	}
@@ -182,7 +184,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	static getSession(fellowshipId) {
 		try {
 			return (
-				game.settings.get("litm-rn", "campSessions")?.active?.[fellowshipId] ??
+				SharedStorage.readSetting("campSessions")?.active?.[fellowshipId] ??
 				null
 			);
 		} catch (_) {
@@ -221,7 +223,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	/** Refresh open Camp windows and persistent launch notices. */
 	static refreshAll() {
 		const activeSignature = Object.keys(
-			game.settings.get("litm-rn", "campSessions")?.active ?? {},
+			SharedStorage.readSetting("campSessions")?.active ?? {},
 		)
 			.sort()
 			.join("|");
@@ -431,28 +433,29 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		return !!session.heroes?.[game.user.character?.id];
 	}
 
-	static async #saveSession(session) {
-		const store = foundry.utils.deepClone(
-			game.settings.get("litm-rn", "campSessions") || {
-				version: 1,
-				active: {},
-			},
-		);
-		store.active ||= {};
-		store.active[session.fellowshipId] = session;
-		await game.settings.set("litm-rn", "campSessions", store);
+	static async #saveSession(session, before) {
+		// Compare only this session with the snapshot from before the operation.
+		// A later snapshot would make another client's changes look like ours.
+		const previous = {
+			version: 1,
+			active: before ? { [session.fellowshipId]: before } : {},
+		};
+		const next = {
+			version: 1,
+			active: { [session.fellowshipId]: session },
+		};
+		await SharedStorage.updateSetting("campSessions", next, previous);
 		Sockets.dispatch("campChanged", { fellowshipId: session.fellowshipId });
 	}
 
 	static async #deleteSession(fellowshipId) {
-		const store = foundry.utils.deepClone(
-			game.settings.get("litm-rn", "campSessions") || {
-				version: 1,
-				active: {},
-			},
+		const before = this.getSession(fellowshipId);
+		if (!before) return;
+		await SharedStorage.updateSetting(
+			"campSessions",
+			{ version: 1, active: {} },
+			{ version: 1, active: { [fellowshipId]: before } },
 		);
-		delete store.active?.[fellowshipId];
-		await game.settings.set("litm-rn", "campSessions", store);
 	}
 
 	static #queueMutation(fellowshipId, mutation, senderId = game.user.id) {
@@ -466,7 +469,8 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 
 	static async #applyMutation(fellowshipId, mutation, senderId = game.user.id) {
-		const session = foundry.utils.deepClone(this.getSession(fellowshipId));
+		const before = foundry.utils.deepClone(this.getSession(fellowshipId));
+		const session = foundry.utils.deepClone(before);
 		if (!session || session.state !== "active") return;
 		const sender = game.users.get(senderId);
 		const senderActor = sender?.character;
@@ -606,7 +610,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				].find((tag) => tag?.id === quality.tagId);
 				if (!selectedTag?.isScratched) {
 					quality.tagId = "";
-					await this.#saveSession(session);
+					await this.#saveSession(session, before);
 					return;
 				}
 			}
@@ -658,7 +662,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			} else return;
 		} else return;
 
-		await this.#saveSession(session);
+		await this.#saveSession(session, before);
 	}
 
 	static #hydrateDecisionSnapshot(session, path) {
@@ -716,9 +720,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		} else if (activity.type === "reflect" && activity.themeId) {
 			const actor = game.actors.get(actorId);
 			if (!actor) return;
-			const beforeThemes = foundry.utils.deepClone(
-				actor._source.system.themes ?? [],
-			);
+			const beforeThemes = foundry.utils.deepClone(actor.system.themes ?? []);
 			const themes = foundry.utils.deepClone(beforeThemes);
 			const theme = themes.find((entry) => entry.id === activity.themeId);
 			if (!theme) return;
@@ -842,7 +844,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
 	static #renderNotices() {
 		const sessions = Object.values(
-			game.settings.get("litm-rn", "campSessions")?.active ?? {},
+			SharedStorage.readSetting("campSessions")?.active ?? {},
 		).filter((session) => this.#canView(session));
 		const doc = document;
 		let container = doc.querySelector("#litm-camp-notices");
@@ -1879,13 +1881,13 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		if (!data?.tagId || !data.ref) return null;
 		if (data.ref === "story")
 			return (
-				(game.settings.get("litm-rn", "storytags")?.tags ?? []).find(
+				(SharedStorage.readStoryConfig()?.tags ?? []).find(
 					(tag) => tag.id === data.tagId,
 				) ?? null
 			);
 		if (data.ref === "scene")
 			return (
-				(canvas.scene?.getFlag("litm-rn", "scenetags")?.tags ?? []).find(
+				(SharedStorage.readSceneConfig(canvas.scene)?.tags ?? []).find(
 					(tag) => tag.id === data.tagId,
 				) ?? null
 			);
@@ -1951,7 +1953,8 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 
 	async #advancePhase() {
-		const session = foundry.utils.deepClone(this.session);
+		const before = foundry.utils.deepClone(this.session);
+		const session = foundry.utils.deepClone(before);
 		if (session.phase === "activity") {
 			const activities = Object.values(session.heroes).map(
 				(hero) => hero.activities[session.phaseIndex - 1],
@@ -2003,7 +2006,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			await this.#finishCamp();
 			return;
 		}
-		await CampDialog.#saveSession(session);
+		await CampDialog.#saveSession(session, before);
 	}
 
 	#markPhaseVisited(session, phase) {
@@ -2011,7 +2014,8 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 
 	async #skipThird() {
-		const session = foundry.utils.deepClone(this.session);
+		const before = foundry.utils.deepClone(this.session);
+		const session = foundry.utils.deepClone(before);
 		if (session.phase !== "activity" || session.phaseIndex !== 2) return;
 		session.thirdEnabled = false;
 		session.phase = "quality";
@@ -2019,11 +2023,12 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		this.#markPhaseVisited(session, "activity-3");
 		this.#markPhaseVisited(session, "quality");
 		this._tab = "quality";
-		await CampDialog.#saveSession(session);
+		await CampDialog.#saveSession(session, before);
 	}
 
 	async #startThirdLate() {
-		const session = foundry.utils.deepClone(this.session);
+		const before = foundry.utils.deepClone(this.session);
+		const session = foundry.utils.deepClone(before);
 		if (session.phase !== "quality" || session.thirdEnabled) return;
 		session.thirdEnabled = true;
 		session.phase = "activity";
@@ -2034,7 +2039,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 		this.#markPhaseVisited(session, "activity-3");
 		this._tab = "activity-3";
-		await CampDialog.#saveSession(session);
+		await CampDialog.#saveSession(session, before);
 	}
 
 	static async #applyDecisionSet(session, path, timing) {
@@ -2146,9 +2151,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	/** Add a removed story tag to the Hero's existing Backpack archive. */
 	static async #archiveTag(actor, tag) {
 		if (!tag?.name) return;
-		const archive = foundry.utils.deepClone(
-			actor._source.system.backpackArchive ?? [],
-		);
+		const archive = foundry.utils.deepClone(actor.system.backpackArchive ?? []);
 		archive.push({
 			id: foundry.utils.randomID(),
 			name: tag.name,
@@ -2229,7 +2232,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 					);
 					if (index >= 0) {
 						const powerTags = foundry.utils.deepClone(
-							fellowship._source.system.powerTags ?? [],
+							fellowship.system.powerTags ?? [],
 						);
 						powerTags[index].isScratched = false;
 						await fellowship.update(
@@ -2241,9 +2244,7 @@ export class CampDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			} else if (hero.quality.type === "relationship") {
 				const actor = game.actors.get(hero.actorId);
 				if (!actor) continue;
-				const relationships = foundry.utils.duplicate(
-					actor.system.relationships ?? [],
-				);
+				const relationships = cloneCollection(actor.system.relationships ?? []);
 				const fellowActorId = hero.quality.relationshipActorId;
 				if (
 					!fellowActorId ||

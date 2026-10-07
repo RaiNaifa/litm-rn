@@ -1109,11 +1109,13 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 		};
 		this.#temporaryTagId = tagData.id;
 		if (game.user.isGM) {
-			const config = game.settings.get(SYSTEM_ID, "storytags") ?? {};
-			await game.settings.set(SYSTEM_ID, "storytags", {
-				...config,
-				tags: [...(config.tags ?? []), tagData],
-			});
+			const config = SharedStorage.readStoryConfig();
+			await SharedStorage.updateStoryConfig(
+				{
+					tags: [...(config.tags ?? []), tagData],
+				},
+				config,
+			);
 		} else {
 			dispatch({
 				app: "tag-manager",
@@ -1134,16 +1136,18 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 	}
 
 	async #removeStaleTemporaryTags() {
-		const config = game.settings.get(SYSTEM_ID, "storytags") ?? {};
+		const config = SharedStorage.readStoryConfig();
 		const staleIds = (config.tags ?? [])
 			.filter((tag) => tag._litmTourTemporary)
 			.map((tag) => tag.id);
 		if (!staleIds.length) return;
 		if (game.user.isGM) {
-			await game.settings.set(SYSTEM_ID, "storytags", {
-				...config,
-				tags: (config.tags ?? []).filter((tag) => !tag._litmTourTemporary),
-			});
+			await SharedStorage.updateStoryConfig(
+				{
+					tags: (config.tags ?? []).filter((tag) => !tag._litmTourTemporary),
+				},
+				config,
+			);
 			return;
 		}
 		for (const tagId of staleIds) {
@@ -1222,9 +1226,9 @@ class TagManagerBasicsTour extends foundry.nue.Tour {
 		const id = this.#temporaryTagId;
 		this.#temporaryTagId = null;
 		if (game.user.isGM) {
-			const config = game.settings.get(SYSTEM_ID, "storytags") ?? {};
+			const config = SharedStorage.readStoryConfig();
 			const tags = (config.tags ?? []).filter((tag) => tag.id !== id);
-			await game.settings.set(SYSTEM_ID, "storytags", { ...config, tags });
+			await SharedStorage.updateStoryConfig({ tags }, config);
 			return;
 		}
 		dispatch({
@@ -2182,3 +2186,4 @@ export class StarterTours {
 		}
 	}
 }
+import { SharedStorage } from "./shared-storage.js";

@@ -1,3 +1,4 @@
+import { cloneCollection } from "../data/keyed-collections.js";
 const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } =
 	foundry.applications.api;
 const { fromUuidSync } = foundry.utils;
@@ -55,9 +56,9 @@ export class ThemeArchiveApp extends HandlebarsApplicationMixin(ApplicationV2) {
 			rejectClose: false,
 		});
 		if (!confirmed) return;
-		const archive = foundry.utils
-			.duplicate(this.actor.toObject().system.themeArchive ?? [])
-			.filter((entry) => entry.id !== id);
+		const archive = cloneCollection(
+			this.actor.toObject().system.themeArchive ?? [],
+		).filter((entry) => entry.id !== id);
 		await this.actor.update({ "system.themeArchive": archive });
 		this.render();
 	}

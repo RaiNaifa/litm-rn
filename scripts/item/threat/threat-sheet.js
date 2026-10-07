@@ -1,10 +1,13 @@
+import { KeyedSheetMixin } from "../../mixins/keyed-sheet.js";
 import { registerDataInputSync } from "../../mixins/sheet-utils.js";
 import { localize as t } from "../../utils.js";
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
-export class ThreatSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
+export class ThreatSheet extends HandlebarsApplicationMixin(
+	KeyedSheetMixin(ItemSheetV2),
+) {
 	#contextMenu = null;
 	#pendingConsequenceIndex = null;
 	#scrollTop = 0;
@@ -128,7 +131,7 @@ export class ThreatSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 		const arr = this.document.system.consequences || [];
 		this.#pendingConsequenceIndex = arr.length;
 		await this.item.update({
-			"system.consequences": [...arr, t("Litm.ui.name-consequence")],
+			"system.consequences": arr.concat(t("Litm.ui.name-consequence")),
 		});
 	}
 

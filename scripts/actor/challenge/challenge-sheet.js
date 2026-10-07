@@ -1,7 +1,9 @@
 import { RollTargetPopup } from "../../apps/roll-target-popup.js";
 import { normalizeSpecialText } from "../../data/specials.js";
+import { KeyedSheetMixin } from "../../mixins/keyed-sheet.js";
 import { registerDataInputSync } from "../../mixins/sheet-utils.js";
 import { createPrivate } from "../../system/private-creation.js";
+import { SharedStorage } from "../../system/shared-storage.js";
 import {
 	addOrStackActorStatus,
 	compareTagTypes,
@@ -35,7 +37,9 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 const FilePicker = foundry.applications.apps.FilePicker.implementation;
 
-export class ChallengeSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
+export class ChallengeSheet extends HandlebarsApplicationMixin(
+	KeyedSheetMixin(ActorSheetV2),
+) {
 	static DEFAULT_OPTIONS = {
 		classes: ["litm", "litm--challenge"],
 		tag: "form",
@@ -252,7 +256,7 @@ export class ChallengeSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		context.editingTagId = this.#editingTagId;
 		context.editingLimitIndex = this.#editingLimitIndex;
 		context.isGM = game.user.isGM;
-		const storyConfig = game.settings.get("litm-rn", "storytags") || {
+		const storyConfig = SharedStorage.readStoryConfig() || {
 			actors: [],
 		};
 		context.isStoryActor = this.#isStoryActor(storyConfig.actors);
@@ -570,6 +574,12 @@ export class ChallengeSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	async _processSubmitData(event, form, formData) {
 		this.isEditing = false;
+		for (const [path, value] of Object.entries(formData)) {
+			if (!/^system\.limits\.[^.]+\.value\.value$/.test(path)) continue;
+			const numeric = Number(value);
+			formData[path] =
+				!Number.isFinite(numeric) || numeric <= 0 ? null : Math.min(numeric, 6);
+		}
 
 		// Clamp limit values
 		const limitData = formData.system?.limits;
@@ -1602,7 +1612,7 @@ export class ChallengeSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	async #moveToStory() {
 		const ref = this.#storyRef;
-		const config = game.settings.get("litm-rn", "storytags") || {
+		const config = SharedStorage.readStoryConfig() || {
 			actors: [],
 			tags: [],
 		};
@@ -1612,10 +1622,7 @@ export class ChallengeSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			? actors.filter((actorRef) => !refs.has(actorRef))
 			: [...actors, ref];
 
-		await game.settings.set("litm-rn", "storytags", {
-			...config,
-			actors: updatedActors,
-		});
+		await SharedStorage.updateStoryConfig({ actors: updatedActors }, config);
 		Hooks.callAll("litmStoryTagsUpdated");
 		await this.render({ force: true });
 	}
@@ -1623,7 +1630,7 @@ export class ChallengeSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	#syncStoryActorButton = () => {
 		const button = this.element?.querySelector('[data-click="move-to-story"]');
 		if (!button) return;
-		const config = game.settings.get("litm-rn", "storytags") || { actors: [] };
+		const config = SharedStorage.readStoryConfig() || { actors: [] };
 		const active = this.#isStoryActor(config.actors);
 		const label = t(
 			active ? "Litm.ui.remove-from-story" : "Litm.ui.move-to-story",

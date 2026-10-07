@@ -68,7 +68,7 @@ export async function addSpecialToContainer(doc, containerPath, specialData) {
 			foundry.utils.getProperty(doc.toObject(), info.parentPath) || [],
 		);
 		const arr = parent[info.index]?.[info.field] || [];
-		parent[info.index][info.field] = [...arr, newSpecial];
+		parent[info.index][info.field] = arr.concat(newSpecial);
 		try {
 			await doc.update({ [info.parentPath]: parent }, { validate: false });
 		} catch (err) {
@@ -165,10 +165,10 @@ export async function moveSpecialWithinDocument(
 		if (!special) return;
 		parent[src.index][src.field] = srcArr.filter((s) => s.id !== specialId);
 		const tgtArr = parent[tgt.index]?.[tgt.field] || [];
-		parent[tgt.index][tgt.field] = [
-			...tgtArr,
-			{ ...special, id: foundry.utils.randomID() },
-		];
+		parent[tgt.index][tgt.field] = tgtArr.concat({
+			...special,
+			id: foundry.utils.randomID(),
+		});
 		try {
 			await doc.update({ [src.parentPath]: parent }, { validate: false });
 		} catch (err) {
@@ -204,10 +204,9 @@ export async function moveSpecialWithinDocument(
 			foundry.utils.getProperty(doc.toObject(), tgt.parentPath) || [],
 		);
 		const toAdd = { ...special, id: foundry.utils.randomID() };
-		parent[tgt.index][tgt.field] = [
-			...(parent[tgt.index][tgt.field] || []),
+		parent[tgt.index][tgt.field] = (parent[tgt.index][tgt.field] || []).concat(
 			toAdd,
-		];
+		);
 		updates[tgt.parentPath] = parent;
 	} else {
 		const toAdd = { ...special, id: foundry.utils.randomID() };

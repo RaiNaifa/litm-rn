@@ -1,6 +1,12 @@
+import {
+	KeyedCollectionField,
+	KeyedDataModelMixin,
+} from "../../data/keyed-collections.js";
 import { localize as t } from "../../utils.js";
 
-export class StoryThemeData extends foundry.abstract.DataModel {
+export class StoryThemeData extends KeyedDataModelMixin(
+	foundry.abstract.DataModel,
+) {
 	static defineSchema() {
 		const fields = foundry.data.fields;
 		const abstract = game.litm.data;
@@ -26,7 +32,7 @@ export class StoryThemeData extends foundry.abstract.DataModel {
 					isScratched: false,
 				}),
 			}),
-			powerTags: new fields.ArrayField(
+			powerTags: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{
 					initial: () => [
@@ -39,7 +45,7 @@ export class StoryThemeData extends foundry.abstract.DataModel {
 					],
 				},
 			),
-			weaknessTags: new fields.ArrayField(
+			weaknessTags: new KeyedCollectionField(
 				new fields.EmbeddedDataField(abstract.TagData),
 				{
 					initial: () =>

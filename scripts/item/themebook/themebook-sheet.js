@@ -1,3 +1,4 @@
+import { prepareKeyedDocumentUpdate } from "../../system/keyed-documents.js";
 import { Sockets } from "../../system/sockets.js";
 import { ThemeAdvancement } from "../../system/theme-advancement.js";
 import { ThemeContentSheet } from "./theme-content-sheet.js";
@@ -468,7 +469,7 @@ export class ThemebookSheet extends ThemeContentSheet {
 		}
 		Sockets.dispatch("fellowshipThemebookMutation", {
 			fellowshipUuid: this.contextFellowship.uuid,
-			updates,
+			updates: prepareKeyedDocumentUpdate(this.contextFellowship, updates),
 		});
 	}
 

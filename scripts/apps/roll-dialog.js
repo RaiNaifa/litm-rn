@@ -1,4 +1,5 @@
 import { getRollRote } from "../item/rote/rote-roll.js";
+import { SharedStorage } from "../system/shared-storage.js";
 import { Sockets } from "../system/sockets.js";
 import {
 	dispatch,
@@ -800,8 +801,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 						}
 					} else if (ref === "story") {
 						try {
-							const storyConfig =
-								game.settings.get("litm-rn", "storytags") || {};
+							const storyConfig = SharedStorage.readStoryConfig() || {};
 							for (const [tagId, state] of tagMap) {
 								const srcTag = (storyConfig.tags || []).find(
 									(t) => t.id === tagId,
@@ -820,7 +820,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 					} else if (isSceneSelectionRef(ref)) {
 						try {
 							const sceneConfig =
-								getSceneForSelectionRef(ref)?.getFlag("litm-rn", "scenetags") ||
+								SharedStorage.readSceneConfig(getSceneForSelectionRef(ref)) ||
 								{};
 							for (const [tagId, state] of tagMap) {
 								const srcTag = (sceneConfig.tags || []).find(
@@ -905,8 +905,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 						let ownerId = null;
 						if (ref === "story") {
 							try {
-								const storyConfig =
-									game.settings.get("litm-rn", "storytags") || {};
+								const storyConfig = SharedStorage.readStoryConfig() || {};
 								srcTag = (storyConfig.tags || []).find((t) => t.id === tagId);
 							} catch (_) {
 								/* no-op */
@@ -914,10 +913,8 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 						} else if (isSceneSelectionRef(ref)) {
 							try {
 								const sceneConfig =
-									getSceneForSelectionRef(ref)?.getFlag(
-										"litm-rn",
-										"scenetags",
-									) || {};
+									SharedStorage.readSceneConfig(getSceneForSelectionRef(ref)) ||
+									{};
 								srcTag = (sceneConfig.tags || []).find((t) => t.id === tagId);
 							} catch (_) {
 								/* no-op */
@@ -990,7 +987,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 				}
 			} else if (ref === "story") {
 				try {
-					const storyConfig = game.settings.get("litm-rn", "storytags") || {};
+					const storyConfig = SharedStorage.readStoryConfig() || {};
 					for (const st of storyConfig.tags || []) {
 						if (tagMap.has(st.id)) {
 							const e = this.#enrichTag({ ...st }, ref);
@@ -1004,7 +1001,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			} else if (isSceneSelectionRef(ref)) {
 				try {
 					const sceneConfig =
-						getSceneForSelectionRef(ref)?.getFlag("litm-rn", "scenetags") || {};
+						SharedStorage.readSceneConfig(getSceneForSelectionRef(ref)) || {};
 					for (const sc of sceneConfig.tags || []) {
 						if (tagMap.has(sc.id)) {
 							const e = this.#enrichTag({ ...sc }, ref);
@@ -1497,7 +1494,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			});
 
 		try {
-			const storyConfig = game.settings.get("litm-rn", "storytags") || {};
+			const storyConfig = SharedStorage.readStoryConfig() || {};
 			const storyTagArr = (storyConfig.tags || [])
 				.filter(
 					(t) =>
@@ -1510,7 +1507,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 					return e;
 				})
 				.filter((t) => !!t.name && t.type !== "limit");
-			const sceneConfig = canvas.scene?.getFlag("litm-rn", "scenetags") || {};
+			const sceneConfig = SharedStorage.readSceneConfig(canvas.scene) || {};
 			const sceneRef = currentSceneSelectionRef();
 			const sceneTagArr = (sceneConfig.tags || [])
 				.filter(
@@ -1538,7 +1535,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 
 		try {
-			const storyConfig = game.settings.get("litm-rn", "storytags") || {};
+			const storyConfig = SharedStorage.readStoryConfig() || {};
 			for (const itemId of storyConfig.storyThemeIds || []) {
 				const item = game.items?.get(itemId);
 				if (!item || item.type !== "story") continue;
@@ -1666,7 +1663,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		const fellowMemberIds = new Set(fellowMembers.map((m) => m.id));
 		const storyMembers = [];
 		try {
-			const storyConfig = game.settings.get("litm-rn", "storytags") || {};
+			const storyConfig = SharedStorage.readStoryConfig() || {};
 			const hiddenRefs = new Set(storyConfig.hiddenActors || []);
 			for (const ref of storyConfig.actors || []) {
 				if (hiddenRefs.has(ref) && !game.user.isGM) continue;
@@ -1726,7 +1723,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		// ── SCENE ACTORS (in Story Tags column) — from sceneConfig.actors ──
 		const sceneActors = [];
 		try {
-			const sceneConfig = canvas.scene?.getFlag("litm-rn", "scenetags") || {};
+			const sceneConfig = SharedStorage.readSceneConfig(canvas.scene) || {};
 			for (const entry of sceneConfig.actors || []) {
 				if (entry.hidden && !game.user.isGM) continue;
 				const refActor = this.#resolveRefActor(entry.ref);
@@ -1784,7 +1781,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		if (game.user.isGM) {
 			// Global story tags (flat)
 			try {
-				const storyConfig = game.settings.get("litm-rn", "storytags") || {};
+				const storyConfig = SharedStorage.readStoryConfig() || {};
 				const gmStoryTags = (storyConfig.tags || [])
 					.filter((t) => !!t.name && t.type !== "limit")
 					.map((t) => {
@@ -1798,7 +1795,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			}
 			// Scene tags (flat)
 			try {
-				const sceneConfig = canvas.scene?.getFlag("litm-rn", "scenetags") || {};
+				const sceneConfig = SharedStorage.readSceneConfig(canvas.scene) || {};
 				const sceneRef = currentSceneSelectionRef();
 				const gmSceneTags = (sceneConfig.tags || [])
 					.filter((t) => !!t.name && t.type !== "limit")
@@ -1813,7 +1810,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			}
 			// Linked world Story Themes (structured like Fellowship)
 			try {
-				const storyConfig = game.settings.get("litm-rn", "storytags") || {};
+				const storyConfig = SharedStorage.readStoryConfig() || {};
 				for (const itemId of storyConfig.storyThemeIds || []) {
 					const item = game.items?.get(itemId);
 					if (!item || item.type !== "story") continue;
@@ -2433,7 +2430,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			srcTag = actor.system.fellowship.system.allTags.find((t) => t.id === id);
 		} else if (ref === "story") {
 			try {
-				const config = game.settings.get("litm-rn", "storytags") || {};
+				const config = SharedStorage.readStoryConfig() || {};
 				srcTag = (config.tags || []).find((t) => t.id === id);
 			} catch (_) {
 				/* no-op */
@@ -2441,7 +2438,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		} else if (isSceneSelectionRef(ref)) {
 			try {
 				const config =
-					getSceneForSelectionRef(ref)?.getFlag("litm-rn", "scenetags") || {};
+					SharedStorage.readSceneConfig(getSceneForSelectionRef(ref)) || {};
 				srcTag = (config.tags || []).find((t) => t.id === id);
 			} catch (_) {
 				/* no-op */
@@ -2600,7 +2597,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		if (tag) return tag;
 		// Global story tags
 		try {
-			const config = game.settings.get("litm-rn", "storytags") || {};
+			const config = SharedStorage.readStoryConfig() || {};
 			for (const t of config.tags ?? []) {
 				if (t.id === id) return t;
 			}
@@ -2609,7 +2606,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 		// Scene tags
 		try {
-			const config = canvas.scene?.getFlag("litm-rn", "scenetags") || {};
+			const config = SharedStorage.readSceneConfig(canvas.scene) || {};
 			for (const t of config.tags ?? []) {
 				if (t.id === id) return t;
 			}
@@ -2618,7 +2615,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		}
 		// Linked world Story Themes
 		try {
-			const config = game.settings.get("litm-rn", "storytags") || {};
+			const config = SharedStorage.readStoryConfig() || {};
 			for (const itemId of config.storyThemeIds || []) {
 				const item = game.items?.get(itemId);
 				for (const t of item?.system?.allTags ?? []) {
@@ -3456,8 +3453,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 						let srcTag = null;
 						if (ref === "story") {
 							try {
-								const storyConfig =
-									game.settings.get("litm-rn", "storytags") || {};
+								const storyConfig = SharedStorage.readStoryConfig() || {};
 								srcTag = (storyConfig.tags || []).find((t) => t.id === tagId);
 							} catch (_) {
 								/* no-op */
@@ -3465,10 +3461,8 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 						} else if (isSceneSelectionRef(ref)) {
 							try {
 								const sceneConfig =
-									getSceneForSelectionRef(ref)?.getFlag(
-										"litm-rn",
-										"scenetags",
-									) || {};
+									SharedStorage.readSceneConfig(getSceneForSelectionRef(ref)) ||
+									{};
 								srcTag = (sceneConfig.tags || []).find((t) => t.id === tagId);
 							} catch (_) {
 								/* no-op */
@@ -3541,8 +3535,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 						let srcTag = null;
 						if (ref === "story") {
 							try {
-								const storyConfig =
-									game.settings.get("litm-rn", "storytags") || {};
+								const storyConfig = SharedStorage.readStoryConfig() || {};
 								srcTag = (storyConfig.tags || []).find((t) => t.id === tagId);
 							} catch (_) {
 								/* no-op */
@@ -3550,10 +3543,8 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 						} else if (isSceneSelectionRef(ref)) {
 							try {
 								const sceneConfig =
-									getSceneForSelectionRef(ref)?.getFlag(
-										"litm-rn",
-										"scenetags",
-									) || {};
+									SharedStorage.readSceneConfig(getSceneForSelectionRef(ref)) ||
+									{};
 								srcTag = (sceneConfig.tags || []).find((t) => t.id === tagId);
 							} catch (_) {
 								/* no-op */
@@ -3596,7 +3587,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		let srcTag = null;
 		if (ref === "story") {
 			try {
-				const config = game.settings.get("litm-rn", "storytags") || {};
+				const config = SharedStorage.readStoryConfig() || {};
 				srcTag = (config.tags || []).find((t) => t.id === id);
 			} catch (_) {
 				/* no-op */
@@ -3604,7 +3595,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 		} else if (isSceneSelectionRef(ref)) {
 			try {
 				const config =
-					getSceneForSelectionRef(ref)?.getFlag("litm-rn", "scenetags") || {};
+					SharedStorage.readSceneConfig(getSceneForSelectionRef(ref)) || {};
 				srcTag = (config.tags || []).find((t) => t.id === id);
 			} catch (_) {
 				/* no-op */

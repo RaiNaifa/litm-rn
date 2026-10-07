@@ -1,3 +1,4 @@
+import { SharedStorage } from "../system/shared-storage.js";
 export class TokenTooltip {
 	constructor() {
 		this._container = null;
@@ -212,7 +213,7 @@ export class TokenTooltip {
 
 	_isTokenVisible(token) {
 		if (!canvas?.scene) return false;
-		const config = canvas.scene.getFlag("litm-rn", "scenetags") || {
+		const config = SharedStorage.readSceneConfig(canvas.scene) || {
 			tags: [],
 			actors: [],
 		};
@@ -226,7 +227,7 @@ export class TokenTooltip {
 
 	_getVisibleTokensOnCanvas() {
 		if (!canvas?.scene) return [];
-		const config = canvas.scene.getFlag("litm-rn", "scenetags") || {
+		const config = SharedStorage.readSceneConfig(canvas.scene) || {
 			tags: [],
 			actors: [],
 		};

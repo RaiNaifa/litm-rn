@@ -1,5 +1,6 @@
 import { RollTargetPopup } from "../apps/roll-target-popup.js";
 import { createPrivate } from "../system/private-creation.js";
+import { SharedStorage } from "../system/shared-storage.js";
 import {
 	addOrStackActorStatus,
 	addOrStackStatusData,
@@ -19,8 +20,21 @@ const { AbstractSidebarTab } = foundry.applications.sidebar;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { fromUuidSync } = foundry.utils;
 
-/** Global flag to prevent re-render during popup toggle operations (shared across sidebar + pop-out instances) */
-let _skipEffectHook = false;
+let _skipEffectHook = 0;
+const deferredEffectManagers = new Set();
+
+function requestEffectRender(manager) {
+	if (_skipEffectHook) deferredEffectManagers.add(manager);
+	else manager.render();
+}
+
+function finishEffectUpdate() {
+	_skipEffectHook = Math.max(0, _skipEffectHook - 1);
+	if (_skipEffectHook) return;
+	const pending = [...deferredEffectManagers];
+	deferredEffectManagers.clear();
+	for (const manager of pending) if (manager.rendered) manager.render();
+}
 
 export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	static tabName = "combat";
@@ -50,6 +64,9 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	#pruning = false;
 	#_tokenCycleIdx = null;
 	#editingTagId = null;
+	#editingTagRef = null;
+	#editingSourceId = null;
+	#initializedEditors = new WeakSet();
 	#contextMenu = null;
 	#contextMenuAnchor = null;
 	#dragSource = null;
@@ -61,6 +78,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 
 	// ── Preserve scroll across re-renders ──
 
+	/** Render updated manager data while retaining scroll and any active tag editor. */
 	async render(options) {
 		const scrollEl = this.element?.querySelector(".litm--tm-content");
 		const saved = scrollEl
@@ -76,17 +94,145 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		}
 		// Sync other TagManager instances (pop-out)
 		const other = this === ui.combat ? game.litm?._tmPopOut : ui.combat;
-		if (other && other !== this && other.rendered && !this.#_syncing) {
-			this.#_syncing = true;
+		if (
+			other &&
+			other !== this &&
+			other.rendered &&
+			!this.#_syncing &&
+			!other.#_syncing
+		) {
+			other.#_syncing = true;
 			try {
 				await other.render({ force: true });
 			} catch {
 				/* no-op */
 			} finally {
-				this.#_syncing = false;
+				other.#_syncing = false;
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Reconcile the rendered main part in place so unrelated changes cannot blur an editor.
+	 * @param {Record<string, HTMLElement>} result Newly rendered template parts.
+	 * @param {HTMLElement} content Application content container.
+	 * @param {object} options Foundry render options.
+	 */
+	_replaceHTML(result, content, options) {
+		const previous = this.parts?.main;
+		const next = result.main;
+		if (!previous?.isConnected || !next) {
+			return super._replaceHTML(result, content, options);
+		}
+		const editor = previous.querySelector(
+			'.litm--tm-tag-name[contenteditable="true"]',
+		);
+		const editingRow =
+			editor?.dataset.id === this.#editingTagId &&
+			editor.dataset.ref === this.#editingTagRef
+				? editor.closest("[data-tag-id]")
+				: null;
+		const replacement =
+			editingRow &&
+			[...next.querySelectorAll("[data-tag-id]")].find(
+				(row) =>
+					row.dataset.tagId === editingRow.dataset.tagId &&
+					row.dataset.ref === editingRow.dataset.ref &&
+					row.dataset.sourceId === editingRow.dataset.sourceId,
+			);
+		// Remote deletion or a visibility change cancels editing without saving a detached node.
+		if (editingRow && !replacement) {
+			this.#editingTagId = null;
+			this.#editingTagRef = null;
+			this.#editingSourceId = null;
+			for (const name of next.querySelectorAll(
+				'.litm--tm-tag-name[contenteditable="true"]',
+			))
+				name.contentEditable = "false";
+		}
+		this.#syncManagerNode(previous, next, replacement ? editingRow : null);
+	}
+
+	#setEditingTag(id, ref) {
+		this.#editingTagId = id;
+		this.#editingTagRef = ref;
+		this.#editingSourceId =
+			ref === "story"
+				? SharedStorage.getActiveProfileId()
+				: ref === "scene"
+					? canvas.scene?.id
+					: ref;
+	}
+
+	#limitIndex(actor, id) {
+		if (actor?.type !== "challenge") return -1;
+		if (id?.startsWith("_limit_")) return Number.parseInt(id.slice(7), 10);
+		return (actor.system.limits || []).findIndex((limit) => limit.id === id);
+	}
+
+	#nodeKey(node) {
+		if (node.nodeType !== 1) return null;
+		const { tagId, limitId, ref, section, column, itemId, sourceId } =
+			node.dataset;
+		if (tagId) return `tag:${ref}:${sourceId}:${tagId}`;
+		if (limitId) return `limit:${ref}:${sourceId}:${limitId}`;
+		if (node.classList.contains("litm--tm-actor")) return `actor:${ref}`;
+		if (node.classList.contains("litm--tm-story-theme"))
+			return `theme:${itemId}`;
+		if (column) return `column:${column}`;
+		if (node.classList.contains("litm--tm-section"))
+			return `section:${section}`;
+		return null;
+	}
+
+	#syncManagerNode(current, next, protectedRow) {
+		if (current === protectedRow) return;
+		if (current.nodeType !== 1) {
+			if (current.nodeValue !== next.nodeValue)
+				current.nodeValue = next.nodeValue;
+			return;
+		}
+		for (const attribute of [...current.attributes]) {
+			if (!next.hasAttribute(attribute.name))
+				current.removeAttribute(attribute.name);
+		}
+		for (const attribute of next.attributes) {
+			if (current.getAttribute(attribute.name) !== attribute.value)
+				current.setAttribute(attribute.name, attribute.value);
+		}
+		const prior = [...current.childNodes];
+		const retained = new Set();
+		let cursor = current.firstChild;
+		for (const desired of [...next.childNodes]) {
+			const key = this.#nodeKey(desired);
+			let match = prior.find((node) => {
+				if (retained.has(node) || node.nodeType !== desired.nodeType)
+					return false;
+				const priorKey = this.#nodeKey(node);
+				if (key || priorKey) return key === priorKey;
+				if (node.nodeType !== 1) return true;
+				return (
+					node.tagName === desired.tagName &&
+					node.classList[0] === desired.classList[0]
+				);
+			});
+			if (!match) match = desired.cloneNode(true);
+			retained.add(match);
+			if (match !== cursor) {
+				// Moving the focused node, or an ancestor, would itself trigger a blur.
+				if (protectedRow && match.contains?.(protectedRow)) {
+					while (cursor && cursor !== match) {
+						const sibling = cursor.nextSibling;
+						current.insertBefore(cursor, match.nextSibling);
+						cursor = sibling;
+					}
+				} else current.insertBefore(match, cursor);
+			}
+			this.#syncManagerNode(match, desired, protectedRow);
+			cursor = match.nextSibling;
+		}
+		for (const node of prior) if (!retained.has(node)) node.remove();
 	}
 
 	async renderPopout() {
@@ -148,9 +294,14 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			if (data.app !== "tag-manager") return;
 			if (data.user === game.user.id) return;
 
-			// Handle CRUD delegation from non-GM players (GM-only execution)
-			if (data.type === "story-scene-crud" && game.user.isGM) {
-				await this.#handleCrudDelegation(data);
+			// Route permission delegation once; storage writes remain independent server patches.
+			if (data.type === "story-scene-crud") {
+				const recipient = data.recipientId ?? this.#crudRecipient()?.id;
+				const executor = ui.combat?.#socketRegistered
+					? ui.combat
+					: (game.litm?._tmPopOut ?? this);
+				if (game.user.isGM && recipient === game.user.id && this === executor)
+					await this.#handleCrudDelegation(data);
 				return;
 			}
 
@@ -158,6 +309,34 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			Hooks.callAll("litmStoryTagsUpdated");
 		};
 		game.socket.on("system.litm-rn", this.#crudSocketCallback);
+	}
+
+	#crudRecipient() {
+		return (
+			game.users.activeGM ?? game.users.find((user) => user.active && user.isGM)
+		);
+	}
+
+	#delegateCrud(data) {
+		const recipient = this.#crudRecipient();
+		if (!recipient) {
+			ui.notifications.warn(t("Litm.ui.tag-share-no-active-gm"));
+			return;
+		}
+		dispatch({
+			...data,
+			app: "tag-manager",
+			type: "story-scene-crud",
+			recipientId: recipient.id,
+			sceneId:
+				data.section === "scene"
+					? (data.sceneId ?? canvas.scene?.id)
+					: undefined,
+			profileId:
+				data.section === "story"
+					? (data.profileId ?? SharedStorage.getActiveProfileId())
+					: undefined,
+		});
 	}
 
 	async #handleCrudDelegation(data) {
@@ -182,46 +361,41 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			return;
 		}
 		if (data.operation === "link-story-theme") {
-			const current = this.#storyConfig;
+			const current = SharedStorage.readStoryConfig(data.profileId);
 			const storyThemeIds = [
 				...new Set([...(current.storyThemeIds || []), data.itemId]),
 			];
-			await game.settings.set("litm-rn", "storytags", {
-				...current,
-				storyThemeIds,
+			await SharedStorage.updateStoryConfig({ storyThemeIds }, current, {
+				profileId: data.profileId,
 			});
 			Hooks.callAll("litmStoryTagsUpdated");
 			return;
 		}
 		if (data.operation === "unlink-story-theme") {
-			const current = this.#storyConfig;
+			const current = SharedStorage.readStoryConfig(data.profileId);
 			const storyThemeIds = (current.storyThemeIds || []).filter(
 				(id) => id !== data.itemId,
 			);
-			await game.settings.set("litm-rn", "storytags", {
-				...current,
-				storyThemeIds,
+			await SharedStorage.updateStoryConfig({ storyThemeIds }, current, {
+				profileId: data.profileId,
 			});
 			Hooks.callAll("litmStoryTagsUpdated");
 			return;
 		}
 
+		const scene = data.sceneId ? game.scenes?.get(data.sceneId) : canvas.scene;
 		const getSet = (section) =>
 			section === "scene"
 				? {
-						get: () => this.#sceneConfig,
-						set: (tags) =>
-							canvas.scene?.setFlag("litm-rn", "scenetags", {
-								...this.#sceneConfig,
-								tags,
-							}),
+						get: () => SharedStorage.readSceneConfig(scene),
+						set: (tags, before) =>
+							SharedStorage.updateSceneConfig(scene, { tags }, before),
 					}
 				: {
-						get: () => this.#storyConfig,
-						set: (tags) =>
-							game.settings.set("litm-rn", "storytags", {
-								...this.#storyConfig,
-								tags,
+						get: () => SharedStorage.readStoryConfig(data.profileId),
+						set: (tags, before) =>
+							SharedStorage.updateStoryConfig({ tags }, before, {
+								profileId: data.profileId,
 							}),
 					};
 
@@ -235,10 +409,21 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			data.operation === "add-might" ||
 			data.operation === "add-limit"
 		) {
+			if (tags.some((tag) => tag.id === data.tagData.id)) return;
 			tags.push(data.tagData);
 		} else if (data.operation === "update-tag") {
 			const idx = tags.findIndex((t) => t.id === data.tagId);
-			if (idx !== -1) tags[idx] = data.tagData;
+			if (idx !== -1) {
+				const changes = data.beforeTag
+					? Object.fromEntries(
+							Object.entries(data.tagData).filter(
+								([key, value]) =>
+									JSON.stringify(value) !== JSON.stringify(data.beforeTag[key]),
+							),
+						)
+					: data.tagData;
+				tags[idx] = { ...tags[idx], ...changes };
+			}
 		} else if (data.operation === "rename-tag") {
 			const idx = tags.findIndex((t) => t.id === data.tagId);
 			if (idx !== -1) tags[idx] = { ...tags[idx], name: data.newName };
@@ -246,12 +431,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			const idx = tags.findIndex((t) => t.id === data.tagId);
 			if (idx !== -1) tags.splice(idx, 1);
 		} else if (data.operation === "toggle-scene-actor") {
-			const scene = canvas.scene;
 			if (!scene) return;
-			const cfg = scene.getFlag("litm-rn", "scenetags") || {
-				tags: [],
-				actors: [],
-			};
+			const cfg = SharedStorage.readSceneConfig(scene);
 			let actors = [...(cfg.actors || [])];
 			const tokenTagVisibility = new Set(cfg.tokenTagVisibility || []);
 			const storyActorRefs = new Set(this.#storyConfig.actors || []);
@@ -275,11 +456,14 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 				}
 			}
 			try {
-				await scene.setFlag("litm-rn", "scenetags", {
-					...cfg,
-					actors,
-					tokenTagVisibility: [...tokenTagVisibility],
-				});
+				await SharedStorage.updateSceneConfig(
+					scene,
+					{
+						actors,
+						tokenTagVisibility: [...tokenTagVisibility],
+					},
+					cfg,
+				);
 				Hooks.callAll("litmStoryTagsUpdated");
 			} catch {
 				/* no-op */
@@ -288,7 +472,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		}
 
 		try {
-			await set(tags);
+			await set(tags, current);
 			Hooks.callAll("litmStoryTagsUpdated");
 		} catch {
 			/* no-op */
@@ -302,15 +486,14 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	// ── Config ──
 
 	get #storyConfig() {
-		const config = game.settings.get("litm-rn", "storytags");
-		if (!config || foundry.utils.isEmpty(config))
-			return { actors: [], tags: [] };
-		return config;
+		return SharedStorage.readStoryConfig();
 	}
 
-	async #setStoryConfig(data, { silent = false } = {}) {
-		const current = this.#storyConfig;
-		await game.settings.set("litm-rn", "storytags", { ...current, ...data });
+	async #setStoryConfig(
+		data,
+		{ silent = false, before = this.#storyConfig, profileId = null } = {},
+	) {
+		await SharedStorage.updateStoryConfig(data, before, { profileId });
 		if (silent || this.#deferSync) return;
 		this.#broadcast();
 		this.render();
@@ -319,21 +502,19 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	get #sceneConfig() {
 		const scene = canvas.scene;
 		if (!scene) return { tags: [], actors: [] };
-		return scene.getFlag("litm-rn", "scenetags") || { tags: [], actors: [] };
+		return SharedStorage.readSceneConfig(scene);
 	}
 
-	async #setSceneConfig(data, { silent = false } = {}) {
-		const scene = canvas.scene;
+	async #setSceneConfig(
+		data,
+		{
+			silent = false,
+			scene = canvas.scene,
+			before = SharedStorage.readSceneConfig(scene),
+		} = {},
+	) {
 		if (!scene) return;
-		const current = scene.getFlag("litm-rn", "scenetags") || {
-			tags: [],
-			actors: [],
-		};
-		await scene.setFlag(
-			"litm-rn",
-			"scenetags",
-			foundry.utils.mergeObject(current, data, { inplace: false }),
-		);
+		await SharedStorage.updateSceneConfig(scene, data, before);
 		if (silent || this.#deferSync) return;
 		this.#broadcast();
 		this.render();
@@ -343,6 +524,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
+		context.storyProfileId = SharedStorage.getActiveProfileId();
+		context.sceneId = canvas.scene?.id;
 		const isGM = game.user.isGM;
 		const storyConfig = this.#storyConfig;
 		const collapsed = this.#getCollapsed();
@@ -478,10 +661,10 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			const oldRefs = storyConfig.actors || [];
 			const cleanedRefs = oldRefs.filter((a) => !memberRefs.has(a));
 			if (cleanedRefs.length !== oldRefs.length) {
-				const current = this.#storyConfig;
-				game.settings
-					.set("litm-rn", "storytags", { ...current, actors: cleanedRefs })
-					.catch(() => {});
+				SharedStorage.updateStoryConfig(
+					{ actors: cleanedRefs },
+					storyConfig,
+				).catch(() => {});
 			}
 
 			const specials = await Promise.all(
@@ -522,10 +705,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			.map((a) => ({ ...a, collapseId: `actor-${a.id}` }));
 
 		const scene = canvas.scene;
-		const sceneConfig = scene?.getFlag("litm-rn", "scenetags") || {
-			tags: [],
-			actors: [],
-		};
+		const sceneConfig = SharedStorage.readSceneConfig(scene);
 		const allSceneTags = sceneConfig.tags || [];
 		const sceneTagsRaw = allSceneTags.filter((t) => this.#isVisible(t));
 		// Build limit containers for scene tags — only visible limits hide their statuses from main list
@@ -619,6 +799,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			sceneActors,
 			collapsed,
 			editingId: this.#editingTagId,
+			editingRef: this.#editingTagRef,
 			rollSelMap,
 			playerRollSelMap,
 			hasPlayerCharacter: !!playerCharacter,
@@ -796,7 +977,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 					allContained,
 				);
 				tags.push({
-					id: `_limit_${i}`,
+					id: limit.id || `_limit_${i}`,
 					name: limit.name || t("Litm.other.limit"),
 					value: limit.value,
 					isScratched: false,
@@ -863,8 +1044,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		} else {
 			const actor = this.#resolveActor(ref);
 			if (actor) {
-				if (id.startsWith("_limit_")) {
-					const index = Number.parseInt(id.slice(7), 10);
+				if (this.#limitIndex(actor, id) >= 0) {
+					const index = this.#limitIndex(actor, id);
 					const limit = actor.system?.limits?.[index];
 					if (limit) {
 						const statusIds = limit.statusIds || [];
@@ -1190,22 +1371,24 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		const tags = config.tags.map((t) => (t.id === id ? updater(t) : t));
 		if (!tags.find((t) => t.id === id)) return;
 		if (game.user.isGM) {
-			_skipEffectHook = true;
-			await this.#saveTagConfig(ref, tags);
-			_skipEffectHook = false;
+			_skipEffectHook += 1;
+			try {
+				await this.#saveTagConfig(ref, tags);
+			} finally {
+				finishEffectUpdate();
+			}
 			this.#broadcast();
 			this.#updateTagDom(ref, id);
 			this.#updateParentLimitDom(ref, id);
 			this.#syncOtherInstance(ref, id);
 		} else {
 			const updatedTag = tags.find((t) => t.id === id);
-			dispatch({
-				app: "tag-manager",
-				type: "story-scene-crud",
+			this.#delegateCrud({
 				section: ref,
 				operation: "update-tag",
 				tagId: id,
 				tagData: updatedTag,
+				beforeTag: config.tags.find((tag) => tag.id === id),
 			});
 		}
 	}
@@ -1213,8 +1396,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	async #toggleActorTag(ref, id, updater) {
 		const actor = this.#resolveActor(ref);
 		if (!actor || !actor.isOwner) return;
-		if (id.startsWith("_limit_")) {
-			const index = Number.parseInt(id.slice(7), 10);
+		if (this.#limitIndex(actor, id) >= 0) {
+			const index = this.#limitIndex(actor, id);
 			if (!Number.isFinite(index)) return;
 			const limits = foundry.utils.deepClone(actor.system.limits || []);
 			if (!limits[index]) return;
@@ -1231,15 +1414,16 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			if (!effect) return;
 			const flags = foundry.utils.deepClone(effect.flags["litm-rn"] || {});
 			const updated = updater(flags);
-			_skipEffectHook = true;
+			_skipEffectHook += 1;
 			try {
 				await actor.updateEmbeddedDocuments("ActiveEffect", [
 					{ _id: id, flags: { ["litm-rn"]: updated } },
 				]);
 			} catch {
 				/* no-op */
+			} finally {
+				finishEffectUpdate();
 			}
-			_skipEffectHook = false;
 			this.#broadcast();
 			this.#updateTagDom(ref, id);
 			this.#updateParentLimitDom(ref, id);
@@ -1287,8 +1471,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		if (!this.#hooksInitialized) {
 			this.#hooksInitialized = true;
 			this.#storyTagHookId = Hooks.on("litmStoryTagsUpdated", () => {
-				if (_skipEffectHook) return;
-				this.render();
+				requestEffectRender(this);
 			});
 			this.#registerSocketListener();
 			for (const ev of [
@@ -1298,8 +1481,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			]) {
 				this.#mainHookIds.push(
 					Hooks.on(ev, () => {
-						if (_skipEffectHook) return;
-						this.render();
+						requestEffectRender(this);
 					}),
 				);
 			}
@@ -1322,7 +1504,11 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			);
 			this.#mainHookIds.push(
 				Hooks.on("updateActor", (actor, changes) => {
-					if (changes.system?.fellowshipId !== undefined) this.render();
+					if (
+						changes.system?.fellowshipId !== undefined ||
+						changes.system?.limits !== undefined
+					)
+						this.render();
 				}),
 			);
 			for (const ev of ["createItem", "deleteItem"]) {
@@ -1346,22 +1532,21 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 				if (!game.user.isGM) return;
 				const ref = tokenDoc.actor?.uuid || tokenDoc.uuid;
 				if (!ref) return;
-				const config = scene.getFlag("litm-rn", "scenetags") || {
-					tags: [],
-					actors: [],
-				};
+				const config = SharedStorage.readSceneConfig(scene);
 				const actors = (config.actors || []).filter((a) => a.ref !== ref);
 				if (actors.length === (config.actors || []).length) return;
-				scene
-					.setFlag("litm-rn", "scenetags", { ...config, actors })
+				SharedStorage.updateSceneConfig(scene, { actors }, config)
 					.then(() => this.render())
 					.catch(() => {});
 			});
 			this.#mainHookIds.push(
 				Hooks.on("updateScene", (scene, changes) => {
-					if (_skipEffectHook) return;
-					if (scene.isView && changes.flags?.["litm-rn"]?.scenetags)
-						this.render();
+					if (
+						scene.isView &&
+						(changes.flags?.["litm-rn"]?.scenetags ||
+							changes.flags?.["litm-rn"]?.concurrentData)
+					)
+						requestEffectRender(this);
 				}),
 			);
 		}
@@ -1408,29 +1593,45 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 
 		if (this.#editingTagId) {
 			const el = this.element?.querySelector(
-				`[data-tag-id="${this.#editingTagId}"]`,
+				`[data-tag-id="${this.#editingTagId}"][data-ref="${this.#editingTagRef}"][data-source-id="${this.#editingSourceId}"]`,
 			);
 			const nameEl = el?.querySelector(".litm--tm-tag-name");
 			if (nameEl) {
 				if (nameEl.dataset.editInit) return; // already set up
 				nameEl.dataset.editInit = "1";
-				nameEl.addEventListener("blur", () => {
-					if (this.#editingTagId !== nameEl.dataset.id) return;
-					this["save-edit-tag"](null, nameEl, {
-						id: nameEl.dataset.id,
-						ref: nameEl.dataset.ref,
+				if (!this.#initializedEditors.has(nameEl)) {
+					this.#initializedEditors.add(nameEl);
+					nameEl.addEventListener("blur", () => {
+						if (
+							!nameEl.isConnected ||
+							this.#editingTagId !== nameEl.dataset.id ||
+							this.#editingTagRef !== nameEl.dataset.ref
+						)
+							return;
+						this["save-edit-tag"](null, nameEl, {
+							id: nameEl.dataset.id,
+							ref: nameEl.dataset.ref,
+						});
 					});
-				});
-				nameEl.addEventListener("keydown", (e) => {
-					if (e.key === "Enter") {
-						e.preventDefault();
-						nameEl.blur();
-					} else if (e.key === "Escape") {
-						this.#editingTagId = null;
-						this.render();
-					}
-				});
+					nameEl.addEventListener("keydown", (e) => {
+						if (e.key === "Enter") {
+							e.preventDefault();
+							nameEl.blur();
+						} else if (e.key === "Escape") {
+							this.#editingTagId = null;
+							this.#editingTagRef = null;
+							this.#editingSourceId = null;
+							this.render();
+						}
+					});
+				}
 				requestAnimationFrame(() => {
+					if (
+						!nameEl.isConnected ||
+						this.#editingTagId !== nameEl.dataset.id ||
+						this.#editingTagRef !== nameEl.dataset.ref
+					)
+						return;
 					nameEl.focus();
 					const doc = getOwningDocument(nameEl);
 					const range = doc.createRange();
@@ -1452,7 +1653,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		this.#pruning = true;
 		try {
 			const scene = canvas.scene;
-			const config = scene.getFlag("litm-rn", "scenetags");
+			const config = SharedStorage.readSceneConfig(scene);
 			if (!config?.actors?.length && !config?.tokenTagVisibility?.length)
 				return;
 			const validRefs = new Set(
@@ -1470,13 +1671,14 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 				tokenTagVisibility.length === (config.tokenTagVisibility || []).length
 			)
 				return;
-			scene
-				.setFlag("litm-rn", "scenetags", {
-					...config,
+			SharedStorage.updateSceneConfig(
+				scene,
+				{
 					actors: pruned,
 					tokenTagVisibility,
-				})
-				.catch(() => {});
+				},
+				config,
+			).catch(() => {});
 		} finally {
 			this.#pruning = false;
 		}
@@ -1867,10 +2069,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	async "add-all-tokens"(event, target, dataset) {
 		if (!game.user.isGM || !canvas?.ready || !canvas.scene) return;
 		const scene = canvas.scene;
-		const currentConfig = scene.getFlag("litm-rn", "scenetags") || {
-			tags: [],
-			actors: [],
-		};
+		const currentConfig = SharedStorage.readSceneConfig(scene);
 		const existingRefs = new Set(
 			(currentConfig.actors || []).map((a) => a.ref),
 		);
@@ -1900,11 +2099,14 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		)
 			return;
 		const actors = [...(currentConfig.actors || []), ...newActors];
-		await scene.setFlag("litm-rn", "scenetags", {
-			...currentConfig,
-			actors,
-			tokenTagVisibility: [...tokenTagVisibility],
-		});
+		await SharedStorage.updateSceneConfig(
+			scene,
+			{
+				actors,
+				tokenTagVisibility: [...tokenTagVisibility],
+			},
+			currentConfig,
+		);
 		this.#broadcast();
 		this.render();
 	}
@@ -1952,15 +2154,10 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	static async toggleSceneActor(actorUuid, { hidden = false } = {}) {
 		if (!game.user.isGM || !canvas?.ready || !canvas.scene) return;
 		const scene = canvas.scene;
-		const config = scene.getFlag("litm-rn", "scenetags") || {
-			tags: [],
-			actors: [],
-		};
+		const config = SharedStorage.readSceneConfig(scene);
 		const existing = (config.actors || []).find((a) => a.ref === actorUuid);
 		const tokenTagVisibility = new Set(config.tokenTagVisibility || []);
-		const storyConfig = game.settings.get("litm-rn", "storytags") || {
-			actors: [],
-		};
+		const storyConfig = SharedStorage.readStoryConfig();
 		const actor = fromUuidSync(actorUuid);
 		const selectedFellowshipId =
 			game.settings.get("litm-rn", "selectedFellowship") || null;
@@ -1979,11 +2176,14 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		} else {
 			actors = [...(config.actors || []), { ref: actorUuid, hidden }];
 		}
-		await scene.setFlag("litm-rn", "scenetags", {
-			...config,
-			actors,
-			tokenTagVisibility: [...tokenTagVisibility],
-		});
+		await SharedStorage.updateSceneConfig(
+			scene,
+			{
+				actors,
+				tokenTagVisibility: [...tokenTagVisibility],
+			},
+			config,
+		);
 	}
 
 	async "add-tag"(event, target, { section }) {
@@ -1999,7 +2199,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 				isPermanent: false,
 			};
 			if (game.user.isGM) {
-				this.#editingTagId = tagDef.id;
+				this.#setEditingTag(tagDef.id, section);
 				if (section === "scene") {
 					const tags = [...(this.#sceneConfig.tags || [])];
 					tags.push(tagDef);
@@ -2010,10 +2210,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 					await this.#setStoryConfig({ tags });
 				}
 			} else {
-				this.#editingTagId = tagDef.id;
-				dispatch({
-					app: "tag-manager",
-					type: "story-scene-crud",
+				this.#setEditingTag(tagDef.id, section);
+				this.#delegateCrud({
 					section,
 					operation: "add-tag",
 					tagData: tagDef,
@@ -2038,7 +2236,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 						},
 					},
 				]);
-				if (effect) this.#editingTagId = effect.id;
+				if (effect) this.#setEditingTag(effect.id, ref);
 			} catch {
 				/* no-op */
 			}
@@ -2297,9 +2495,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		if (!itemId) return;
 		if (!(await confirmDelete("Litm.other.story-theme"))) return;
 		if (!game.user.isGM) {
-			dispatch({
-				app: "tag-manager",
-				type: "story-scene-crud",
+			this.#delegateCrud({
 				section: "story",
 				operation: "unlink-story-theme",
 				itemId,
@@ -2316,9 +2512,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	async #linkStoryTheme(itemId) {
 		if (!itemId) return;
 		if (!game.user.isGM) {
-			dispatch({
-				app: "tag-manager",
-				type: "story-scene-crud",
+			this.#delegateCrud({
 				section: "story",
 				operation: "link-story-theme",
 				itemId,
@@ -2345,7 +2539,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		};
 		if (section === "story" || section === "scene") {
 			if (game.user.isGM) {
-				this.#editingTagId = def.id;
+				this.#setEditingTag(def.id, section);
 				if (section === "scene") {
 					const tags = [...(this.#sceneConfig.tags || [])];
 					tags.push(def);
@@ -2356,10 +2550,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 					await this.#setStoryConfig({ tags });
 				}
 			} else {
-				this.#editingTagId = def.id;
-				dispatch({
-					app: "tag-manager",
-					type: "story-scene-crud",
+				this.#setEditingTag(def.id, section);
+				this.#delegateCrud({
 					section,
 					operation: "add-status",
 					tagData: def,
@@ -2384,7 +2576,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 						},
 					},
 				]);
-				if (effect) this.#editingTagId = effect.id;
+				if (effect) this.#setEditingTag(effect.id, ref);
 			} catch {
 				/* no-op */
 			}
@@ -2406,7 +2598,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		};
 		if (section === "story" || section === "scene") {
 			if (game.user.isGM) {
-				this.#editingTagId = def.id;
+				this.#setEditingTag(def.id, section);
 				if (section === "scene") {
 					const tags = [...(this.#sceneConfig.tags || [])];
 					tags.push(def);
@@ -2417,10 +2609,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 					await this.#setStoryConfig({ tags });
 				}
 			} else {
-				this.#editingTagId = def.id;
-				dispatch({
-					app: "tag-manager",
-					type: "story-scene-crud",
+				this.#setEditingTag(def.id, section);
+				this.#delegateCrud({
 					section,
 					operation: "add-might",
 					tagData: def,
@@ -2445,7 +2635,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 						},
 					},
 				]);
-				if (effect) this.#editingTagId = effect.id;
+				if (effect) this.#setEditingTag(effect.id, ref);
 			} catch {
 				/* no-op */
 			}
@@ -2469,7 +2659,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		};
 		if (section === "story" || section === "scene") {
 			if (game.user.isGM) {
-				this.#editingTagId = def.id;
+				this.#setEditingTag(def.id, section);
 				if (section === "scene") {
 					const tags = [...(this.#sceneConfig.tags || [])];
 					tags.push(def);
@@ -2480,10 +2670,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 					await this.#setStoryConfig({ tags });
 				}
 			} else {
-				this.#editingTagId = def.id;
-				dispatch({
-					app: "tag-manager",
-					type: "story-scene-crud",
+				this.#setEditingTag(def.id, section);
+				this.#delegateCrud({
 					section,
 					operation: "add-limit",
 					tagData: def,
@@ -2496,8 +2684,9 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			if (actor.type === "journey") return;
 			if (actor.type === "challenge") {
 				const limits = foundry.utils.deepClone(actor.system.limits || []);
-				this.#editingTagId = `_limit_${limits.length}`;
+				this.#setEditingTag(def.id, ref);
 				limits.push({
+					id: def.id,
 					name: t("Litm.ui.name-limit"),
 					value: 6,
 					consequence: "",
@@ -2524,7 +2713,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 							},
 						},
 					]);
-					if (effect) this.#editingTagId = effect.id;
+					if (effect) this.#setEditingTag(effect.id, ref);
 				} catch {
 					/* no-op */
 				}
@@ -2588,7 +2777,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 
 	async "edit-tag"(event, target, { ref, id }) {
 		if (!id) return;
-		this.#editingTagId = id;
+		this.#setEditingTag(id, ref);
 		this.render();
 	}
 
@@ -2650,37 +2839,39 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 
 	async "remove-tag"(event, target, { ref, id }) {
 		if (!id) return;
+		const sourceId = target?.closest("[data-tag-id]")?.dataset.sourceId;
 		if (ref === "story") {
 			if (!game.user.isGM) {
-				dispatch({
-					app: "tag-manager",
-					type: "story-scene-crud",
+				this.#delegateCrud({
 					section: ref,
 					operation: "remove-tag",
 					tagId: id,
+					profileId: sourceId,
 				});
 				return;
 			}
-			const tags = (this.#storyConfig.tags || []).filter((t) => t.id !== id);
-			await this.#setStoryConfig({ tags });
+			const before = SharedStorage.readStoryConfig(sourceId);
+			const tags = (before.tags || []).filter((t) => t.id !== id);
+			await this.#setStoryConfig({ tags }, { before, profileId: sourceId });
 		} else if (ref === "scene") {
 			if (!game.user.isGM) {
-				dispatch({
-					app: "tag-manager",
-					type: "story-scene-crud",
+				this.#delegateCrud({
 					section: ref,
 					operation: "remove-tag",
 					tagId: id,
+					sceneId: sourceId,
 				});
 				return;
 			}
-			const tags = (this.#sceneConfig.tags || []).filter((t) => t.id !== id);
-			await this.#setSceneConfig({ tags });
+			const scene = sourceId ? game.scenes?.get(sourceId) : canvas.scene;
+			const before = SharedStorage.readSceneConfig(scene);
+			const tags = (before.tags || []).filter((t) => t.id !== id);
+			await this.#setSceneConfig({ tags }, { scene, before });
 		} else {
 			const actor = this.#resolveActor(ref);
 			if (!actor || !actor.isOwner) return;
-			if (id.startsWith("_limit_")) {
-				const index = Number.parseInt(id.slice(7), 10);
+			if (this.#limitIndex(actor, id) >= 0) {
+				const index = this.#limitIndex(actor, id);
 				if (!Number.isFinite(index)) return;
 				const limits = foundry.utils.deepClone(actor.system.limits || []);
 				if (!limits[index]) return;
@@ -2703,37 +2894,44 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	}
 
 	async "save-edit-tag"(event, target, { id, ref }) {
+		if (!target.isConnected) return;
+		const sourceId = target.closest("[data-tag-id]")?.dataset.sourceId;
 		const newName = (target.value ?? target.textContent)?.trim();
 		this.#editingTagId = null;
+		this.#editingTagRef = null;
+		this.#editingSourceId = null;
 		if (!newName) return this["remove-tag"](null, target, { ref, id });
 		if (ref === "story" || ref === "scene") {
 			if (game.user.isGM) {
 				if (ref === "story") {
-					const tags = (this.#storyConfig.tags || []).map((t) =>
+					const before = SharedStorage.readStoryConfig(sourceId);
+					const tags = (before.tags || []).map((t) =>
 						t.id === id ? { ...t, name: newName } : t,
 					);
-					await this.#setStoryConfig({ tags });
+					await this.#setStoryConfig({ tags }, { before, profileId: sourceId });
 				} else {
-					const tags = (this.#sceneConfig.tags || []).map((t) =>
+					const scene = sourceId ? game.scenes?.get(sourceId) : canvas.scene;
+					const before = SharedStorage.readSceneConfig(scene);
+					const tags = (before.tags || []).map((t) =>
 						t.id === id ? { ...t, name: newName } : t,
 					);
-					await this.#setSceneConfig({ tags });
+					await this.#setSceneConfig({ tags }, { scene, before });
 				}
 			} else {
-				dispatch({
-					app: "tag-manager",
-					type: "story-scene-crud",
+				this.#delegateCrud({
 					section: ref,
 					operation: "rename-tag",
 					tagId: id,
 					newName,
+					profileId: ref === "story" ? sourceId : undefined,
+					sceneId: ref === "scene" ? sourceId : undefined,
 				});
 			}
 		} else {
 			const actor = this.#resolveActor(ref);
 			if (!actor || !actor.isOwner) return;
-			if (id.startsWith("_limit_")) {
-				const index = Number.parseInt(id.slice(7), 10);
+			if (this.#limitIndex(actor, id) >= 0) {
+				const index = this.#limitIndex(actor, id);
 				if (!Number.isFinite(index)) return;
 				const limits = foundry.utils.deepClone(actor.system.limits || []);
 				if (!limits[index]) return;
@@ -2847,8 +3045,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		} else {
 			const actor = this.#resolveActor(ref);
 			if (actor) {
-				if (tagId.startsWith("_limit_")) {
-					const index = Number.parseInt(tagId.slice(7), 10);
+				if (this.#limitIndex(actor, tagId) >= 0) {
+					const index = this.#limitIndex(actor, tagId);
 					const limit = actor.system?.limits?.[index];
 					if (limit) {
 						tagData = {
@@ -3119,14 +3317,13 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 
 		// Internal drag: reorder or status→limit
 		if (internalData) {
-			const previousSkipEffectHook = _skipEffectHook;
 			this.#deferSync = true;
-			_skipEffectHook = true;
+			_skipEffectHook += 1;
 			try {
 				await this.#handleInternalDrop(event, internalData, sectionName);
 			} finally {
 				this.#deferSync = false;
-				_skipEffectHook = previousSkipEffectHook;
+				finishEffectUpdate();
 			}
 			// Persist every related document update first, then synchronize and render once.
 			this.#broadcast();
@@ -3369,7 +3566,11 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 				const idx = (actor.system.limits || []).findIndex((l) =>
 					(l.statusIds || []).includes(statusId),
 				);
-				if (idx !== -1) this.#updateTagDom(ref, `_limit_${idx}`);
+				if (idx !== -1)
+					this.#updateTagDom(
+						ref,
+						actor.system.limits[idx].id || `_limit_${idx}`,
+					);
 			} else {
 				// Non-challenge: limits are ActiveEffects
 				const limitEffect = (actor.effects || []).find(
@@ -3451,9 +3652,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			if (!actor || !actor.isOwner) return;
 			if (actor.type === "challenge") {
 				const limits = foundry.utils.deepClone(actor.system.limits || []);
-				const limit = limits.find(
-					(l) => l.name === this.#findTag(ref, limitId)?.name,
-				);
+				const limit = limits[this.#limitIndex(actor, limitId)];
 				if (!limit) return;
 				const statusIds = [...(limit.statusIds || [])];
 				const srcIdx = statusIds.indexOf(sourceStatusId);
@@ -3654,9 +3853,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			if (!actor || !actor.isOwner) return;
 			if (actor.type === "challenge") {
 				const limits = foundry.utils.deepClone(actor.system.limits || []);
-				const limitIdx = limits.findIndex(
-					(l) => l.name === this.#findTag(limitRef, limitId)?.name,
-				);
+				const limitIdx = this.#limitIndex(actor, limitId);
 				if (limitIdx === -1) return;
 				const statusIds = [...(limits[limitIdx].statusIds || [])];
 				if (statusIds.includes(sourceId)) return;
@@ -3757,8 +3954,8 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		}
 		const actor = this.#resolveActor(ref);
 		if (!actor) return null;
-		if (tagId.startsWith("_limit_")) {
-			const idx = Number.parseInt(tagId.slice(7), 10);
+		if (this.#limitIndex(actor, tagId) >= 0) {
+			const idx = this.#limitIndex(actor, tagId);
 			const limit = actor.system?.limits?.[idx];
 			if (!limit) return null;
 			return { ...limit, type: "limit", id: tagId };

@@ -1,7 +1,13 @@
+import {
+	KeyedCollectionField,
+	KeyedDataModelMixin,
+} from "../../data/keyed-collections.js";
 import { localize as t } from "../../utils.js";
 
 /** Data model for Journey actors. */
-export class JourneyData extends foundry.abstract.TypeDataModel {
+export class JourneyData extends KeyedDataModelMixin(
+	foundry.abstract.TypeDataModel,
+) {
 	static defineSchema() {
 		const fields = foundry.data.fields;
 		return {
@@ -11,7 +17,7 @@ export class JourneyData extends foundry.abstract.TypeDataModel {
 			note: new fields.HTMLField({
 				initial: () => t("Litm.ui.journey-default-description"),
 			}),
-			consequences: new fields.ArrayField(
+			consequences: new KeyedCollectionField(
 				new fields.StringField({ required: true, nullable: false }),
 				{ initial: () => [t("Litm.ui.name-consequence")] },
 			),

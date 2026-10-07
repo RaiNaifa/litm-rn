@@ -1,3 +1,4 @@
+import { SharedStorage } from "../system/shared-storage.js";
 import { confirmDelete } from "../utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -21,7 +22,7 @@ export class StoryProfileSettings extends HandlebarsApplicationMixin(
 
 	/** Create the initial profile from the legacy Story Tags setting when required. */
 	static async migrate() {
-		if (!game.user.isGM) return;
+		if (!game.user.isGM || SharedStorage.isMigrated()) return;
 		const store = game.settings.get("litm-rn", "storyProfiles") || {};
 		if (Array.isArray(store.profiles) && store.profiles.length) return;
 		const data = foundry.utils.deepClone(
@@ -49,8 +50,10 @@ export class StoryProfileSettings extends HandlebarsApplicationMixin(
 	 * @param {object} storyConfig Current value of the legacy-compatible storytags setting.
 	 */
 	static async syncActiveProfile(storyConfig) {
-		if (!game.user.isGM) return;
-		const store = game.settings.get("litm-rn", "storyProfiles") || {};
+		// Migrated worlds already store Story Tags in the active profile itself.
+		// Mirroring an incoming snapshot would overwrite simultaneous edits.
+		if (!game.user.isGM || SharedStorage.isMigrated()) return;
+		const store = SharedStorage.readSetting("storyProfiles") || {};
 		if (!store.activeId || !Array.isArray(store.profiles)) return;
 		const index = store.profiles.findIndex(
 			(profile) => profile.id === store.activeId,
@@ -67,7 +70,7 @@ export class StoryProfileSettings extends HandlebarsApplicationMixin(
 	/** @override */
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
-		const store = game.settings.get("litm-rn", "storyProfiles") || {};
+		const store = SharedStorage.readSetting("storyProfiles") || {};
 		return {
 			...context,
 			activeId: store.activeId,
@@ -111,16 +114,17 @@ export class StoryProfileSettings extends HandlebarsApplicationMixin(
 		const input = this.element.querySelector('[name="newProfileName"]');
 		const name = input?.value.trim();
 		if (!name) return;
-		const store = game.settings.get("litm-rn", "storyProfiles");
+		const store = SharedStorage.readSetting("storyProfiles");
 		const profile = {
 			id: foundry.utils.randomID(),
 			name,
 			data: { tags: [], actors: [], helpingTags: [] },
 		};
-		await game.settings.set("litm-rn", "storyProfiles", {
-			...store,
-			profiles: [...(store.profiles || []), profile],
-		});
+		await SharedStorage.updateSetting(
+			"storyProfiles",
+			{ ...store, profiles: [...(store.profiles || []), profile] },
+			store,
+		);
 		this.render();
 	}
 
@@ -128,22 +132,28 @@ export class StoryProfileSettings extends HandlebarsApplicationMixin(
 		event.preventDefault();
 		if (!game.user.isGM) return;
 		const id = event.currentTarget.dataset.profileId;
-		const store = game.settings.get("litm-rn", "storyProfiles");
+		const store = SharedStorage.readSetting("storyProfiles");
 		const profile = store.profiles?.find((entry) => entry.id === id);
 		if (!profile || id === store.activeId) return;
-		await StoryProfileSettings.syncActiveProfile(
-			game.settings.get("litm-rn", "storytags"),
+		if (!SharedStorage.isMigrated()) {
+			await StoryProfileSettings.syncActiveProfile(
+				game.settings.get("litm-rn", "storytags"),
+			);
+		}
+		const freshStore = SharedStorage.readSetting("storyProfiles");
+		if (!freshStore.profiles?.some((entry) => entry.id === id)) return;
+		await SharedStorage.updateSetting(
+			"storyProfiles",
+			{ ...freshStore, activeId: id },
+			freshStore,
 		);
-		const freshStore = game.settings.get("litm-rn", "storyProfiles");
-		await game.settings.set("litm-rn", "storyProfiles", {
-			...freshStore,
-			activeId: id,
-		});
-		await game.settings.set(
-			"litm-rn",
-			"storytags",
-			foundry.utils.deepClone(profile.data),
-		);
+		if (!SharedStorage.isMigrated()) {
+			await game.settings.set(
+				"litm-rn",
+				"storytags",
+				foundry.utils.deepClone(profile.data),
+			);
+		}
 		this.render();
 	}
 
@@ -154,11 +164,15 @@ export class StoryProfileSettings extends HandlebarsApplicationMixin(
 		const input = this.element.querySelector(`[data-profile-name="${id}"]`);
 		const name = input?.value.trim();
 		if (!name) return;
-		const store = game.settings.get("litm-rn", "storyProfiles");
+		const store = SharedStorage.readSetting("storyProfiles");
 		const profiles = store.profiles.map((profile) =>
 			profile.id === id ? { ...profile, name } : profile,
 		);
-		await game.settings.set("litm-rn", "storyProfiles", { ...store, profiles });
+		await SharedStorage.updateSetting(
+			"storyProfiles",
+			{ ...store, profiles },
+			store,
+		);
 		this.render();
 	}
 
@@ -166,13 +180,24 @@ export class StoryProfileSettings extends HandlebarsApplicationMixin(
 		event.preventDefault();
 		if (!game.user.isGM) return;
 		const id = event.currentTarget.dataset.profileId;
-		const store = game.settings.get("litm-rn", "storyProfiles");
+		let store = SharedStorage.readSetting("storyProfiles");
 		if (id === store.activeId || store.profiles.length <= 1) return;
 		if (!(await confirmDelete("Litm.settings.story-profile"))) return;
-		await game.settings.set("litm-rn", "storyProfiles", {
-			...store,
-			profiles: store.profiles.filter((profile) => profile.id !== id),
-		});
+		store = SharedStorage.readSetting("storyProfiles");
+		if (
+			id === store.activeId ||
+			store.profiles.length <= 1 ||
+			!store.profiles.some((profile) => profile.id === id)
+		)
+			return;
+		await SharedStorage.updateSetting(
+			"storyProfiles",
+			{
+				...store,
+				profiles: store.profiles.filter((profile) => profile.id !== id),
+			},
+			store,
+		);
 		this.render();
 	}
 }

@@ -1,3 +1,4 @@
+import { SharedStorage } from "../../system/shared-storage.js";
 import { Sockets } from "../../system/sockets.js";
 import { getLinkedRote, getWorldRoteLink } from "./rote-links.js";
 
@@ -51,7 +52,7 @@ const worldTheme = (ref) => {
 	const item = game.items?.get(ref.slice("story-theme-".length));
 	if (item?.type !== "story") return null;
 	if (item.system.isArchived) return null;
-	const ids = game.settings.get("litm-rn", "storytags")?.storyThemeIds ?? [];
+	const ids = SharedStorage.readStoryConfig()?.storyThemeIds ?? [];
 	return ids.includes(item.id) ? item : null;
 };
 

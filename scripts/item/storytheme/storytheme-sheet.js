@@ -1,4 +1,6 @@
+import { KeyedSheetMixin } from "../../mixins/keyed-sheet.js";
 import { registerDataInputSync } from "../../mixins/sheet-utils.js";
+import { resolveKeyedPath } from "../../system/keyed-documents.js";
 import { localize as t } from "../../utils.js";
 import {
 	configureTagRote,
@@ -12,7 +14,9 @@ const { ItemSheetV2 } = foundry.applications.sheets;
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 const FilePicker = foundry.applications.apps.FilePicker.implementation;
 
-export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
+export class StoryThemeSheet extends HandlebarsApplicationMixin(
+	KeyedSheetMixin(ItemSheetV2),
+) {
 	#roteItemHooks = [];
 	#linkedRoteIds = new Set();
 	#pendingDataInputSubmit = Promise.resolve();
@@ -176,6 +180,14 @@ export class StoryThemeSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 	async _processSubmitData(event, form, formData) {
 		const hasLockedWorldRote = (tagId) =>
 			Boolean(getWorldRoteLink(this.item, tagId));
+		if (hasLockedWorldRote(this.system.themeTag?.id))
+			delete formData["system.themeTag.name"];
+		for (const [index, tag] of this.system.powerTags.entries()) {
+			if (!hasLockedWorldRote(tag.id)) continue;
+			delete formData[
+				resolveKeyedPath(this.item, `system.powerTags.${index}.name`).path
+			];
+		}
 		if (
 			formData.system?.themeTag &&
 			hasLockedWorldRote(this.system.themeTag?.id)

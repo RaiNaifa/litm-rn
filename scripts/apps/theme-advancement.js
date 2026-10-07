@@ -1,3 +1,4 @@
+import { cloneCollection } from "../data/keyed-collections.js";
 import { ThemeAdvancement } from "../system/theme-advancement.js";
 import { ThemeSources } from "../system/theme-sources.js";
 import {
@@ -680,9 +681,7 @@ export class ThemeAdvancementApp extends HandlebarsApplicationMixin(
 	}
 
 	async #applyImprovement() {
-		const themes = foundry.utils.duplicate(
-			this.actor.toObject().system.themes ?? [],
-		);
+		const themes = cloneCollection(this.actor.toObject().system.themes ?? []);
 		const theme = themes[this.themeIndex];
 		if (!theme?.availableImprovements) return;
 		const choice = this.#value("choice");
@@ -1010,11 +1009,9 @@ export class ThemeAdvancementApp extends HandlebarsApplicationMixin(
 	}
 
 	async #applyEvolution() {
-		const themes = foundry.utils.duplicate(
-			this.actor.toObject().system.themes ?? [],
-		);
+		const themes = cloneCollection(this.actor.toObject().system.themes ?? []);
 		const theme = themes[this.themeIndex];
-		const archiveSnapshot = foundry.utils.duplicate(theme);
+		const archiveSnapshot = cloneCollection(theme);
 		const oldLevel = theme.level;
 		const level = this.#value("level") || oldLevel;
 		const themebook = this.evolutionThemebook.custom
@@ -1119,9 +1116,7 @@ export class ThemeAdvancementApp extends HandlebarsApplicationMixin(
 	}
 
 	async #applyReplacement() {
-		const themes = foundry.utils.duplicate(
-			this.actor.toObject().system.themes ?? [],
-		);
+		const themes = cloneCollection(this.actor.toObject().system.themes ?? []);
 		const oldTheme = themes[this.themeIndex];
 		const oldThemeId = oldTheme.id;
 		const title = this.#value("themeTag");
@@ -1189,13 +1184,11 @@ export class ThemeAdvancementApp extends HandlebarsApplicationMixin(
 
 	async #applyExpansion() {
 		if (this.expansionTargetIndex == null) return;
-		const themes = foundry.utils.duplicate(
-			this.actor.toObject().system.themes ?? [],
-		);
+		const themes = cloneCollection(this.actor.toObject().system.themes ?? []);
 		const evolved = themes[this.themeIndex];
 		const expanded = themes[this.expansionTargetIndex];
 		if (!evolved || !expanded || evolved === expanded) return;
-		const archiveSnapshot = foundry.utils.duplicate(expanded);
+		const archiveSnapshot = cloneCollection(expanded);
 		const expansionLevel = this.#value("level") || expanded.level;
 		const expansionThemebook = this.evolutionThemebook.custom
 			? this.#value("evolutionThemebookName")

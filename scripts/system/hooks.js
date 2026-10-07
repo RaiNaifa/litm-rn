@@ -1,4 +1,5 @@
 import { TokenTooltip } from "../apps/token-tooltip.js";
+import { decodeCollectionData } from "../data/keyed-collections.js";
 import {
 	changesLinkedWorldTagName,
 	deleteOwnerRotes,
@@ -11,6 +12,7 @@ import { dispatch, localize as t } from "../utils.js";
 import { EMBEDDED_ONLY } from "./constants.js";
 import { DEFAULT_ITEM_ICONS } from "./item-icons.js";
 import { createPrivate } from "./private-creation.js";
+import { SharedStorage } from "./shared-storage.js";
 import { Sockets } from "./sockets.js";
 import { StarterContent } from "./starter-content.js";
 import { StarterTours } from "./starter-tours.js";
@@ -234,15 +236,48 @@ export class LitmHooks {
 					) + gained;
 			}
 			const themes = changes["system.themes"] ?? changes.system?.themes;
-			if (!Array.isArray(themes)) return;
-			const awards = ThemeAdvancement.normalizeImproveTracks(themes);
+			if (!themes) return;
+			if (Array.isArray(themes)) {
+				const awards = ThemeAdvancement.normalizeImproveTracks(themes);
+				if (awards.length) options.litmThemeImprovementAwards = awards;
+				return;
+			}
+			const awards = [];
+			const field = actor.system.constructor.schema.fields.themes;
+			for (const [key, entry] of Object.entries(themes)) {
+				if (!entry?.value || entry.deleted) continue;
+				const original = actor._source.system.themes?.[key]?.value ?? {};
+				const source = foundry.utils.mergeObject(
+					foundry.utils.deepClone(original),
+					entry.value,
+					{ inplace: false },
+				);
+				const theme = decodeCollectionData(field.collectionElement, source);
+				const previous = Object.fromEntries(
+					["improve", "availableImprovements", "nascentPowerNeeded"].map(
+						(name) => [name, theme[name]],
+					),
+				);
+				const normalized = ThemeAdvancement.normalizeImproveTracks([theme]);
+				for (const name of [
+					"improve",
+					"availableImprovements",
+					"nascentPowerNeeded",
+				]) {
+					if (theme[name] !== previous[name]) entry.value[name] = theme[name];
+				}
+				if (normalized.length)
+					awards.push({ ...normalized[0], themeId: theme.id });
+			}
 			if (awards.length) options.litmThemeImprovementAwards = awards;
 		});
 
 		Hooks.on("updateActor", async (actor, _changes, options, userId) => {
 			if (userId !== game.user.id) return;
 			for (const award of options.litmThemeImprovementAwards ?? []) {
-				const theme = actor.system.themes?.[award.themeIndex];
+				const theme = award.themeId
+					? actor.system.themes?.find((entry) => entry.id === award.themeId)
+					: actor.system.themes?.[award.themeIndex];
 				if (theme) {
 					await ThemeAdvancement.notify(
 						actor,
@@ -744,15 +779,15 @@ export class LitmHooks {
 	}
 
 	static #refreshRollOnEffectUpdate() {
-		Hooks.on("updateActiveEffect", () => {
+		const refresh = (effect) => {
 			game.litm?.refreshRollSelectionUI?.();
-		});
-		Hooks.on("createActiveEffect", () => {
-			game.litm?.refreshRollSelectionUI?.();
-		});
-		Hooks.on("deleteActiveEffect", () => {
-			game.litm?.refreshRollSelectionUI?.();
-		});
+			const actor = effect.parent;
+			if (actor?.documentName === "Actor" && actor.sheet?.rendered)
+				actor.sheet.render();
+		};
+		Hooks.on("updateActiveEffect", refresh);
+		Hooks.on("createActiveEffect", refresh);
+		Hooks.on("deleteActiveEffect", refresh);
 	}
 
 	static #listenToTagDragTransfer() {
@@ -1258,7 +1293,7 @@ export class LitmHooks {
 			const scene = canvas.scene;
 			if (!scene) return;
 
-			const config = scene.getFlag("litm-rn", "scenetags") || {
+			const config = SharedStorage.readSceneConfig(scene) || {
 				tags: [],
 				actors: [],
 			};
@@ -1416,7 +1451,7 @@ export class LitmHooks {
 			btn.dataset.tooltip = "Litm.ui.tag-visibility";
 			btn.innerHTML = `<i class="fas fa-tags"></i>`;
 			btn.addEventListener("click", async () => {
-				const currentConfig = canvas.scene.getFlag("litm-rn", "scenetags") || {
+				const currentConfig = SharedStorage.readSceneConfig(canvas.scene) || {
 					tags: [],
 					actors: [],
 				};

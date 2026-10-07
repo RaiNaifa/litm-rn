@@ -1,3 +1,4 @@
+import { cloneCollection } from "../data/keyed-collections.js";
 import { getAssignedUser, getFellowshipActors } from "../utils.js";
 
 const { DialogV2 } = foundry.applications.api;
@@ -83,9 +84,7 @@ export class ThemeAdvancement {
 	 * @returns {Promise<void>}
 	 */
 	static async increaseTrack(actor, themeIndex, field) {
-		const themes = foundry.utils.duplicate(
-			actor.toObject().system.themes ?? [],
-		);
+		const themes = cloneCollection(actor.toObject().system.themes ?? []);
 		const theme = themes[themeIndex];
 		if (!theme || theme.isEmpty) return;
 		const value = Number(theme[field] ?? 0);
@@ -161,7 +160,7 @@ export class ThemeAdvancement {
 			return;
 		}
 		const next = Math.min(value + 1, 3);
-		const notifications = foundry.utils.duplicate(
+		const notifications = cloneCollection(
 			fellowship.system.thresholdNotifications ?? {
 				milestone: false,
 				abandon: false,
@@ -194,7 +193,7 @@ export class ThemeAdvancement {
 		const next = Math.max(0, Number(fellowship.system[field] ?? 0) - 1);
 		const update = { [`system.${field}`]: next };
 		if (field === "milestone" || field === "abandon") {
-			const notifications = foundry.utils.duplicate(
+			const notifications = cloneCollection(
 				fellowship.system.thresholdNotifications ?? {
 					milestone: false,
 					abandon: false,
@@ -216,9 +215,7 @@ export class ThemeAdvancement {
 	 * @returns {Promise<void>}
 	 */
 	static async decreaseTrack(actor, themeIndex, field) {
-		const themes = foundry.utils.duplicate(
-			actor.toObject().system.themes ?? [],
-		);
+		const themes = cloneCollection(actor.toObject().system.themes ?? []);
 		const theme = themes[themeIndex];
 		if (!theme) return;
 		theme[field] = Math.max(0, Number(theme[field] ?? 0) - 1);
@@ -246,9 +243,7 @@ export class ThemeAdvancement {
 			rejectClose: false,
 		});
 		if (!confirmed) return false;
-		const themes = foundry.utils.duplicate(
-			actor.toObject().system.themes ?? [],
-		);
+		const themes = cloneCollection(actor.toObject().system.themes ?? []);
 		const snapshot = themes[themeIndex];
 		const count = snapshot.availableImprovements;
 		snapshot.availableImprovements = 0;
@@ -288,11 +283,9 @@ export class ThemeAdvancement {
 			id: foundry.utils.randomID(),
 			archivedAt: Date.now(),
 			reason,
-			theme: foundry.utils.duplicate(theme),
+			theme: cloneCollection(theme),
 		};
-		const archive = foundry.utils.duplicate(
-			actor.toObject().system.themeArchive ?? [],
-		);
+		const archive = cloneCollection(actor.toObject().system.themeArchive ?? []);
 		archive.push(entry);
 		await actor.update({ "system.themeArchive": archive });
 		return entry;

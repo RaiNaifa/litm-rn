@@ -657,7 +657,18 @@ export async function syncWorldStoryTagNames(rote) {
 	} catch (error) {
 		for (const { story, previous } of updated.reverse()) {
 			try {
-				await story.update(previous, { litmWorldRoteNameSync: true });
+				const restore = { ...previous };
+				if (previous["system.powerTags"]) {
+					const tags = plainTags(story.system.powerTags);
+					const oldNames = new Map(
+						previous["system.powerTags"].map((tag) => [tag.id, tag.name]),
+					);
+					for (const tag of tags) {
+						if (oldNames.has(tag.id)) tag.name = oldNames.get(tag.id);
+					}
+					restore["system.powerTags"] = tags;
+				}
+				await story.update(restore, { litmWorldRoteNameSync: true });
 			} catch (rollbackError) {
 				console.error(rollbackError);
 			}
@@ -704,20 +715,27 @@ export function changesLinkedWorldTagName(story, changes) {
 		}
 	} else if (powerTags && typeof powerTags === "object") {
 		for (const [index, tag] of Object.entries(powerTags)) {
-			const previous = story.system.powerTags?.[Number(index)];
+			const sourceId = story._source?.system?.powerTags?.[index]?.id;
+			const previous = sourceId
+				? story.system.powerTags?.find((entry) => entry.id === sourceId)
+				: story.system.powerTags?.[Number(index)];
+			const name = tag?.value?.name ?? tag?.name;
 			if (
 				previous &&
 				links[previous.id] &&
-				tag?.name !== undefined &&
-				tag.name !== previous.name
+				name !== undefined &&
+				name !== previous.name
 			)
 				return true;
 		}
 	}
 	for (const [key, name] of Object.entries(changes)) {
-		const match = /^system\.powerTags\.(\d+)\.name$/.exec(key);
+		const match = /^system\.powerTags\.([^\.]+)\.(?:value\.)?name$/.exec(key);
 		if (!match) continue;
-		const tag = story.system.powerTags?.[Number(match[1])];
+		const sourceId = story._source?.system?.powerTags?.[match[1]]?.id;
+		const tag = sourceId
+			? story.system.powerTags?.find((entry) => entry.id === sourceId)
+			: story.system.powerTags?.[Number(match[1])];
 		if (tag && links[tag.id] && name !== tag.name) return true;
 	}
 	return false;

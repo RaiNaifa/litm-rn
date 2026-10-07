@@ -1,4 +1,9 @@
 import {
+	cloneCollection,
+	collectionSnapshot,
+	trackCollection,
+} from "../data/keyed-collections.js";
+import {
 	configureTagRote,
 	confirmTagRoteRemoval,
 	deleteTagRote,
@@ -149,6 +154,11 @@ export class HeroCard extends CardReader {
 				isPrivate: existing?.isPrivate ?? false,
 			};
 		});
+		trackCollection(
+			relationships,
+			collectionSnapshot(storedRels)?.source ?? {},
+			relationships.map((relationship) => relationship.id),
+		);
 
 		ctx.hero = {
 			name: sys.heroTitle || t("Litm.other.hero"),
@@ -207,8 +217,7 @@ export class HeroCard extends CardReader {
 						? this.#relationships
 						: this.actor.system[field];
 				const arr =
-					arrayUpdates[`system.${field}`] ??
-					foundry.utils.duplicate(source ?? []);
+					arrayUpdates[`system.${field}`] ?? cloneCollection(source ?? []);
 				foundry.utils.setProperty(arr, parts.slice(2).join("."), value);
 				arrayUpdates[`system.${field}`] = arr;
 			} else {
@@ -399,7 +408,7 @@ export class HeroCard extends CardReader {
 	}
 
 	async #toggleRelationshipSecret(id) {
-		const relationships = foundry.utils.duplicate(
+		const relationships = cloneCollection(
 			this.actor.system.relationships ?? [],
 		);
 		const relationship = relationships.find((item) => item.id === id);
@@ -766,7 +775,7 @@ export class ThemeCard extends CardReader {
 			return fd;
 		};
 
-		const theme = foundry.utils.duplicate(this.theme);
+		const theme = cloneCollection(this.theme);
 
 		if (!changed || changed.startsWith(prefix)) {
 			for (const el of form.elements) {
@@ -1145,12 +1154,12 @@ export class ThemeCard extends CardReader {
 				this.actor.system.themes[this.themeIndex],
 				field,
 			) || [];
-		await this.#updateTheme({ [field]: [...tags, tag] });
+		await this.#updateTheme({ [field]: tags.concat(tag) });
 		this.render();
 	}
 
 	async #toggleThemeTagSecret(field, id) {
-		const theme = foundry.utils.duplicate(this.theme);
+		const theme = cloneCollection(this.theme);
 		if (!theme) return;
 		if (field === "themeTag") {
 			if (theme.themeTag?.id !== id) return;
@@ -1173,7 +1182,7 @@ export class ThemeCard extends CardReader {
 				: theme?.powerTags?.find((entry) => entry.id === id);
 		if (!tag) return;
 		await configureTagRote(this.actor, tag, async (name) => {
-			const updated = foundry.utils.duplicate(this.theme);
+			const updated = cloneCollection(this.theme);
 			const target =
 				updated.themeTag?.id === id
 					? updated.themeTag
@@ -1422,7 +1431,7 @@ export class ThemeCard extends CardReader {
 	}
 
 	async #toggleDraftWeakness(id) {
-		const drafts = foundry.utils.duplicate(
+		const drafts = cloneCollection(
 			this.actor.system.themes[this.themeIndex]?.draftTags || [],
 		);
 		const draft = drafts.find((d) => d.id === id);
@@ -1433,7 +1442,7 @@ export class ThemeCard extends CardReader {
 	}
 
 	async #promoteDraft(id) {
-		const drafts = foundry.utils.duplicate(
+		const drafts = cloneCollection(
 			this.actor.system.themes[this.themeIndex]?.draftTags || [],
 		);
 		const draftIndex = drafts.findIndex((d) => d.id === id);
@@ -1449,7 +1458,7 @@ export class ThemeCard extends CardReader {
 			id: foundry.utils.randomID(),
 		};
 
-		const tags = foundry.utils.duplicate(
+		const tags = cloneCollection(
 			this.actor.system.themes[this.themeIndex]?.[`${type}s`] || [],
 		);
 		tags.push(newTag);
@@ -1529,7 +1538,7 @@ export class NotesCard extends CardReader {
 
 	async _processSubmitData(event, form, _formData, options = {}) {
 		const changed = options._changedName;
-		const tags = foundry.utils.duplicate(this.actor.system.noticedTags ?? []);
+		const tags = cloneCollection(this.actor.system.noticedTags ?? []);
 		if (!changed || changed.startsWith("system.noticedTags.")) {
 			for (const el of form.elements) {
 				if (!el.name?.startsWith("system.noticedTags.")) continue;
@@ -1585,7 +1594,7 @@ export class NotesCard extends CardReader {
 	}
 
 	async #addTag() {
-		const tags = foundry.utils.duplicate(this.actor.system.noticedTags ?? []);
+		const tags = cloneCollection(this.actor.system.noticedTags ?? []);
 		tags.push({
 			id: foundry.utils.randomID(),
 			name: t("Litm.ui.name-tag"),
@@ -1711,13 +1720,11 @@ export class BackpackCard extends CardReader {
 			return fd;
 		};
 
-		const tags = foundry.utils.duplicate(this.actor.system.backpackTags ?? []);
-		const draftTags = foundry.utils.duplicate(
+		const tags = cloneCollection(this.actor.system.backpackTags ?? []);
+		const draftTags = cloneCollection(
 			this.actor.system.backpackDraftTags ?? [],
 		);
-		const archive = foundry.utils.duplicate(
-			this.actor.system.backpackArchive ?? [],
-		);
+		const archive = cloneCollection(this.actor.system.backpackArchive ?? []);
 
 		if (!changed || changed.startsWith("system.backpackTags.")) {
 			const tagsPrefix = "system.backpackTags.";
@@ -2071,7 +2078,7 @@ export class BackpackCard extends CardReader {
 
 	async #addTag() {
 		const field = this.#archiveView ? "backpackArchive" : "backpackTags";
-		const tags = foundry.utils.duplicate(this.actor.system[field] ?? []);
+		const tags = cloneCollection(this.actor.system[field] ?? []);
 		const tag = {
 			id: foundry.utils.randomID(),
 			name: t("Litm.ui.name-tag"),
@@ -2087,9 +2094,7 @@ export class BackpackCard extends CardReader {
 
 	async #addDraftTag() {
 		if (!this.actor.system.characterOptions?.enableBackpackDrafts) return;
-		const drafts = foundry.utils.duplicate(
-			this.actor.system.backpackDraftTags ?? [],
-		);
+		const drafts = cloneCollection(this.actor.system.backpackDraftTags ?? []);
 		drafts.push({ id: foundry.utils.randomID(), name: t("Litm.ui.name-tag") });
 		await this.actor.update(
 			{ "system.backpackDraftTags": drafts },
@@ -2099,10 +2104,8 @@ export class BackpackCard extends CardReader {
 	}
 
 	async #promoteDraftTag(id) {
-		const drafts = foundry.utils.duplicate(
-			this.actor.system.backpackDraftTags ?? [],
-		);
-		const tags = foundry.utils.duplicate(this.actor.system.backpackTags ?? []);
+		const drafts = cloneCollection(this.actor.system.backpackDraftTags ?? []);
+		const tags = cloneCollection(this.actor.system.backpackTags ?? []);
 		const index = drafts.findIndex((tag) => tag.id === id);
 		if (index < 0) return;
 		const [draft] = drafts.splice(index, 1);
@@ -2174,7 +2177,7 @@ export class BackpackCard extends CardReader {
 
 	async #toggleTagSecret(id) {
 		const field = this.#archiveView ? "backpackArchive" : "backpackTags";
-		const tags = foundry.utils.duplicate(this.actor.system[field] ?? []);
+		const tags = cloneCollection(this.actor.system[field] ?? []);
 		const tag = tags.find((item) => item.id === id);
 		if (!tag) return;
 		tag.isPrivate = !tag.isPrivate;
@@ -2212,12 +2215,8 @@ export class BackpackCard extends CardReader {
 	async #moveTag(id, toArchive) {
 		const sourceField = toArchive ? "backpackTags" : "backpackArchive";
 		const targetField = toArchive ? "backpackArchive" : "backpackTags";
-		const source = foundry.utils.duplicate(
-			this.actor.system[sourceField] ?? [],
-		);
-		const target = foundry.utils.duplicate(
-			this.actor.system[targetField] ?? [],
-		);
+		const source = cloneCollection(this.actor.system[sourceField] ?? []);
+		const target = cloneCollection(this.actor.system[targetField] ?? []);
 		const index = source.findIndex((tag) => tag.id === id);
 		if (index < 0) return;
 		const [tag] = source.splice(index, 1);
@@ -2236,7 +2235,7 @@ export class BackpackCard extends CardReader {
 	}
 
 	async #moveTagToTracking(id) {
-		const tags = foundry.utils.duplicate(this.actor.system.backpackTags ?? []);
+		const tags = cloneCollection(this.actor.system.backpackTags ?? []);
 		const index = tags.findIndex((tag) => tag.id === id);
 		if (index < 0 || tags[index].isScratched) return;
 		const [tag] = tags.splice(index, 1);
