@@ -763,6 +763,7 @@ body.theme-dark .application.litm--story-profile-settings {
 
 		& button {
 			display: inline-flex;
+			font-family: var(--litm-font-primary) !important;
 			align-items: center;
 			gap: 6px;
 			width: auto;

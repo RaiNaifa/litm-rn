@@ -782,9 +782,29 @@
 .litm--rotes-window-body p {
 	margin: 0 0 12px;
 }
-.litm--rotes-window-body select {
+.litm.litm--rotes-window .litm--rotes-window-body select {
 	width: 100%;
+	min-height: 34px;
 	margin-bottom: 12px;
+	padding: 4px 8px;
+	border: 1px solid var(--litm-color-text-secondary);
+	border-radius: 6px;
+	background: url("../../assets/media/paper.webp") left top repeat;
+	color: inherit;
+	font-family: var(--litm-font-text) !important;
+	font-size: var(--font-size-14);
+	box-shadow: none;
+
+	&:focus {
+		outline: none;
+		box-shadow: none;
+	}
+
+	& option {
+		background: #e7dac4;
+		color: var(--litm-color-text-espresso);
+		font-family: var(--litm-font-text) !important;
+	}
 }
 .litm--rotes-window-list {
 	display: flex;
@@ -906,6 +926,15 @@
 	color: var(--litm-color-text-accent-creme);
 	background-image: url("../../assets/media/paper-dark.webp");
 }
+:is(#interface.theme-dark, body.theme-dark)
+	.litm.litm--rotes-window .litm--rotes-window-body select {
+	background-image: url("../../assets/media/paper-dark.webp");
+
+	& option {
+		background: #211d1b;
+		color: var(--litm-color-text-accent-creme);
+	}
+}
 :is(#interface.theme-dark, body.theme-dark) .litm.litm--rote-use {
 	--rote-use-button-accent: var(--litm-color-text-heading-ochre);
 	--rote-use-button-ink: var(--litm-color-text-accent-creme);
@@ -1019,7 +1048,7 @@
 		border-radius: 6px;
 		background: url("../../assets/media/paper.webp") left top repeat;
 		color: inherit;
-		font-family: var(--litm-font-text);
+		font-family: var(--litm-font-text) !important;
 		font-size: var(--font-size-14);
 		box-shadow: none;
 
@@ -1045,6 +1074,10 @@
 		width: 100%;
 		pointer-events: none;
 	}
+}
+
+.litm.litm--rote-name-dialog .form-footer button {
+	font-family: var(--litm-font-text) !important;
 }
 
 :is(#interface.theme-dark, body.theme-dark) .litm.litm--rote,

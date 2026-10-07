@@ -242,7 +242,7 @@
 
 	& .dice-result button {
 		margin-block-start: var(--litm-space-2);
-		font-family: var(--litm-font-sc);
+		font-family: var(--litm-font-sc) !important;
 		text-transform: uppercase;
 		font-size: var(--font-size-11);
 		font-weight: bold;

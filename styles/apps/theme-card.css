@@ -720,6 +720,7 @@ button.litm--tc-themebook-preview {
 
 	& .litm--rote-add-dropzone {
 		display: flex;
+		font-family: var(--litm-font-primary);
 		min-height: 88px;
 		align-items: center;
 		justify-content: center;
@@ -761,7 +762,7 @@ button.litm--tc-themebook-preview {
 		border: 1px solid #ad765a;
 		background: transparent;
 		color: var(--rote-add-ink);
-		font-family: var(--litm-font-primary);
+		font-family: var(--litm-font-primary) !important;
 
 		&:hover:not(:disabled) {
 			border-color: #e0a47e;

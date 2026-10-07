@@ -154,6 +154,10 @@
 
 	& .form-footer {
 		padding: 8px 16px 14px;
+
+		& button {
+			font-family: var(--litm-font-text) !important;
+		}
 	}
 }
 

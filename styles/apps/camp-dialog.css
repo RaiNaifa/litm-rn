@@ -1062,6 +1062,9 @@
 	background: color-mix(in srgb, var(--litm-roll-highlight-bg) 26%, transparent);
 	color: var(--litm-roll-highlight-border);
 }
+.litm--camp-theme-list label:hover > span {
+	color: var(--litm-roll-highlight-border);
+}
 .litm--camp-relationships label {
 	display: block;
 	min-width: 0;
@@ -1095,7 +1098,6 @@
 .litm--camp-roll-launch p {
 	margin-top: var(--litm-space-1);
 }
-.litm--camp-roll-launch button,
 .litm--camp-submit-choice,
 .litm--camp-unlock-choice {
 	border: 0;
@@ -1109,11 +1111,26 @@
 	font-family: var(--litm-font-heading);
 	font-size: var(--font-size-18);
 }
-.litm--camp-roll-launch > button {
-	display: block;
+.application.litm.litm--camp .litm--camp-roll-launch > button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	width: 100%;
+	min-height: 38px;
 	margin-top: var(--litm-space-3);
-	padding-block: var(--litm-space-2);
+	padding: var(--litm-space-2);
+	border: 1px solid
+		color-mix(in srgb, var(--litm-color-text-secondary) 55%, transparent);
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--litm-roll-highlight-bg) 10%, transparent);
+	color: var(--litm-color-text-secondary);
+	cursor: pointer;
+
+	&:is(:hover, :focus-visible) {
+		border-color: var(--litm-roll-highlight-border);
+		background: color-mix(in srgb, var(--litm-roll-highlight-bg) 26%, transparent);
+		color: var(--litm-roll-highlight-border);
+	}
 }
 .litm--camp-submit-choice {
 	display: flex;
@@ -1292,6 +1309,9 @@ body
 	.application.litm.litm--camp
 	.litm--camp-shell
 	:is(button, input, textarea, p, span, small) {
+	font-family: var(--litm-font-text) !important;
+}
+body .application.litm.litm--camp .litm--camp-roll-launch > button {
 	font-family: var(--litm-font-text) !important;
 }
 body .application.litm.litm--camp .litm--camp-shell :is(h2, h3, h4) {

@@ -203,7 +203,7 @@
 		appearance: none;
 		background: var(--litm-rotes-tab-background);
 		color: var(--litm-color-primary-bg);
-		font-family: var(--litm-font-accent);
+		font-family: var(--litm-font-accent) !important;
 		font-size: var(--font-size-20);
 		text-shadow: 4px 3px 3px rgb(0 0 0 / 20%);
 		outline: none;
