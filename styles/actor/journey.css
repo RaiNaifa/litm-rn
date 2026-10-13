@@ -395,10 +395,17 @@
 			white-space: nowrap;
 
 			&[contenteditable="true"] {
-				flex: none;
 				background: transparent;
 				cursor: text;
-				white-space: normal;
+				overflow-x: auto;
+				overflow-y: hidden;
+				scrollbar-width: none;
+
+				& .litm--tm-tag-text {
+					flex-shrink: 0;
+					max-width: none;
+					overflow: visible;
+				}
 			}
 		}
 

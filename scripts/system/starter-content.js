@@ -97,7 +97,7 @@ export class StarterContent {
 			sceneData.levels = [
 				{
 					name: "Legend in the Mist",
-					background: { src: backgroundSrc },
+					background: { src: backgroundSrc, color: 0x121212 },
 				},
 			];
 		} else {

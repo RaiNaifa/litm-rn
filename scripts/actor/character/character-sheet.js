@@ -257,7 +257,29 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	/** @override */
 	get title() {
+		if (this.element?.classList.contains("minimized"))
+			return this.actor?.name ?? "";
 		return this.actor?.system?.shortDescription ?? "";
+	}
+
+	/** Show the actor name in the minimized window header. */
+	async minimize() {
+		const result = await super.minimize();
+		this.#updateWindowTitle();
+		return result;
+	}
+
+	/** Restore the short description in the expanded window header. */
+	async maximize() {
+		const result = await super.maximize();
+		this.#updateWindowTitle();
+		return result;
+	}
+
+	#updateWindowTitle() {
+		const windowTitle = this.element?.querySelector(".window-title");
+		if (!windowTitle) return;
+		windowTitle.textContent = this.title;
 	}
 
 	get rollDialog() {
@@ -1186,9 +1208,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 					"system.fellowshipId",
 				);
 				if (actor.id === this.actor.id && this.rendered) {
-					const windowTitle = this.element?.querySelector(".window-title");
-					if (windowTitle)
-						windowTitle.textContent = actor.system.shortDescription ?? "";
+					this.#updateWindowTitle();
 					this.refreshRegions(this.#actorRegions(changes));
 				} else if (
 					(fellowshipChanged || changes.name !== undefined) &&

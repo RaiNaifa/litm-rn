@@ -339,23 +339,24 @@
 			& li {
 				margin: 0;
 				display: inline-flex;
-				align-items: center;
+				align-items: flex-start;
 				gap: 2px;
-				height: 22px;
-				line-height: 1;
+				max-width: 100%;
+				min-height: 22px;
+				line-height: 18px;
 			}
 			& .litm--noticed-tag-name {
-				display: inline-flex;
-				align-items: center;
-				height: 22px;
-				line-height: 1;
+				display: block;
+				min-width: 0;
+				min-height: 22px;
+				box-sizing: border-box;
+				padding-block: 2px;
+				overflow-wrap: anywhere;
 			}
 			& mark {
-				display: inline-flex;
-				align-items: center;
-				height: 18px;
-				box-sizing: border-box;
-				line-height: 18px;
+				display: inline;
+				white-space: normal;
+				box-decoration-break: clone;
 				cursor: grab;
 			}
 			& mark:active {
@@ -380,7 +381,7 @@
 			}
 			& [contenteditable="true"] {
 				min-width: 40px;
-				outline: 1px solid currentcolor;
+				border: 1px solid currentcolor;
 			}
 		}
 	}
