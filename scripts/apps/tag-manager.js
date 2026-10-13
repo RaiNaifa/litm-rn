@@ -15,6 +15,7 @@ import {
 	isFellowshipMember,
 	localize as t,
 } from "../utils.js";
+import { requestBackgroundRender } from "./background-render.js";
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 const { AbstractSidebarTab } = foundry.applications.sidebar;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -25,7 +26,7 @@ const deferredEffectManagers = new Set();
 
 function requestEffectRender(manager) {
 	if (_skipEffectHook) deferredEffectManagers.add(manager);
-	else manager.render();
+	else requestBackgroundRender(manager);
 }
 
 function finishEffectUpdate() {
@@ -33,7 +34,7 @@ function finishEffectUpdate() {
 	if (_skipEffectHook) return;
 	const pending = [...deferredEffectManagers];
 	deferredEffectManagers.clear();
-	for (const manager of pending) if (manager.rendered) manager.render();
+	for (const manager of pending) requestBackgroundRender(manager);
 }
 
 export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
@@ -79,7 +80,13 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 	// ── Preserve scroll across re-renders ──
 
 	/** Render updated manager data while retaining scroll and any active tag editor. */
-	async render(options) {
+	async render(renderOptions = {}, legacyOptions = {}) {
+		const options =
+			typeof renderOptions === "boolean"
+				? { ...legacyOptions, force: renderOptions }
+				: renderOptions;
+		if (this.rendered && !options.force && !options.litmScheduled)
+			return requestBackgroundRender(this, options);
 		const scrollEl = this.element?.querySelector(".litm--tm-content");
 		const saved = scrollEl
 			? { top: scrollEl.scrollTop, left: scrollEl.scrollLeft }
@@ -103,7 +110,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 		) {
 			other.#_syncing = true;
 			try {
-				await other.render({ force: true });
+				await other.render({ force: false, litmPeer: true });
 			} catch {
 				/* no-op */
 			} finally {
@@ -3327,7 +3334,7 @@ export class TagManager extends HandlebarsApplicationMixin(AbstractSidebarTab) {
 			}
 			// Persist every related document update first, then synchronize and render once.
 			this.#broadcast();
-			await this.render({ force: true });
+			await this.render();
 			return;
 		}
 

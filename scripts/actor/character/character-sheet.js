@@ -1,4 +1,5 @@
 import { AvatarPositionApp } from "../../apps/avatar-position.js";
+import { requestBackgroundRender } from "../../apps/background-render.js";
 import { FellowshipAdvancementApp } from "../../apps/fellowship-advancement.js";
 import { HeroCreationApp } from "../../apps/hero-creation.js";
 import { PromiseFulfillmentApp } from "../../apps/promise-fulfillment.js";
@@ -9,6 +10,7 @@ import {
 	confirmTagRoteRemoval,
 	getActiveRoteTagIdsForActor,
 } from "../../item/rote/rote-links.js";
+import { reconcileLiveDOM } from "../../mixins/live-dom.js";
 import { createPrivate } from "../../system/private-creation.js";
 import { SharedStorage } from "../../system/shared-storage.js";
 import { ThemeAdvancement } from "../../system/theme-advancement.js";
@@ -47,7 +49,150 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	static PARTS = {
 		sheet: { template: "systems/litm-rn/templates/actor/character.html" },
+		...Object.fromEntries(
+			[
+				"identity",
+				"hero",
+				"fellowship",
+				"backpack",
+				"notes",
+				"notes-tab",
+				"themes",
+				"effects",
+			].map((part) => [
+				part,
+				{
+					template: `systems/litm-rn/templates/actor/character-parts/${part}.html`,
+				},
+			]),
+		),
 	};
+
+	#renderListeners = null;
+
+	/** Request only the regions affected by a document update. */
+	refreshRegions(parts) {
+		return requestBackgroundRender(this, { parts });
+	}
+
+	/** Configure independently rendered cards and individual theme records. */
+	_configureRenderParts(options) {
+		const parts = super._configureRenderParts(options);
+		for (const theme of this.system.themes ?? [])
+			parts[`theme-${theme.id}`] = {
+				template: "systems/litm-rn/templates/actor/character-parts/theme.html",
+			};
+		return parts;
+	}
+
+	_configureRenderOptions(options) {
+		if (!options.parts) {
+			options.parts = ["sheet"];
+			if (
+				!options.isFirstRender &&
+				/ActiveEffect$/.test(options.renderContext ?? "")
+			)
+				options.parts = ["effects"];
+			else if (
+				!options.isFirstRender &&
+				options.renderContext === "updateActor"
+			)
+				options.parts = this.#actorRegions(options.renderData ?? {});
+			else if (
+				!options.isFirstRender &&
+				/Item$/.test(options.renderContext ?? "")
+			)
+				options.parts = ["backpack"];
+		}
+		if (options.parts.includes("sheet")) options.parts = ["sheet"];
+		else if (
+			options.parts.includes("themes") ||
+			options.parts.some(
+				(part) =>
+					part.startsWith("theme-") &&
+					!(this.system.themes ?? []).some(
+						(theme) => part === `theme-${theme.id}`,
+					),
+			)
+		)
+			options.parts = [
+				...new Set([
+					"themes",
+					...options.parts.filter((part) => !part.startsWith("theme-")),
+				]),
+			];
+		if (
+			!options.isFirstRender &&
+			!this.#trackingCardsExpanded &&
+			options.parts?.length === 1 &&
+			options.parts[0] === "effects"
+		)
+			options.parts = [];
+		super._configureRenderOptions(options);
+	}
+
+	#actorRegions(changes) {
+		const regions = new Set();
+		for (const path of Object.keys(foundry.utils.flattenObject(changes))) {
+			if (/^system\.(themes)(\.|$)/.test(path)) {
+				const themeKey = path.split(".")[2];
+				const id = this.actor._source.system.themes?.[themeKey]?.id;
+				const exists =
+					id &&
+					this.element?.querySelector(`[data-application-part="theme-${id}"]`);
+				regions.add(
+					exists && !path.endsWith(".deleted") && !path.endsWith(".order")
+						? `theme-${id}`
+						: "themes",
+				);
+			} else if (
+				/^system\.(relationships|bio|quintessences|heroTitle|promise|availableFulfillments|fulfillment)(\.|$)/.test(
+					path,
+				)
+			)
+				regions.add("hero");
+			else if (
+				/^system\.(backpackTags|backpackDraftTags|backpackArchive)(\.|$)/.test(
+					path,
+				)
+			)
+				regions.add("backpack");
+			else if (/^system\.(note|noticedTags)(\.|$)/.test(path))
+				regions.add("notes");
+			else if (path === "system.fellowshipId") {
+				regions.add("fellowship");
+				regions.add("hero");
+			} else if (/^(name|img|flags\.|system.shortDescription)/.test(path))
+				regions.add("identity");
+			else regions.add("sheet");
+		}
+		return regions.has("sheet") ? ["sheet"] : [...regions];
+	}
+
+	async _preparePartContext(partId, context, options) {
+		const result = await super._preparePartContext(partId, context, options);
+		return partId.startsWith("theme-")
+			? {
+					...result,
+					themes: result.themes.filter(
+						(theme) => `theme-${theme.data._id}` === partId,
+					),
+				}
+			: result;
+	}
+
+	_replaceHTML(result, content, options) {
+		for (const [part, next] of Object.entries(result)) {
+			const previous = content.querySelector(
+				`[data-application-part="${part}"]`,
+			);
+			if (!previous) {
+				super._replaceHTML({ [part]: next }, content, options);
+				continue;
+			}
+			reconcileLiveDOM(previous, next);
+		}
+	}
 
 	#dragAvatarTimeout = null;
 	#notesEditorStyle = "display: none;";
@@ -261,7 +406,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	resetRollDialog() {
 		if (this.#roll.rendered) this.#roll.close();
 		this.#roll.reset();
-		this.render();
+		this.updateRollSelectionDisplay();
 	}
 
 	/** Toggle a tag's scratch state, or set it deterministically when scratched is provided. */
@@ -353,7 +498,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 							"system.themeTag.isScratched": nextScratchState(tag.isScratched),
 						},
 					]);
-					this.render();
 				}
 				break;
 			}
@@ -412,6 +556,11 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
+		const requested = options.parts ?? ["sheet"];
+		const wants = (part) =>
+			requested.includes("sheet") || requested.includes(part);
+		context.notesCard = { expanded: this.#notesCardExpanded };
+		context.activeRoteTagIds = [...getActiveRoteTagIdsForActor(this.actor)];
 		context._id = this.actor.id;
 		context.img = this.actor.img;
 		context.avatarPosition = AvatarPositionApp.getPosition(this.actor);
@@ -421,187 +570,208 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		context.showDraftTags =
 			this.system.characterOptions?.showDraftTags === true;
 		context.noteRaw = this.system.note || "";
-		context.note = await TextEditor.enrichHTML(this.system.note || "");
+		if (wants("notes"))
+			context.note = await TextEditor.enrichHTML(this.system.note || "");
 		// context.note = await TextEditor.enrichHTML(context.system.note || "");
 
 		// Fellowship
-		const fellowshipItem = this.system.fellowship;
-		if (fellowshipItem) {
-			const fSystem = fellowshipItem.system.toObject();
-			fSystem.specials = await Promise.all(
-				(fellowshipItem.system.specials || []).map(async (s) => ({
-					...s.toObject(),
-					enrichedDescription: await TextEditor.enrichHTML(s.description || ""),
-				})),
-			);
-			fSystem.backside = this.#getBackside(fellowshipItem.id);
-			fSystem.improveTrackLength = Number(
-				fellowshipItem.system.improveTrackLength ?? 3,
-			);
-			fSystem.improvementsPerTrack = Number(
-				fellowshipItem.system.improvementsPerTrack ?? 1,
-			);
-			fSystem.weakness = fellowshipItem.system.weakness;
-			fSystem.levels = fellowshipItem.system.levels;
-			fSystem.themebooks = fellowshipItem.system.themebooks;
-			fSystem.enrichedNote = await TextEditor.enrichHTML(
-				fellowshipItem.system.note || "",
-			);
-			context.fellowship = {
-				data: {
-					_id: fellowshipItem.id,
-					name: fellowshipItem.name,
-					type: "fellowship",
-					system: fSystem,
-				},
-			};
-		} else {
-			context.fellowship = null;
-		}
-
-		// Themes
-		const themeEntries = this.system.themes || [];
-		context.themes = await Promise.all(
-			themeEntries.map(async (t, idx) => {
-				const system = cloneCollection(t);
-				system.improveTrackLength = Number(t.improveTrackLength ?? 3);
-				system.improvementsPerTrack = Number(t.improvementsPerTrack ?? 1);
-				system.specials = await Promise.all(
-					(t.specials || []).map(async (s) => ({
-						...s,
+		if (wants("fellowship")) {
+			const fellowshipItem = this.system.fellowship;
+			if (fellowshipItem) {
+				const fSystem = fellowshipItem.system.toObject();
+				fSystem.specials = await Promise.all(
+					(fellowshipItem.system.specials || []).map(async (s) => ({
+						...s.toObject(),
 						enrichedDescription: await TextEditor.enrichHTML(
 							s.description || "",
 						),
 					})),
 				);
-				system.backside = this.#getBackside(t.id);
-				system.enrichedNote = await TextEditor.enrichHTML(t.note || "");
-				system.weakness = t.weaknessTags ?? [];
-				system.levels = Object.keys(CONFIG.litm.theme_levels).reduce(
-					(acc, level) => {
-						acc[level] = game.i18n.localize(`Litm.levels.${level}`);
-						return acc;
-					},
-					{},
+				fSystem.backside = this.#getBackside(fellowshipItem.id);
+				fSystem.improveTrackLength = Number(
+					fellowshipItem.system.improveTrackLength ?? 3,
 				);
-				system.themebooks = CONFIG.litm.theme_levels[t.level] ?? [];
-				const level = t.level || "origin";
-				const fallbackSrc = ["origin", "adventure", "greatness"].includes(level)
-					? level
-					: "origin";
-				return {
-					data: { _id: t.id, name: t.name, type: "theme", system },
-					themeIndex: idx,
-					themesrc:
-						CONFIG.litm.theme_src[level] ||
-						`systems/litm-rn/assets/media/${fallbackSrc}`,
-					themeiconsrc:
-						CONFIG.litm.themeicon_src[level] ||
-						`systems/litm-rn/assets/media/icons/${fallbackSrc}`,
+				fSystem.improvementsPerTrack = Number(
+					fellowshipItem.system.improvementsPerTrack ?? 1,
+				);
+				fSystem.weakness = fellowshipItem.system.weakness;
+				fSystem.levels = fellowshipItem.system.levels;
+				fSystem.themebooks = fellowshipItem.system.themebooks;
+				fSystem.enrichedNote = await TextEditor.enrichHTML(
+					fellowshipItem.system.note || "",
+				);
+				context.fellowship = {
+					data: {
+						_id: fellowshipItem.id,
+						name: fellowshipItem.name,
+						type: "fellowship",
+						system: fSystem,
+					},
 				};
-			}),
-		);
+			} else {
+				context.fellowship = null;
+			}
+		}
 
-		// Backpack
-		const backpackData = this.system.backpack;
-		const enrichedNote = context.note;
-		const storyEntries = await Promise.all(
-			this.items
-				.filter((i) => i.type === "story")
-				.sort((a, b) => a.sort - b.sort)
-				.map(async (s) => {
-					const system = s.system.toObject();
-					system.weakness = s.system.weakness;
+		// Themes
+		if (
+			wants("themes") ||
+			requested.some((part) => part.startsWith("theme-"))
+		) {
+			const themeEntries = this.system.themes || [];
+			context.themes = await Promise.all(
+				themeEntries.map(async (t, idx) => {
+					if (!wants("themes") && !requested.includes(`theme-${t.id}`))
+						return null;
+					const system = cloneCollection(t);
+					system.improveTrackLength = Number(t.improveTrackLength ?? 3);
+					system.improvementsPerTrack = Number(t.improvementsPerTrack ?? 1);
+					system.specials = await Promise.all(
+						(t.specials || []).map(async (s) => ({
+							...s,
+							enrichedDescription: await TextEditor.enrichHTML(
+								s.description || "",
+							),
+						})),
+					);
+					system.backside = this.#getBackside(t.id);
+					system.enrichedNote = await TextEditor.enrichHTML(t.note || "");
+					system.weakness = t.weaknessTags ?? [];
+					system.levels = Object.keys(CONFIG.litm.theme_levels).reduce(
+						(acc, level) => {
+							acc[level] = game.i18n.localize(`Litm.levels.${level}`);
+							return acc;
+						},
+						{},
+					);
+					system.themebooks = CONFIG.litm.theme_levels[t.level] ?? [];
+					const level = t.level || "origin";
+					const fallbackSrc = ["origin", "adventure", "greatness"].includes(
+						level,
+					)
+						? level
+						: "origin";
 					return {
-						data: { _id: s.id, name: s.name, type: "story", system },
-						collapsed: !this.#expandedStories.has(s.id),
+						data: { _id: t.id, name: t.name, type: "theme", system },
+						themeIndex: idx,
+						themesrc:
+							CONFIG.litm.theme_src[level] ||
+							`systems/litm-rn/assets/media/${fallbackSrc}`,
+						themeiconsrc:
+							CONFIG.litm.themeicon_src[level] ||
+							`systems/litm-rn/assets/media/icons/${fallbackSrc}`,
 					};
 				}),
-		);
-		context.activeRoteTagIds = [...getActiveRoteTagIdsForActor(this.actor)];
-		const stories = storyEntries.filter(
-			(story) => story.data.system.isArchived !== true,
-		);
-		const archivedStories = storyEntries.filter(
-			(story) => story.data.system.isArchived === true,
-		);
-		context.backpack = {
-			name: game.i18n.localize("TYPES.Item.backpack"),
-			id: "backpack",
-			backside: this.#getBackside("backpack"),
-			contents: backpackData?.contents ?? [],
-			draftTags: this.system.backpackDraftTags ?? [],
-			archiveContents: this.system.backpackArchive ?? [],
-			stories,
-			archivedStories,
-		};
-		context.notesCard = {
-			id: "notes",
-			backside: this.#getBackside("notes"),
-			expanded: this.#notesCardExpanded,
-			note: enrichedNote,
-			tags: await Promise.all(
-				(this.system.noticedTags ?? []).map(async (tag) => ({
-					...tag,
-					enrichedName: await TextEditor.enrichHTML(`{${tag.name}}`, {
-						inline: true,
+			);
+
+			context.themes = context.themes.filter(Boolean);
+		}
+
+		// Backpack
+		if (wants("backpack")) {
+			const backpackData = this.system.backpack;
+			const storyEntries = await Promise.all(
+				this.items
+					.filter((i) => i.type === "story")
+					.sort((a, b) => a.sort - b.sort)
+					.map(async (s) => {
+						const system = s.system.toObject();
+						system.weakness = s.system.weakness;
+						return {
+							data: { _id: s.id, name: s.name, type: "story", system },
+							collapsed: !this.#expandedStories.has(s.id),
+						};
 					}),
-				})),
-			),
-		};
+			);
+			const stories = storyEntries.filter(
+				(story) => story.data.system.isArchived !== true,
+			);
+			const archivedStories = storyEntries.filter(
+				(story) => story.data.system.isArchived === true,
+			);
+			context.backpack = {
+				name: game.i18n.localize("TYPES.Item.backpack"),
+				id: "backpack",
+				backside: this.#getBackside("backpack"),
+				contents: backpackData?.contents ?? [],
+				draftTags: this.system.backpackDraftTags ?? [],
+				archiveContents: this.system.backpackArchive ?? [],
+				stories,
+				archivedStories,
+			};
+		}
+		if (wants("notes")) {
+			const enrichedNote = context.note;
+			context.notesCard = {
+				id: "notes",
+				backside: this.#getBackside("notes"),
+				expanded: this.#notesCardExpanded,
+				note: enrichedNote,
+				tags: await Promise.all(
+					(this.system.noticedTags ?? []).map(async (tag) => ({
+						...tag,
+						enrichedName: await TextEditor.enrichHTML(`{${tag.name}}`, {
+							inline: true,
+						}),
+					})),
+				),
+			};
+		}
 
 		// Hero
-		const sys = this.system;
-		const fellowshipId = sys.fellowshipId;
-		const fellowMembers = getFellowshipActors(fellowshipId).filter(
-			(actor) => actor.id !== this.actor.id,
-		);
-		const storedRels = sys.relationships || [];
-		const relMap = {};
-		for (const r of storedRels) relMap[r.fellowActorId] = r;
-		const relationships = fellowMembers.map((m) => {
-			const existing = relMap[m.id];
-			return {
-				id: existing?.id ?? foundry.utils.randomID(),
-				fellowActorId: m.id,
-				fellowName: m.name,
-				name: existing?.name ?? game.i18n.localize("Litm.tags.relationship"),
-				isScratched: existing
-					? existing.isScratched === true || existing.isScratched === "true"
-					: true,
-				isPrivate: existing?.isPrivate ?? false,
+		if (wants("hero")) {
+			const sys = this.system;
+			const fellowshipId = sys.fellowshipId;
+			const fellowMembers = getFellowshipActors(fellowshipId).filter(
+				(actor) => actor.id !== this.actor.id,
+			);
+			const storedRels = sys.relationships || [];
+			const relMap = {};
+			for (const r of storedRels) relMap[r.fellowActorId] = r;
+			const relationships = fellowMembers.map((m) => {
+				const existing = relMap[m.id];
+				return {
+					id: existing?.id ?? foundry.utils.randomID(),
+					fellowActorId: m.id,
+					fellowName: m.name,
+					name: existing?.name ?? game.i18n.localize("Litm.tags.relationship"),
+					isScratched: existing
+						? existing.isScratched === true || existing.isScratched === "true"
+						: true,
+					isPrivate: existing?.isPrivate ?? false,
+				};
+			});
+
+			// Bio and quintessences from character data
+			const enrichedBio = await TextEditor.enrichHTML(sys.bio || "");
+			const quintessences = await Promise.all(
+				(sys.quintessences || []).map(async (s) => ({
+					id: s.id,
+					name: s.name,
+					description: s.description,
+					enrichedDescription: await TextEditor.enrichHTML(s.description || ""),
+				})),
+			);
+
+			context.hero = {
+				name: sys.heroTitle || game.i18n.localize("Litm.other.hero"),
+				id: "hero",
+				backside: this.#getBackside("hero"),
+				fulfillment: sys.fulfillment?.length
+					? sys.fulfillment
+					: CONFIG.litm.fulfillment,
+				promise: sys.promise ?? 0,
+				availableFulfillments: sys.availableFulfillments ?? 0,
+				bio: sys.bio || "",
+				enrichedBio,
+				relationships,
+				quintessences,
+				noFellowship: !fellowshipId,
 			};
-		});
-
-		// Bio and quintessences from character data
-		const enrichedBio = await TextEditor.enrichHTML(sys.bio || "");
-		const quintessences = await Promise.all(
-			(sys.quintessences || []).map(async (s) => ({
-				id: s.id,
-				name: s.name,
-				description: s.description,
-				enrichedDescription: await TextEditor.enrichHTML(s.description || ""),
-			})),
-		);
-
-		context.hero = {
-			name: sys.heroTitle || game.i18n.localize("Litm.other.hero"),
-			id: "hero",
-			backside: this.#getBackside("hero"),
-			fulfillment: sys.fulfillment?.length
-				? sys.fulfillment
-				: CONFIG.litm.fulfillment,
-			promise: sys.promise ?? 0,
-			availableFulfillments: sys.availableFulfillments ?? 0,
-			bio: sys.bio || "",
-			enrichedBio,
-			relationships,
-			quintessences,
-			noFellowship: !fellowshipId,
-		};
+		}
 
 		// Story tags
-		context.storyTags = this.storyTags;
+		if (wants("effects")) context.storyTags = this.storyTags;
 		context.editingEffectId = this.#editingEffectId;
 		context.blankEditingEffectId = this.#blankEditingEffectId;
 		context.editingBackpackTagId = this.#editingBackpackTagId;
@@ -684,13 +854,21 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	_onRender(context, options) {
 		super._onRender(context, options);
+		this.#renderListeners?.abort();
+		this.#renderListeners = new (getOwningDocument(
+			this.element,
+		).defaultView.AbortController)();
 		this.element
 			.querySelectorAll(".litm--advancement-tab")
 			.forEach((button) => {
-				button.addEventListener("contextmenu", (event) => {
-					event.preventDefault();
-					event.stopImmediatePropagation();
-				});
+				button.addEventListener(
+					"contextmenu",
+					(event) => {
+						event.preventDefault();
+						event.stopImmediatePropagation();
+					},
+					{ signal: this.#renderListeners.signal },
+				);
 			});
 
 		this.element.classList.add("litm--no-transitions");
@@ -757,48 +935,59 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			this.#tagContextSourceCard?.classList.add("litm--tag-context-open");
 		}
 
-		form
-			.querySelectorAll("[data-click]")
-			.forEach((el) =>
-				el.addEventListener("click", this.#handleClicks.bind(this)),
-			);
-		form
-			.querySelectorAll("[data-dblclick]")
-			.forEach((el) =>
-				el.addEventListener("dblclick", this.#handleDblclick.bind(this)),
-			);
-		form
-			.querySelectorAll("[data-context]")
-			.forEach((el) =>
-				el.addEventListener("contextmenu", this.#handleContextmenu.bind(this)),
-			);
-		form
-			.querySelectorAll("[data-mousedown]")
-			.forEach((el) =>
-				el.addEventListener("mousedown", this.#handleMouseDown.bind(this)),
-			);
+		form.querySelectorAll("[data-click]").forEach((el) =>
+			el.addEventListener("click", this.#handleClicks.bind(this), {
+				signal: this.#renderListeners.signal,
+			}),
+		);
+		form.querySelectorAll("[data-dblclick]").forEach((el) =>
+			el.addEventListener("dblclick", this.#handleDblclick.bind(this), {
+				signal: this.#renderListeners.signal,
+			}),
+		);
+		form.querySelectorAll("[data-context]").forEach((el) =>
+			el.addEventListener("contextmenu", this.#handleContextmenu.bind(this), {
+				signal: this.#renderListeners.signal,
+			}),
+		);
+		form.querySelectorAll("[data-mousedown]").forEach((el) =>
+			el.addEventListener("mousedown", this.#handleMouseDown.bind(this), {
+				signal: this.#renderListeners.signal,
+			}),
+		);
 		form
 			.querySelectorAll("[data-drag]")
 			.forEach((el) =>
 				el.addEventListener(
 					"mousedown",
 					this.#onDragHandleMouseDown.bind(this),
+					{ signal: this.#renderListeners.signal },
 				),
 			);
-		form
-			.querySelectorAll("[data-drag-special]")
-			.forEach((el) =>
-				el.addEventListener("dragstart", this.#onSpecialDragStart.bind(this)),
-			);
+		form.querySelectorAll("[data-drag-special]").forEach((el) =>
+			el.addEventListener("dragstart", this.#onSpecialDragStart.bind(this), {
+				signal: this.#renderListeners.signal,
+			}),
+		);
 		form.querySelectorAll("[data-theme-sort-handle]").forEach((el) => {
-			el.addEventListener("dragstart", this.#onThemeSortDragStart.bind(this));
-			el.addEventListener("dragend", this.#onThemeSortDragEnd.bind(this));
+			el.addEventListener("dragstart", this.#onThemeSortDragStart.bind(this), {
+				signal: this.#renderListeners.signal,
+			});
+			el.addEventListener("dragend", this.#onThemeSortDragEnd.bind(this), {
+				signal: this.#renderListeners.signal,
+			});
 		});
 		form.addEventListener("dragover", this.#onThemeSortDragOver.bind(this), {
-			capture: true,
+			...{
+				capture: true,
+			},
+			signal: this.#renderListeners.signal,
 		});
 		form.addEventListener("drop", this.#onThemeSortDrop.bind(this), {
-			capture: true,
+			...{
+				capture: true,
+			},
+			signal: this.#renderListeners.signal,
 		});
 		this.#eventDocument?.removeEventListener(
 			"dragstart",
@@ -809,8 +998,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			this.#onDocumentEffectDragEnd,
 		);
 		this.#eventDocument = doc;
-		doc.addEventListener("dragstart", this.#onDocumentEffectDragStart);
-		doc.addEventListener("dragend", this.#onDocumentEffectDragEnd);
+		doc.addEventListener("dragstart", this.#onDocumentEffectDragStart, {
+			signal: this.#renderListeners.signal,
+		});
+		doc.addEventListener("dragend", this.#onDocumentEffectDragEnd, {
+			signal: this.#renderListeners.signal,
+		});
 		const backpackDropCard = form.querySelector(
 			".litm--character-backpack-card:not(.litm--character-notes-card)",
 		);
@@ -818,34 +1011,45 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			backpackDropCard.addEventListener(
 				"dragover",
 				this.#onBackpackTagDragOver.bind(this),
+				{ signal: this.#renderListeners.signal },
 			);
 			backpackDropCard.addEventListener(
 				"dragleave",
 				this.#onBackpackTagDragLeave.bind(this),
+				{ signal: this.#renderListeners.signal },
 			);
 			backpackDropCard.addEventListener(
 				"drop",
 				this.#clearBackpackTagDropTarget.bind(this),
+				{ signal: this.#renderListeners.signal },
 			);
 		}
-		form.addEventListener("mouseover", this.#handleMouseOver.bind(this));
+		form.addEventListener("mouseover", this.#handleMouseOver.bind(this), {
+			signal: this.#renderListeners.signal,
+		});
 		const effectLeaves = form.querySelectorAll(
 			".litm--story-tag[data-context='tag-menu']",
 		);
 		const leafTooltipAnchor = effectLeaves[0];
 		effectLeaves.forEach((leaf) => {
-			leaf.addEventListener("mouseenter", () => {
-				const type = leaf
-					.querySelector(":scope > div")
-					?.classList.contains("status")
-					? "status"
-					: "tag";
-				game.tooltip.activate(leafTooltipAnchor, {
-					text: t(`Litm.ui.${type}-context-hint`),
-					direction: "UP",
-				});
+			leaf.addEventListener(
+				"mouseenter",
+				() => {
+					const type = leaf
+						.querySelector(":scope > div")
+						?.classList.contains("status")
+						? "status"
+						: "tag";
+					game.tooltip.activate(leafTooltipAnchor, {
+						text: t(`Litm.ui.${type}-context-hint`),
+						direction: "UP",
+					});
+				},
+				{ signal: this.#renderListeners.signal },
+			);
+			leaf.addEventListener("mouseleave", () => game.tooltip.deactivate(), {
+				signal: this.#renderListeners.signal,
 			});
-			leaf.addEventListener("mouseleave", () => game.tooltip.deactivate());
 		});
 
 		// Hover lock: clicks inside a card keep its hover state
@@ -854,18 +1058,26 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				".litm--character-theme, .litm--character-backpack-card, .litm--character-hero",
 			)
 			.forEach((el) => {
-				el.addEventListener("click", () => {
-					this.#hoverLock = el.dataset.id;
-				});
-				el.addEventListener("mouseleave", () => {
-					if (this.#suppressHoverEvents) return;
-					this.#hoverLock = null;
-					el.classList.remove("hovered");
-					if (this.#themeHovered === el.dataset.id) this.#themeHovered = null;
-					if (this.#backpackHovered === el.dataset.id)
-						this.#backpackHovered = null;
-					if (this.#heroHovered === el.dataset.id) this.#heroHovered = null;
-				});
+				el.addEventListener(
+					"click",
+					() => {
+						this.#hoverLock = el.dataset.id;
+					},
+					{ signal: this.#renderListeners.signal },
+				);
+				el.addEventListener(
+					"mouseleave",
+					() => {
+						if (this.#suppressHoverEvents) return;
+						this.#hoverLock = null;
+						el.classList.remove("hovered");
+						if (this.#themeHovered === el.dataset.id) this.#themeHovered = null;
+						if (this.#backpackHovered === el.dataset.id)
+							this.#backpackHovered = null;
+						if (this.#heroHovered === el.dataset.id) this.#heroHovered = null;
+					},
+					{ signal: this.#renderListeners.signal },
+				);
 			});
 
 		// Effect value checkboxes
@@ -874,9 +1086,15 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				"li.litm--story-tag input.litm--story-checkbox[type='checkbox']",
 			)
 			.forEach((el) => {
-				el.addEventListener("mousedown", (e) => e.stopPropagation());
-				el.addEventListener("click", (e) => e.stopPropagation());
-				el.addEventListener("change", this.#onEffectValueChange.bind(this));
+				el.addEventListener("mousedown", (e) => e.stopPropagation(), {
+					signal: this.#renderListeners.signal,
+				});
+				el.addEventListener("click", (e) => e.stopPropagation(), {
+					signal: this.#renderListeners.signal,
+				});
+				el.addEventListener("change", this.#onEffectValueChange.bind(this), {
+					signal: this.#renderListeners.signal,
+				});
 			});
 		// Contenteditable
 		form
@@ -885,9 +1103,14 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				el.addEventListener(
 					"keydown",
 					this.#onContenteditableKeyDown.bind(this),
+					{ signal: this.#renderListeners.signal },
 				);
-				el.addEventListener("blur", this.#onContenteditableBlur.bind(this));
-				el.addEventListener("paste", this.#onContenteditablePaste.bind(this));
+				el.addEventListener("blur", this.#onContenteditableBlur.bind(this), {
+					signal: this.#renderListeners.signal,
+				});
+				el.addEventListener("paste", this.#onContenteditablePaste.bind(this), {
+					signal: this.#renderListeners.signal,
+				});
 			});
 		form
 			.querySelectorAll("[data-backpack-tag-editor][contenteditable='true']")
@@ -895,9 +1118,14 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				el.addEventListener(
 					"keydown",
 					this.#onContenteditableKeyDown.bind(this),
+					{ signal: this.#renderListeners.signal },
 				);
-				el.addEventListener("blur", this.#onBackpackTagEditorBlur.bind(this));
-				el.addEventListener("paste", this.#onContenteditablePaste.bind(this));
+				el.addEventListener("blur", this.#onBackpackTagEditorBlur.bind(this), {
+					signal: this.#renderListeners.signal,
+				});
+				el.addEventListener("paste", this.#onContenteditablePaste.bind(this), {
+					signal: this.#renderListeners.signal,
+				});
 			});
 		form
 			.querySelectorAll("[data-noticed-tag-editor][contenteditable='true']")
@@ -905,14 +1133,19 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				el.addEventListener(
 					"keydown",
 					this.#onContenteditableKeyDown.bind(this),
+					{ signal: this.#renderListeners.signal },
 				);
-				el.addEventListener("blur", this.#onNoticedTagEditorBlur.bind(this));
-				el.addEventListener("paste", this.#onContenteditablePaste.bind(this));
+				el.addEventListener("blur", this.#onNoticedTagEditorBlur.bind(this), {
+					signal: this.#renderListeners.signal,
+				});
+				el.addEventListener("paste", this.#onContenteditablePaste.bind(this), {
+					signal: this.#renderListeners.signal,
+				});
 			});
-		if (this.#editingEffectId) {
+		if (this.#editingEffectId && !options.litmScheduled) {
 			requestAnimationFrame(() => this.#focusEffectEditor(3));
 		}
-		if (this.#editingBackpackTagId) {
+		if (this.#editingBackpackTagId && !options.litmScheduled) {
 			requestAnimationFrame(() => {
 				const editor = this.element.querySelector(
 					`[data-backpack-tag-editor="${this.#editingBackpackTagId}"][contenteditable="true"]`,
@@ -920,7 +1153,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				editor?.focus();
 			});
 		}
-		if (this.#editingNoticedTagId) {
+		if (this.#editingNoticedTagId && !options.litmScheduled) {
 			requestAnimationFrame(() =>
 				this.element
 					.querySelector(
@@ -932,14 +1165,19 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 		// Hooks
 		if (!this.#fellowshipUpdateHook) {
-			this.#fellowshipUpdateHook = Hooks.on("updateItem", (item) => {
-				if (item.type !== "fellowship" || item.isEmbedded) return;
-				const includesActor = item.system.members?.some(
-					(member) => member.actorId === this.actor.id,
-				);
-				if (item.id === this.system.fellowshipId || includesActor)
-					this.render();
-			});
+			this.#fellowshipUpdateHook = Hooks.on(
+				"updateItem",
+				(item, changes = {}) => {
+					if (item.type !== "fellowship" || item.isEmbedded) return;
+					const includesActor = item.system.members?.some(
+						(member) => member.actorId === this.actor.id,
+					);
+					if (item.id === this.system.fellowshipId || includesActor)
+						this.refreshRegions(
+							changes.system?.members ? ["fellowship", "hero"] : ["fellowship"],
+						);
+				},
+			);
 		}
 		if (!this.#actorUpdateHookId) {
 			this.#actorUpdateHookId = Hooks.on("updateActor", (actor, changes) => {
@@ -951,9 +1189,15 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 					const windowTitle = this.element?.querySelector(".window-title");
 					if (windowTitle)
 						windowTitle.textContent = actor.system.shortDescription ?? "";
-					this.render();
-				} else if (fellowshipChanged && this.rendered) {
-					this.render();
+					this.refreshRegions(this.#actorRegions(changes));
+				} else if (
+					(fellowshipChanged || changes.name !== undefined) &&
+					this.rendered &&
+					getFellowshipActors(this.system.fellowshipId).some(
+						(member) => member.id === actor.id,
+					)
+				) {
+					this.refreshRegions(["hero"]);
 				}
 			});
 		}
@@ -971,6 +1215,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	}
 
 	_onClose(options) {
+		this.#renderListeners?.abort();
 		game.tooltip.deactivate();
 		this.#eventDocument?.removeEventListener(
 			"dragstart",
@@ -1002,7 +1247,28 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		return super._onClose(options);
 	}
 
-	async render(options) {
+	async render(renderOptions = {}, legacyOptions = {}) {
+		const options =
+			typeof renderOptions === "boolean"
+				? { ...legacyOptions, force: renderOptions }
+				: renderOptions;
+		if (this.rendered && options.renderContext && !options.litmScheduled) {
+			const type = options.renderContext;
+			const parts = /ActiveEffect$/.test(type)
+				? ["effects"]
+				: type === "updateActor"
+					? this.#actorRegions(options.renderData ?? {})
+					: /Item$/.test(type)
+						? ["backpack"]
+						: ["sheet"];
+			if (
+				parts.length === 1 &&
+				parts[0] === "effects" &&
+				!this.#trackingCardsExpanded
+			)
+				return this;
+			return requestBackgroundRender(this, { ...options, parts });
+		}
 		game.tooltip?.deactivate?.();
 		this.#suppressHoverEvents = true;
 		if (this.element && !this.#savedScrollTops) {
@@ -1136,6 +1402,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			return;
 		}
 		const doc = getOwningDocument(editor);
+		if (doc.activeElement === editor) return;
 		editor.focus({ preventScroll: true });
 		const range = doc.createRange();
 		range.selectNodeContents(editor);
@@ -1357,7 +1624,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 				break;
 			case "toggle-tracking-cards":
 				this.#trackingCardsExpanded = !this.#trackingCardsExpanded;
-				this.render();
+				this.refreshRegions(["effects", "identity"]);
 				break;
 		}
 	}
@@ -1763,7 +2030,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		if (!this.actor.effects.get(id)) return;
 		this.#blankEditingEffectId = null;
 		this.#editingEffectId = id;
-		await this.render({ force: true });
+		await this.refreshRegions(["effects"]);
 		this.#focusEffectEditor(3);
 	}
 
@@ -2342,6 +2609,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
 	async #onContenteditableBlur(event) {
 		const el = event.currentTarget;
+		if (!el.isConnected) return;
 		const originalName = el.dataset.originalName;
 		if (!originalName) return;
 
@@ -2378,7 +2646,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		if (id) {
 			this.#editingEffectId = null;
 			this.#blankEditingEffectId = null;
-			this.render();
+			this.refreshRegions(["effects"]);
 		}
 	}
 
@@ -2407,7 +2675,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		if (!effect) return;
 		this.#editingEffectId = effect.id;
 		this.#blankEditingEffectId = effect.id;
-		await this.render({ force: true });
+		await this.refreshRegions(["effects"]);
 		this.#focusEffectEditor(3);
 
 		this.#roll.refreshTags();
@@ -2535,7 +2803,7 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 		if (!effect) return;
 		this.#editingEffectId = effect.id;
 		this.#blankEditingEffectId = effect.id;
-		await this.render({ force: true });
+		await this.refreshRegions(["effects"]);
 		this.#focusEffectEditor(3);
 
 		this.#roll.refreshTags();
@@ -2782,7 +3050,12 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 	async #toggleBackside(id) {
 		if (!id) return;
 		this.#backsideStates.set(id, !this.#getBackside(id));
-		this.render(false);
+		const part = ["hero", "backpack", "notes"].includes(id)
+			? id
+			: id === this.system.fellowshipId
+				? "fellowship"
+				: `theme-${id}`;
+		this.refreshRegions([part]);
 	}
 
 	async #sendSpecialToChat(event) {
@@ -2893,7 +3166,6 @@ export class CharacterSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 			targetPath,
 			data.special,
 		);
-		this.render();
 	}
 
 	async close(options) {

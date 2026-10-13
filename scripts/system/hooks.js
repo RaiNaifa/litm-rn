@@ -782,7 +782,11 @@ export class LitmHooks {
 		const refresh = (effect) => {
 			game.litm?.refreshRollSelectionUI?.();
 			const actor = effect.parent;
-			if (actor?.documentName === "Actor" && actor.sheet?.rendered)
+			if (
+				actor?.documentName === "Actor" &&
+				actor.sheet?.rendered &&
+				!actor.sheet.refreshRegions
+			)
 				actor.sheet.render();
 		};
 		Hooks.on("updateActiveEffect", refresh);

@@ -76,6 +76,21 @@ export class HandlebarsPartials {
 
 	static register() {
 		info("Registering Handlebars Partials...");
-		foundry.applications.handlebars.loadTemplates(HandlebarsPartials.partials);
+		foundry.applications.handlebars.loadTemplates([
+			...HandlebarsPartials.partials,
+			...[
+				"identity",
+				"hero",
+				"fellowship",
+				"backpack",
+				"notes",
+				"notes-tab",
+				"themes",
+				"effects",
+			].map(
+				(part) =>
+					`systems/litm-rn/templates/actor/character-parts/${part}.html`,
+			),
+		]);
 	}
 }

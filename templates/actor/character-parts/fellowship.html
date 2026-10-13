@@ -1,0 +1,142 @@
+{{#if fellowship}}
+	<div data-application-part="fellowship" class="litm--character-theme litm--character-fellowship item {{fellowship.data.system.level}}{{#if (eq fellowship.data._id themeHovered)}} hovered{{/if}}"
+		data-id="{{fellowship.data._id}}" data-item-id="{{fellowship.data._id}}">
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--theme-background {{fellowship.data.system.level}}">
+			<div class="litm--theme-meta">
+				<span class="litm--theme-meta-part litm--theme-meta-themebook">{{fellowship.data.system.themebook}}</span>
+				<div class="litm--theme-meta-right">
+					<button class="litm--theme-icon-btn" type="button"
+						data-click="open-item" data-id="{{fellowship.data._id}}"
+						data-tooltip="{{localize 'Litm.ui.open-card'}}" data-tooltip-direction="UP">
+						<img src="systems/litm-rn/assets/media/icons/{{fellowship.data.system.level}}_litm_icn.svg" aria-hidden="true" />
+						<i class="fa far fa-pen-to-square"></i>
+					</button>
+					<button class="litm--flip-card-btn" type="button"
+						data-click="toggle-backside" data-type="fellowship" data-id="{{fellowship.data._id}}"
+						data-tooltip="{{localize 'Litm.ui.flip-card'}}" data-tooltip-direction="UP">
+					</button>
+				</div>
+			</div>
+			<div class="litm--theme-top">
+				{{#if fellowship.data.system.backside}}
+					<button type="button" class="litm--theme-title"
+						data-id="{{fellowship.data._id}}">
+						<span class="litm--theme-name">{{fellowship.data.system.themeTag.name}}</span>
+					</button>
+					<div class="litm--theme-back">
+						<div class="litm--theme-back-description">{{{fellowship.data.system.enrichedNote}}}</div>
+					</div>
+				{{else}}
+					<button type="button"
+						class="litm--theme-title {{#if (includes @root.helpingTags fellowship.data.system.themeTag.id 'id')}}litm--theme-helping-tag{{/if}}"
+						data-id="{{fellowship.data.system.themeTag.id}}"
+						{{#if (includes @root.rollTags fellowship.data.system.themeTag.id)}}data-selected{{/if}}
+						>
+						<span class="litm--theme-name {{#if fellowship.data.system.themeTag.isScratched}}scratched{{/if}}"
+							data-click="select" data-id="{{fellowship.data.system.themeTag.id}}">{{fellowship.data.system.themeTag.name}}</span>
+						<span class="litm--sro">{{localize (ifThen fellowship.data.system.themeTag.isScratched 'Litm.tags.isScratched' 'Litm.tags.scratch')}}</span>
+						<span class="litm--scratch {{checked (or fellowship.data.system.themeTag.isScratched (includes @root.scratchedTags fellowship.data.system.themeTag.id 'id'))}}"
+							data-click="toggle-tag-scratch" data-id="{{fellowship.data.system.themeTag.id}}" aria-hidden="true"></span>
+					</button>
+					<div class="litm--theme-front">
+						<ul class="litm--theme-tags">
+							{{#each fellowship.data.system.powerTags as |tag idx|}}
+								{{> systems/litm-rn/templates/partials/tag.html tag=tag key=idx path=(concat 'system.fellowship.powerTags') embedded=true}}
+							{{/each}}
+							{{#if @root.showDraftTags}}
+								{{#each fellowship.data.system.draftTags as |draft|}}
+									{{#unless draft.isWeakness}}
+									<li class="litm--theme-tag embedded litm--draft-display"><div class="litm--theme-tag-button"><span class="tag--name">{{draft.name}}</span></div></li>
+									{{/unless}}
+								{{/each}}
+							{{/if}}
+						</ul>
+						<div class="litm--theme-weaknesses">
+						{{#each fellowship.data.system.weaknessTags as |tag|}}
+							<button type="button"
+								class="litm--weakness {{#if (includes @root.helpingTags tag.id 'id')}}litm--theme-helping-tag{{/if}}"
+								data-id="{{tag.id}}"
+								{{#if (includes @root.rollTags tag.id)}}data-selected{{/if}}>
+								<span class="litm--weakness-part" data-click="select" data-id="{{tag.id}}">{{tag.name}}</span>
+							</button>
+						{{/each}}
+						{{#if @root.showDraftTags}}
+							{{#each fellowship.data.system.draftTags as |draft|}}
+								{{#if draft.isWeakness}}
+								<div class="litm--weakness litm--draft-display"><span class="litm--weakness-part">{{draft.name}}</span></div>
+								{{/if}}
+							{{/each}}
+						{{/if}}
+						</div>
+					</div>
+				{{/if}}
+				{{#unless fellowship.data.system.backside}}
+				{{#if fellowship.data.system.specials}}
+				<div class="litm--theme-specials">
+					{{#each fellowship.data.system.specials as |special idx|}}
+					<div class="litm--theme-special-row">
+						<button type="button" class="litm--theme-special-btn" data-click="send-special-to-chat"
+							data-tooltip="{{localize 'Litm.ui.send-to-chat'}}" data-tooltip-direction="DOWN"
+							data-special-id="{{special.id}}">
+							<img class="litm--theme-special-icon" src="systems/litm-rn/assets/media/icons/special_icn.svg" alt="" />
+						</button>
+						<span class="litm--theme-special-name" data-tooltip-direction="UP"
+							data-tooltip="&lt;strong&gt;{{special.name}}&lt;/strong&gt;: {{special.enrichedDescription}}">{{special.name}}</span>
+					</div>
+					{{/each}}
+				</div>
+				{{/if}}
+				{{/unless}}
+			</div>
+			<div class="litm--theme-bottom">
+				<div class="litm--theme-motivation">
+						<span role="textbox"><span class="litm--theme-quote">❞</span>{{fellowship.data.system.motivation}}<span class="litm--theme-quote">❞</span></span>
+					</div>
+					<div class="litm--theme-progression" data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+						<div class="litm--theme-progress" data-click="increase" data-context="decrease" data-id="system.fellowship.abandon">
+							<div class="litm--theme-pips">
+								{{#progress-buttons fellowship.data.system.abandon 3}}
+								<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+							</div>
+							<label>{{localize "Litm.progress.abandon"}}</label>
+						</div>
+						<div class="litm--theme-progress litm--theme-progress--reverse" data-click="increase" data-context="decrease" data-id="system.fellowship.improve">
+							<div class="litm--theme-pips">
+								{{#progress-buttons fellowship.data.system.improve fellowship.data.system.improveTrackLength}}
+								<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+							</div>
+							<label>{{localize "Litm.progress.improve"}}</label>
+							{{#if fellowship.data.system.availableImprovements}}<button type="button" class="litm--advancement-tab litm--fc-improvement-bank" data-click="open-fellowship-advancement" data-tooltip="{{localize 'Litm.advancement.improve'}}"><i class="fa-solid fa-sparkles"></i><span>{{fellowship.data.system.availableImprovements}}</span></button>{{/if}}
+						</div>
+						<div class="litm--theme-progress" data-click="increase" data-context="decrease" data-id="system.fellowship.milestone">
+							<div class="litm--theme-pips">
+								{{#progress-buttons fellowship.data.system.milestone 3}}
+								<span class="litm--theme-pip {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+							</div>
+							<label>{{localize "Litm.progress.milestone"}}</label>
+						</div>
+					</div>
+			</div>
+		</div>
+	</div>
+	{{else}}
+	<div data-application-part="fellowship" class="litm--character-theme litm--character-fellowship litm--character-fellowship-empty">
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--theme-background">
+			<div class="litm--theme-meta">
+				<span class="litm--theme-meta-part litm--theme-meta-themebook">{{localize "Litm.other.fellowship"}}</span>
+				<div class="litm--theme-meta-right">
+					<span class="litm--fellowship-empty-icon" aria-hidden="true"></span>
+				</div>
+			</div>
+			<div class="litm--theme-top">
+				<div class="litm--fellowship-empty-hint">{{localize "Litm.ui.no-fellowship-chosen"}}</div>
+			</div>
+			<div class="litm--theme-bottom"></div>
+		</div>
+	</div>
+	{{/if}}

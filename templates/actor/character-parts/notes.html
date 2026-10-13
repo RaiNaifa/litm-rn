@@ -1,0 +1,43 @@
+	<div class="litm--character-backpack-card litm--character-notes-card{{#if notesCard.expanded}} expanded{{/if}}{{#if (eq notesCard.id backpackHovered)}} hovered{{/if}}"
+		data-application-part="notes" data-id="notes" data-item-id="notes">
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--theme-background">
+			<div class="litm--theme-meta">
+				<span class="litm--theme-meta-part">{{localize (ifThen notesCard.backside "Litm.other.notes" "Litm.ui.noticed-tags")}}</span>
+				<div class="litm--theme-meta-right">
+					<button class="litm--theme-icon-btn" type="button" data-click="open-item" data-id="notes"
+						data-tooltip="{{localize 'Litm.ui.open-card'}}"><i class="fa far fa-pen-to-square"></i></button>
+					<button class="litm--flip-card-btn" type="button" data-click="toggle-backside"
+						data-id="notes" data-tooltip="{{localize 'Litm.ui.flip-card'}}"></button>
+				</div>
+			</div>
+			<div class="litm--theme-top">
+				{{#if notesCard.backside}}
+					<div class="litm--theme-back"><div class="litm--theme-back-description">{{{notesCard.note}}}</div></div>
+				{{else}}
+					<div class="litm--theme-front">
+						<ul class="litm--noticed-tags">
+							{{#each notesCard.tags as |tag|}}
+							<li>
+								<span class="litm--noticed-tag-name" contenteditable="{{ifThen (eq @root.editingNoticedTagId tag.id) 'true' 'false'}}"
+									data-noticed-tag-editor="{{tag.id}}">{{#if (eq @root.editingNoticedTagId tag.id)}}{{#unless (eq @root.blankEditingNoticedTagId tag.id)}}{{tag.name}}{{/unless}}{{else}}{{{tag.enrichedName}}}{{/if}}</span>
+								<button type="button" data-click="remove-noticed-tag" data-id="{{tag.id}}"
+									data-tooltip="{{localize 'Litm.ui.remove-tag'}}"><i class="fas fa-times"></i></button>
+								{{#unless @last}}<span class="litm--noticed-tag-comma">,</span>{{/unless}}
+							</li>
+							{{/each}}
+						</ul>
+					</div>
+				{{/if}}
+			</div>
+			<div class="litm--theme-bottom">
+				<button type="button" data-click="open-reference" data-reference-role="quickRules">
+					<i class="fas fa-clipboard-question" aria-hidden="true"></i>
+					<span>{{localize "Litm.reference.short-title"}}</span>
+				</button>
+				<button type="button" data-click="add-noticed-tag" {{#if notesCard.backside}}class="litm--card-footer-placeholder" disabled aria-hidden="true"{{/if}}>
+					<span>{{localize "Litm.ui.notice-tag"}}</span>
+				</button>
+			</div>
+		</div>
+	</div>

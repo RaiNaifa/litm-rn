@@ -11,7 +11,7 @@ const { ItemSheetV2 } = foundry.applications.sheets;
 const TextEditor = foundry.applications.ux.TextEditor.implementation;
 
 export class FellowshipThemeSheet extends HandlebarsApplicationMixin(
-	ItemSheetV2,
+	KeyedSheetMixin(ItemSheetV2),
 ) {
 	#customThemebookEditing = false;
 

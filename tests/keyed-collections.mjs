@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
 const common = process.argv[2];
@@ -281,13 +282,19 @@ class FormBase {
 	}
 }
 const formModel = make();
+class FormDocumentModel extends DataModel {
+	static defineSchema() {
+		return { system: new fields.EmbeddedDataField(Model) };
+	}
+}
+const validatedDocument = new FormDocumentModel({
+	system: formModel.system._source,
+});
 let validated = false;
 formModel.validate = ({ changes }) => {
 	validated = true;
-	formModel.system.validate({
-		changes: Object.fromEntries(
-			Object.entries(changes).map(([path, value]) => [path.slice(7), value]),
-		),
+	validatedDocument.validate({
+		changes,
 		clean: true,
 		fallback: false,
 	});
@@ -317,6 +324,8 @@ assert.ok(validated);
 assert.deepEqual(Object.keys(actualSubmission), [
 	`system.records.${collectionKey("A")}.value.name`,
 ]);
+apply(formModel, prepareKeyedDocumentUpdate(formModel, actualSubmission));
+assert.equal(formModel.system.records[0].name, "Before validation");
 
 const scalarInput = {
 	name: "system.themeTag.name",
@@ -391,6 +400,130 @@ assert.equal(
 assert.equal(
 	Object.values(challenge._source.secrets)[0].id,
 	challenge.secrets[0].id,
+);
+class ChallengeFormDocument extends DataModel {
+	static TYPES = [];
+
+	static defineSchema() {
+		return { system: new fields.EmbeddedDataField(ChallengeData) };
+	}
+}
+const challengeFormDocument = new ChallengeFormDocument({
+	system: {
+		limits: [
+			{ id: "wound", name: "Wound", value: 2, statusIds: ["status-one"] },
+			{ id: "timer", name: "Timer", value: 4 },
+		],
+	},
+});
+const limitNameInput = {
+	name: "system.limits.0.name",
+	value: "Wound",
+	type: "text",
+};
+const otherLimitInput = {
+	name: "system.limits.1.name",
+	value: "Timer",
+	type: "text",
+};
+const limitForm = { querySelectorAll: () => [limitNameInput, otherLimitInput] };
+captureKeyedForm(limitForm, challengeFormDocument);
+challengeFormDocument.updateSource({
+	[`system.limits.${collectionKey("timer")}.value.name`]: "Remote timer",
+});
+limitNameInput.value = "Renamed wound";
+const limitSubmission = new (KeyedSheetMixin(FormBase))(
+	challengeFormDocument,
+)._prepareSubmitData(null, limitForm, {
+	object: {
+		[limitNameInput.name]: limitNameInput.value,
+		[otherLimitInput.name]: otherLimitInput.value,
+	},
+});
+assert.deepEqual(limitSubmission, {
+	[`system.limits.${collectionKey("wound")}.value.name`]: "Renamed wound",
+});
+challengeFormDocument.updateSource(
+	prepareKeyedDocumentUpdate(challengeFormDocument, limitSubmission),
+);
+assert.equal(challengeFormDocument.system.limits[0].name, "Renamed wound");
+assert.equal(challengeFormDocument.system.limits[1].name, "Remote timer");
+assert.equal(challengeFormDocument.system.limits[0].value, 2);
+assert.deepEqual(challengeFormDocument.system.limits[0].statusIds, [
+	"status-one",
+]);
+
+// Exercise the actual Fellowship sheet inheritance, not only the mixin in isolation.
+const fellowshipSheetSource = (
+	await readFile(
+		new URL("../scripts/item/fellowship/fellowship-sheet.js", import.meta.url),
+		"utf8",
+	)
+)
+	.replace(/^import[\s\S]*?;\r?\n/gm, "")
+	.replace("export class FellowshipThemeSheet", "class FellowshipThemeSheet");
+const ActualFellowshipSheet = new Function(
+	"foundry",
+	"KeyedSheetMixin",
+	`${fellowshipSheetSource}\nreturn FellowshipThemeSheet;`,
+)(
+	{
+		...foundry,
+		applications: {
+			api: { HandlebarsApplicationMixin: (Base) => Base },
+			sheets: { ItemSheetV2: FormBase },
+			ux: { TextEditor: { implementation: {} } },
+		},
+	},
+	KeyedSheetMixin,
+);
+class FellowshipFormDocument extends DataModel {
+	static defineSchema() {
+		return { system: new fields.EmbeddedDataField(FellowshipThemeData) };
+	}
+}
+for (const collection of ["powerTags", "weaknessTags", "draftTags"]) {
+	const fellowshipDocument = new FellowshipFormDocument({
+		system: {
+			[collection]: [
+				{
+					id: "aaaaaaaaaaaaaaaa",
+					name: "First",
+					type: collection === "weaknessTags" ? "weaknessTag" : "powerCrispy",
+				},
+				{ id: "bbbbbbbbbbbbbbbb", name: "Second", type: "powerCrispy" },
+			],
+		},
+	});
+	const inputs = [0, 1].map((index) => ({
+		name: `system.${collection}.${index}.name`,
+		value: index ? "Second" : "First",
+		type: "hidden",
+	}));
+	const fellowshipForm = { querySelectorAll: () => inputs };
+	captureKeyedForm(fellowshipForm, fellowshipDocument);
+	fellowshipDocument.updateSource({
+		[`system.${collection}.${collectionKey("bbbbbbbbbbbbbbbb")}.value.name`]:
+			"Remote second",
+	});
+	inputs[0].value = "Local first";
+	const patch = new ActualFellowshipSheet(
+		fellowshipDocument,
+	)._prepareSubmitData(null, fellowshipForm, {
+		object: Object.fromEntries(
+			inputs.map((input) => [input.name, input.value]),
+		),
+	});
+	assert.deepEqual(patch, {
+		[`system.${collection}.${collectionKey("aaaaaaaaaaaaaaaa")}.value.name`]:
+			"Local first",
+	});
+	fellowshipDocument.updateSource(patch);
+	assert.equal(fellowshipDocument.system[collection][0].name, "Local first");
+	assert.equal(fellowshipDocument.system[collection][1].name, "Remote second");
+}
+console.log(
+	"Actual Fellowship sheet saves power, weakness and draft tag names without overwriting a neighboring edit.",
 );
 console.log(
 	"All six real data models load and round-trip; legacy limits and secrets gain stable IDs.",

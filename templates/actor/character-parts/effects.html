@@ -1,0 +1,78 @@
+{{#*inline 'leaf' data}}
+	<li class="litm--story-tag"
+		data-id="{{data.id}}" data-context="tag-menu"
+		{{#if (includes @root.rollTags data.id)}}data-selected{{/if}}
+		{{#if (includes @root.burntTags data.id 'id')}}data-burned{{/if}}>
+		<img
+			class="{{#if (eq data.type 'status')}}litm--green-leaf{{/if}}"
+			src="systems/litm-rn/assets/media/{{ifThen (eq data.type 'status') 'yellow-leaf' 'yellow-leaf-2'}}.webp"
+			aria-hidden="true" width="220" />
+		<div class="{{data.type}}">
+			<div class="litm--story-leaf-controls">
+				{{#if (and (eq data.type 'tag') data.isCrispy)}}
+					<i class="litm--story-leaf-indicator fas fa-hourglass-half"
+						data-tooltip="{{localize 'Litm.tags.isCrispy'}}"></i>
+				{{/if}}
+				{{#if data.isPrivate}}
+					<i class="litm--story-leaf-indicator fa-solid fa-mask"
+						data-tooltip="{{localize 'Litm.tags.isPrivate'}}"></i>
+				{{/if}}
+			</div>
+			<label><span class="litm--sro">{{localize "Name"}}</span>
+				<div class="litm--story-label-wrapper">
+					<div contenteditable="{{ifThen (eq @root.editingEffectId data.id) 'true' 'false'}}"
+						role="button" tabindex="0" type="text"
+						class="litm--story-label-name"
+						data-click="select" data-id="{{data.id}}"
+						data-original-name="{{data.id}}.name">{{#unless (eq @root.blankEditingEffectId data.id)}}{{data.name}}{{/unless}}</div>
+				</div>
+				<input type="hidden" name="{{data.id}}.name"
+					value="{{data.name}}" id="hidden-{{data.id}}-name"/>
+			</label>
+			{{#if data.values}}
+				<div class="litm--story-tag-values">
+					{{#each data.values as |value|}}
+						<div class="litm--story-tag-value">
+							{{#if (eq ../data.type 'status')}}
+								<label
+									for="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}">{{add @index 1}}</label>
+							{{/if}}
+							<input id="effects.{{../data.id}}.flags['litm-rn'].values.{{@index}}"
+								class="litm--story-checkbox"
+								type="checkbox"
+								value="{{add @index 1}}" {{checked value}} />
+						</div>
+					{{/each}}
+				</div>
+			{{/if}}
+		</div>
+	</li>
+{{/inline}}
+<ul
+		data-application-part="effects" class="litm--character-story-tags{{#if trackingCardsExpanded}} litm--tracking-cards-expanded{{/if}}"
+		data-mousedown="keep-open" data-dblclick="return" data-id="story-tags"
+		id="story-tags" style="{{tagsFocused}}">
+		<li class="litm--story-tag">
+			<button type="button" data-click="add-tag" data-id="story-tags">
+				<img src="systems/litm-rn/assets/media/yellow-leaf-2.webp"
+					class="litm--red-leaf" alt="Leaf" width="220" />
+				<span>{{{localize "Litm.ui.add-tag-leaf"}}}</span>
+			</button>
+		</li>
+		<li class="litm--story-tag">
+			<button type="button" data-click="add-status" data-id="story-tags">
+				<img src="systems/litm-rn/assets/media/green-leaf.webp"
+					class="litm--green-leaf" alt="Leaf" width="220" />
+				<span>{{{localize "Litm.ui.add-status-leaf"}}}</span>
+			</button>
+		</li>
+		{{#each storyTags as |item|}}
+			{{> leaf data=item}}
+		{{/each}}
+		<li class="litm--story-tag litm--tracking-cards-leaf{{#if trackingCardsExpanded}} active{{/if}}"
+			data-click="toggle-tracking-cards">
+			<img src="systems/litm-rn/assets/media/yellow-leaf-2.webp"
+				alt="Leaf" width="220" />
+			<span>{{localize "Litm.ui.tracking-cards"}}</span>
+		</li>
+	</ul>

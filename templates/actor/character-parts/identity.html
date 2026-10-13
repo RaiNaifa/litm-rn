@@ -1,0 +1,42 @@
+<div data-application-part="identity" style="display: contents">
+<label class="litm--sro" for="name">{{localize "Name"}}</label>
+	<input type="text" id="name" name="name" value="{{name}}" autocomplete="off"
+		required />
+	<div class="litm--tracking-cards-clip{{#if trackingCardsExpanded}} active{{/if}}"
+		aria-hidden="true">
+		<i class="fa-solid fa-paperclip"></i>
+	</div>
+	<div class="litm--character-portrait-panel">
+		<div class="litm--character-portrait">
+			<img class="litm--character-avatar-layer litm--character-avatar-layer--back"
+				src="{{avatarPosition.backImage}}" alt=""
+				style="height: {{avatarPosition.backHeight}}px; --litm-layer-scale: {{avatarPosition.backScale}}; --litm-layer-offset-x: {{avatarPosition.backOffsetX}}px; --litm-layer-offset-y: {{avatarPosition.backOffsetY}}px; --litm-layer-opacity: {{avatarPosition.backOpacity}};" />
+			<img class="litm--character-avatar" src="{{img}}" alt="{{name}}" role="button" tabindex="0" draggable="false"
+				data-action="editImage" data-edit="img" data-drag=".application"
+				data-tooltip="{{localize 'Litm.ui.edit'}}"
+				style="--litm-avatar-scale: {{avatarPosition.scale}}; --litm-avatar-offset-x: {{avatarPosition.offsetX}}px; --litm-avatar-offset-y: {{avatarPosition.offsetY}}px;" />
+			<img class="litm--character-avatar-layer litm--character-avatar-layer--front"
+				src="{{avatarPosition.frontImage}}" alt=""
+				style="height: {{avatarPosition.frontHeight}}px; --litm-layer-scale: {{avatarPosition.frontScale}}; --litm-layer-offset-x: {{avatarPosition.frontOffsetX}}px; --litm-layer-offset-y: {{avatarPosition.frontOffsetY}}px; --litm-layer-opacity: {{avatarPosition.frontOpacity}};" />
+		</div>
+		<div class="litm--character-roll-shadow">
+			<button type="button" class="litm--notes-card-tab{{#if notesCard.expanded}} active{{/if}}"
+				data-click="toggle-notes-card" data-tooltip="{{localize 'Litm.other.notes'}}"
+				aria-label="{{localize 'Litm.other.notes'}}">
+				<span class="litm--notes-card-tab-chevron" aria-hidden="true"></span>
+			</button>
+			<div class="litm--character-roll-panel">
+				<div>
+					<span
+						id="dice-roll-button--{{data._id}}">{{localize "Litm.ui.roll-title"}}</span>
+					<button type="button" data-click="open" data-id="roll"
+						data-tooltip="{{localize 'Litm.ui.roll'}}"
+						aria-labelledby="dice-roll-button--{{_id}}">
+						<img src="systems/litm-rn/assets/media/dice.webp" alt="Dice"
+							width="100px" />
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

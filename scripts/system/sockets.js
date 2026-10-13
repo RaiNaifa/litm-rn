@@ -200,6 +200,7 @@ export class Sockets {
 			actor.sheet.updateRollDialog(update);
 			if (game.user.isGM && game.litm?.gmRollDialog?.actorId === actor.id) {
 				game.litm.gmRollDialog.receiveUpdate(update);
+				game.litm.gmRollDialog.render({ force: true });
 			} else actor.sheet.renderRollDialog();
 			ui.notifications.info(game.i18n.localize("Litm.ui.sacrifice-approved"));
 		});
@@ -586,7 +587,9 @@ export class Sockets {
 				},
 			};
 			const matched =
-				game.litm?.LitmRollDialog?.receiveRemoteUpdate?.(update) ?? 0;
+				game.litm?.LitmRollDialog?.receiveRemoteUpdate?.(update, {
+					foreground: true,
+				}) ?? 0;
 			if (!matched) {
 				actor.sheet.updateRollDialog(update);
 				actor.sheet.renderRollDialog();

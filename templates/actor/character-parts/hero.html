@@ -1,0 +1,97 @@
+{{#if hero.id}}
+	<div class="item-list litm--character-hero {{#if heroHovered}}hovered{{/if}}"
+		data-application-part="hero" data-tooltip="{{localize 'Litm.ui.context-edit'}}"
+		data-tooltip-direction="LEFT" data-id="{{hero.id}}">
+		<div class="litm--character-card-transition" aria-hidden="true"></div>
+		<div class="litm--hero-card">
+			<div class="litm--hero-meta">
+				<span class="litm--hero-meta-name">{{hero.name}}</span>
+				<div class="litm--hero-meta-right">
+					<button class="litm--hero-icon-btn" type="button"
+						data-click="open-item" data-id="{{hero.id}}"
+						data-tooltip="{{localize 'Litm.ui.open-card'}}" data-tooltip-direction="UP">
+						<i class="fa far fa-pen-to-square"></i>
+					</button>
+					<button class="litm--flip-card-btn" type="button"
+						data-click="toggle-backside" data-type="hero" data-id="{{hero.id}}"
+						data-tooltip="{{localize 'Litm.ui.flip-card'}}" data-tooltip-direction="UP">
+					</button>
+				</div>
+			</div>
+			{{#if hero.backside}}
+				<div class="litm--hero-top">
+					<div class="litm--tc-section-label litm--hero-bio-label">
+						{{localize "Litm.other.biography"}}
+					</div>
+					<div class="litm--hero-bio">
+						{{{hero.enrichedBio}}}
+					</div>
+				</div>
+			{{else}}
+				<div class="litm--hero-top">
+					<div class="litm--hero-relationships" data-tooltip="{{localize 'Litm.ui.tag-context-hint'}}"
+						data-tooltip-direction="LEFT">
+						{{#if hero.noFellowship}}
+							<div class="litm--hero-hint">
+								{{localize "Litm.ui.no-fellowship-relationships"}}
+							</div>
+						{{else if hero.relationships.length}}
+							<div class="litm--hero-rel-hint">{{localize "Litm.other.fellowship-relationships"}}</div>
+							<ul class="taglist">
+								{{#each hero.relationships as |tag|}}
+									{{> systems/litm-rn/templates/partials/relationship.html tag=tag key=@key path="system.relationships" embedded=true remove=false}}
+								{{/each}}
+							</ul>
+						{{else}}
+							<div class="litm--hero-hint">
+								{{localize "Litm.ui.no-relationships-yet"}}
+							</div>
+						{{/if}}
+					</div>
+					{{#if hero.quintessences.length}}
+					<div class="litm--hero-quintessences">
+						{{#each hero.quintessences}}
+						<div class="litm--hero-quint-row">
+							<button type="button" class="litm--hero-quint-btn" data-action="sendQuintessence"
+								data-special-id="{{this.id}}"
+								data-tooltip="{{localize 'Litm.ui.send-to-chat'}}" data-tooltip-direction="DOWN">
+								<img src="systems/litm-rn/assets/media/icons/special_icn.svg" alt="" />
+							</button>
+							<span class="litm--hero-quint-name" data-tooltip-direction="UP"
+								data-tooltip="&lt;strong&gt;{{this.name}}&lt;/strong&gt;: {{this.enrichedDescription}}">{{this.name}}</span>
+						</div>
+						{{/each}}
+					</div>
+					{{/if}}
+				</div>
+			{{/if}}
+			<div class="litm--hero-bottom">
+				<div class="litm--hero-fulfillment" data-tooltip="{{#each hero.fulfillment}}{{localize (concat 'Litm.fulfillment.' this)}}{{#unless @last}}<br>{{/unless}}{{/each}}">
+					<i class="fa far fa-info-circle"></i>
+					<span>{{localize "Litm.ui.moments-of-fulfillment"}}</span>
+				</div>
+				<div class="litm--hero-progression">
+					<div class="litm--hero-promise-progress">
+						<button data-click="increase" data-context="decrease" data-id="system.promise"
+							data-tooltip="{{localize 'Litm.ui.inc-dec'}}">
+							<div>
+								{{#progress-buttons hero.promise 5}}
+									<span class="litm--checkbox litm--checkbox-with-bg hero {{#if @checked}}checked{{/if}}"></span>
+								{{/progress-buttons}}
+								<input id="promise" class="litm--sro" type="number" name="system.promise" value="{{hero.promise}}" />
+							</div>
+							<label for="promise">{{localize "Litm.progress.promise"}}</label>
+						</button>
+						{{#if hero.availableFulfillments}}
+						<button type="button" class="litm--advancement-tab litm--promise-tab"
+							data-click="open-promise-fulfillment"
+							data-tooltip="{{localize 'Litm.promise-fulfillment.title'}}">
+							<i class="fa-solid fa-star"></i><span>{{hero.availableFulfillments}}</span>
+						</button>
+						{{/if}}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	{{/if}}

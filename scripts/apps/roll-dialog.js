@@ -10,6 +10,7 @@ import {
 	getOwningWindow,
 	localize as t,
 } from "../utils.js";
+import { requestBackgroundRender } from "./background-render.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const { fromUuidSync } = foundry.utils;
 
@@ -62,7 +63,13 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
 	// ── Preserve scroll across re-renders ──
 
-	async render(options) {
+	async render(renderOptions = {}, legacyOptions = {}) {
+		const options =
+			typeof renderOptions === "boolean"
+				? { ...legacyOptions, force: renderOptions }
+				: renderOptions;
+		if (this.rendered && !options.force && !options.litmScheduled)
+			return requestBackgroundRender(this, options);
 		LitmRollDialog.#instances.add(this);
 		this.#registerUpdateHooks();
 		game.tooltip?.deactivate?.();
@@ -519,17 +526,17 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	#registerUpdateHooks() {
 		if (this._storyTagsHookId == null) {
 			this._storyTagsHookId = Hooks.on("litmStoryTagsUpdated", () => {
-				if (this.rendered) this.render({ force: true });
+				requestBackgroundRender(this);
 			});
 		}
 		if (this._selectionHookId == null) {
 			this._selectionHookId = Hooks.on("litmRollSelectionUpdated", () => {
-				if (this.rendered) this.render({ force: true });
+				requestBackgroundRender(this);
 			});
 		}
 		if (this._roteHookId == null) {
 			this._roteHookId = Hooks.on("litmRoteRollUpdated", () => {
-				if (this.rendered) this.render({ force: true });
+				requestBackgroundRender(this);
 			});
 		}
 	}
@@ -557,9 +564,12 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 	}
 
 	/** Route a remote state update to every matching roll-dialog instance. */
-	static receiveRemoteUpdate(data) {
+	static receiveRemoteUpdate(data, { foreground = false } = {}) {
 		let matched = 0;
 		for (const dialog of this.#instances) {
+			if (foreground && game.user.isGM && dialog !== game.litm?.gmRollDialog)
+				continue;
+			if (foreground && dialog.actorId !== data.actorId) continue;
 			if (dialog.actorId !== data.actorId && dialog !== game.litm?.gmRollDialog)
 				continue;
 			if (Boolean(dialog.camp) !== Boolean(data.camp)) continue;
@@ -570,6 +580,7 @@ export class LitmRollDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 			)
 				continue;
 			dialog.receiveUpdate(data);
+			if (foreground) dialog.render({ force: true });
 			matched += 1;
 		}
 		return matched;

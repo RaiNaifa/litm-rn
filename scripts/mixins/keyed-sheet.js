@@ -82,16 +82,19 @@ export function KeyedSheetMixin(Base) {
 					performDeletions: false,
 				});
 			}
-			const submitted = prepareKeyedDocumentUpdate(
-				this.document,
-				prepareKeyedFormSubmission(form, data),
+			// Schema cleaning removes dotted keys as unknown fields; validate their expanded shape.
+			const submitted = foundry.utils.expandObject(
+				prepareKeyedDocumentUpdate(
+					this.document,
+					prepareKeyedFormSubmission(form, data),
+				),
 			);
 			this.document.validate({
 				changes: submitted,
 				clean: true,
 				fallback: false,
 			});
-			return submitted;
+			return foundry.utils.flattenObject(submitted);
 		}
 	};
 }
