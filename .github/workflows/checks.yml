@@ -30,6 +30,17 @@ jobs:
             jq empty "$file"
           done < <(git ls-files '*.json')
 
+      - name: Validate manifest download URL
+        shell: bash
+        run: |
+          VERSION="$(jq -r '.version' system.json)"
+          DOWNLOAD="$(jq -r '.download' system.json)"
+          EXPECTED="https://github.com/RaiNaifa/litm-rn/releases/download/v$VERSION/litm-rn.zip"
+          if [[ "$DOWNLOAD" != "$EXPECTED" ]]; then
+            echo "system.json download URL does not match version $VERSION" >&2
+            exit 1
+          fi
+
       - name: Parse JavaScript modules
         shell: bash
         run: |

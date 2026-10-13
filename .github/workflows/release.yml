@@ -49,6 +49,12 @@ jobs:
             echo "Release tag $TAG_NAME does not match system.json version $VERSION" >&2
             exit 1
           fi
+          DOWNLOAD="$(jq -r '.download' system.json)"
+          EXPECTED="https://github.com/RaiNaifa/litm-rn/releases/download/$TAG_NAME/litm-rn.zip"
+          if [[ "$DOWNLOAD" != "$EXPECTED" ]]; then
+            echo "system.json download URL does not match release tag $TAG_NAME" >&2
+            exit 1
+          fi
           echo "name=$TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "release-url=https://github.com/RaiNaifa/litm-rn/releases/tag/$TAG_NAME" >> "$GITHUB_OUTPUT"
