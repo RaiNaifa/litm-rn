@@ -66,7 +66,7 @@ export class FellowshipThemeData extends KeyedDataModelMixin(
 				nullable: false,
 				initial: () => ({
 					id: foundry.utils.randomID(),
-					name: t("Litm.ui.name-theme-tag"),
+					name: t("Litm.other.fellowship"),
 					type: "themeCrispy",
 					isScratched: false,
 				}),
@@ -106,6 +106,7 @@ export class FellowshipThemeData extends KeyedDataModelMixin(
 					}),
 					name: new fields.StringField({
 						initial: () => t("Litm.ui.name-tag"),
+						blank: false,
 					}),
 					isWeakness: new fields.BooleanField({
 						initial: false,

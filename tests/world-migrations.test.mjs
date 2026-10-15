@@ -42,6 +42,9 @@ const { KeyedCollectionField, decodeCollectionData, collectionKey } =
 const { migrateDocumentSource } = await import(
 	"../scripts/system/keyed-documents.js"
 );
+const { ensureFellowshipTagRecords, restoreBlankTagNames } = await import(
+	"../scripts/system/fellowship-tag-records.js"
+);
 const { applyUpdate } = await import("../scripts/system/shared-storage.js");
 const tagField = new SchemaField({ id: new Field(), name: new Field() });
 const themeField = new SchemaField({
@@ -68,6 +71,11 @@ function collection(values = []) {
 	values.contents = values;
 	values.get = (id) => values.find((entry) => entry.id === id);
 	values.has = (id) => Boolean(values.get(id));
+	values.getInvalid = values.get;
+	values.invalidDocumentIds = new Set();
+	Object.defineProperty(values, "_source", {
+		get: () => values.map((entry) => entry._source ?? entry),
+	});
 	return values;
 }
 
@@ -81,6 +89,7 @@ class FakeDocument {
 		this.documentName = documentName;
 		this._source = {
 			_id: id,
+			name: id,
 			type,
 			system: clone(system),
 			flags: clone(flags),
@@ -165,7 +174,15 @@ function world(
 		},
 	};
 	globalThis.CONFIG = {
-		Actor: { dataModels: { character: { schema: characterSchema } } },
+		Actor: {
+			dataModels: { character: { schema: characterSchema } },
+			documentClass: {
+				async updateDocuments(updates) {
+					for (const update of updates)
+						await game.actors.get(update._id).update(update);
+				},
+			},
+		},
 		Item: {
 			dataModels: {
 				story: { schema: storySchema },
@@ -197,7 +214,9 @@ globalThis.__migrationServices = {
 	error() {},
 	info() {},
 	getLegacyDefaultItemIconReplacement: () => null,
+	ensureFellowshipTagRecords,
 	migrateDocumentSource,
+	restoreBlankTagNames,
 	LegacyItemMigration: {
 		async archiveAndRemoveItems() {
 			events.push("legacy-archive");
@@ -237,7 +256,7 @@ test("schema 0 and 1 worlds run earlier migrations before the keyed storage chec
 		});
 		const settings = world(version, { actors: [actor] });
 		await WorldMigrations.run();
-		assert.equal(settings.get("dataSchemaVersion"), 3);
+		assert.equal(settings.get("dataSchemaVersion"), 4);
 		assert.ok(
 			events.indexOf("shared-storage") <
 				events.indexOf("setting:dataSchemaVersion:3"),
@@ -289,7 +308,7 @@ test("schema 2 migration persists world and embedded collections with public bac
 	const settings = world(2, { actors: [actor], items: [fellowship] });
 	const before = actor.toObject().system;
 	await WorldMigrations.run();
-	assert.equal(settings.get("dataSchemaVersion"), 3);
+	assert.equal(settings.get("dataSchemaVersion"), 4);
 	assert.equal(Array.isArray(actor._source.system.themes), false);
 	assert.equal(
 		actor._source.system.themes[collectionKey("theme")].value.powerTags[
@@ -331,7 +350,7 @@ test("a failed schema 3 document write retains the schema checkpoint and success
 		"After migration";
 	second.fail = false;
 	await WorldMigrations.run();
-	assert.equal(settings.get("dataSchemaVersion"), 3);
+	assert.equal(settings.get("dataSchemaVersion"), 4);
 	assert.equal(first.writes.length, 1);
 	assert.deepEqual(first.flags["litm-rn"].keyedCollectionsBackup, backup);
 	assert.equal(first.system.backpackTags[0].name, "After migration");
@@ -384,7 +403,7 @@ test("unlinked synthetic actors and their Items persist despite inherited migrat
 		],
 	});
 	await WorldMigrations.run();
-	assert.equal(settings.get("dataSchemaVersion"), 3);
+	assert.equal(settings.get("dataSchemaVersion"), 4);
 	assert.equal(
 		synthetic._source.system.backpackTags[collectionKey("variant")].value.name,
 		"Token only",
@@ -438,5 +457,41 @@ test("retrying a partly migrated scene preserves the first synthetic actor backu
 	await WorldMigrations.run();
 	assert.deepEqual(first.flags["litm-rn"].keyedCollectionsBackup, backup);
 	assert.equal(first.system.backpackTags[0].name, "New edit during retry");
-	assert.equal(settings.get("dataSchemaVersion"), 3);
+	assert.equal(settings.get("dataSchemaVersion"), 4);
+});
+
+test("schema 4 repairs invalid tag documents without advancing the version", async () => {
+	const actor = new FakeDocument("hero", "character", {
+		backpackTags: [{ id: "tag", type: "backpack", name: "" }],
+	});
+	const fellowship = new FakeDocument(
+		"group",
+		"fellowship",
+		{
+			themeTag: { id: "theme", type: "themeCrispy", name: "" },
+			powerTags: {
+				[collectionKey("power")]: {
+					id: "power",
+					order: 0,
+					deleted: false,
+					value: { id: "power", type: "powerCrispy", name: "" },
+				},
+			},
+		},
+		"Item",
+	);
+	const settings = world(4, { actors: [actor], items: [fellowship] });
+	game.actors.invalidDocumentIds.add(actor.id);
+	game.items.invalidDocumentIds.add(fellowship.id);
+	await WorldMigrations.run();
+	assert.equal(settings.get("dataSchemaVersion"), 4);
+	assert.equal(actor._source.system.backpackTags[0].name, "Litm.ui.name-tag");
+	assert.equal(fellowship._source.system.themeTag.name, "group");
+	assert.equal(
+		fellowship._source.system.powerTags[collectionKey("power")].value.name,
+		"Litm.ui.name-power",
+	);
+	const writeCount = actor.writes.length + fellowship.writes.length;
+	await WorldMigrations.run();
+	assert.equal(actor.writes.length + fellowship.writes.length, writeCount);
 });

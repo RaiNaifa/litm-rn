@@ -38,6 +38,12 @@ function serialize(field, rawValue) {
 
 function diffValue(field, before, rawNext, path, updates) {
 	const next = plain(rawNext);
+	if (
+		field instanceof foundry.data.fields.StringField &&
+		!field.blank &&
+		(typeof next !== "string" || !next.trim())
+	)
+		return;
 	if (field instanceof KeyedCollectionField && Array.isArray(next)) {
 		if (!inferCollectionSnapshot(next)) {
 			const used = new Set();
@@ -132,6 +138,12 @@ function diffCollection(field, next, path, updates, current = {}) {
 }
 
 function rewriteNode(field, value, path, updates, current) {
+	if (
+		field instanceof foundry.data.fields.StringField &&
+		!field.blank &&
+		(typeof value !== "string" || !value.trim())
+	)
+		return;
 	if (field instanceof KeyedCollectionField && Array.isArray(value)) {
 		diffCollection(field, value, path, updates, current);
 		return;
@@ -205,8 +217,13 @@ export function resolveKeyedPath(document, path) {
 				field = field.collectionElement;
 				continue;
 			}
-			// Already-addressed source updates pass through unchanged.
-			return { field: null, path, current: null, collection };
+			// Resolve source-keyed updates too, so their leaf fields retain schema rules.
+			if (!Object.hasOwn(current ?? {}, name))
+				return { field: null, path, current: null, collection };
+			resolved.push(name);
+			current = current[name];
+			field = field.element;
+			continue;
 		}
 		const schema = nestedSchema(field);
 		field = schema?.fields[name];

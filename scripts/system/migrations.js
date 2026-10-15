@@ -1,6 +1,11 @@
 import { ReferenceHandbook } from "../apps/reference-handbook.js";
 import { StoryProfileSettings } from "../apps/story-profile-settings.js";
 import { error, info } from "../logger.js";
+// TODO(system 14): Remove this import with the schema-4 tag repair migration.
+import {
+	ensureFellowshipTagRecords,
+	restoreBlankTagNames,
+} from "./fellowship-tag-records.js";
 import { getLegacyDefaultItemIconReplacement } from "./item-icons.js";
 import { migrateDocumentSource } from "./keyed-documents.js";
 import { LegacyItemMigration } from "./legacy-item-migration.js";
@@ -10,7 +15,7 @@ import { ThemeSources } from "./theme-sources.js";
 
 const SYSTEM_ID = "litm-rn";
 const SCHEMA_VERSION_SETTING = "dataSchemaVersion";
-export const CURRENT_DATA_SCHEMA_VERSION = 3;
+export const CURRENT_DATA_SCHEMA_VERSION = 4;
 const LEGACY_CHARACTER_ITEM_TYPES = new Set(["hero", "backpack", "theme"]);
 
 /** Run persistent world-data migrations from publicly released system formats. */
@@ -49,7 +54,20 @@ export class WorldMigrations {
 	static async #runPending() {
 		let version =
 			Number(game.settings.get(SYSTEM_ID, SCHEMA_VERSION_SETTING)) || 0;
-		if (version >= CURRENT_DATA_SCHEMA_VERSION) return;
+		if (version >= CURRENT_DATA_SCHEMA_VERSION) {
+			// TODO(system 14): Remove this recovery path with the schema-4 repair.
+			if (
+				game.actors.invalidDocumentIds.size ||
+				game.items.invalidDocumentIds.size
+			) {
+				const repaired = await WorldMigrations.#repairTagRecords();
+				if (repaired)
+					ui.notifications.info(
+						"Legend in the Mist: damaged tag data restored. Refresh the page to load the repaired documents.",
+					);
+			}
+			return;
+		}
 
 		info(
 			`Migrating world data schema ${version} → ${CURRENT_DATA_SCHEMA_VERSION}...`,
@@ -79,6 +97,13 @@ export class WorldMigrations {
 			info(
 				"World data schema 3 complete: shared and document collections use independent records.",
 			);
+		}
+
+		// TODO(system 14): Remove this migration block with #repairTagRecords.
+		if (version < 4) {
+			await WorldMigrations.#repairTagRecords();
+			await game.settings.set(SYSTEM_ID, SCHEMA_VERSION_SETTING, 4);
+			version = 4;
 		}
 
 		if (version === CURRENT_DATA_SCHEMA_VERSION) {
@@ -166,6 +191,80 @@ export class WorldMigrations {
 				for (const item of token.actor.items) await migrate(item, "Item");
 			}
 		}
+	}
+
+	/** Restore blank tag names and damaged Fellowship records in raw world documents. */
+	// TODO(system 14): Remove this method with its call and import above.
+	static async #repairTagRecords() {
+		const names = {
+			theme: game.i18n.localize("Litm.ui.name-theme-tag"),
+			power: game.i18n.localize("Litm.ui.name-power"),
+			weakness: game.i18n.localize("Litm.ui.name-weakness"),
+			backpack: game.i18n.localize("Litm.ui.name-tag"),
+			tag: game.i18n.localize("Litm.ui.name-tag"),
+		};
+		const itemNames = (item) => ({
+			...names,
+			theme:
+				item.type === "fellowship"
+					? item.name
+					: item.type === "story"
+						? names.tag
+						: names.theme,
+		});
+		let actorsRepaired = 0;
+		let itemsRepaired = 0;
+		for (const actor of game.actors._source) {
+			const system = foundry.utils.deepClone(actor.system);
+			if (restoreBlankTagNames(system, names)) {
+				await CONFIG.Actor.documentClass.updateDocuments(
+					[{ _id: actor._id, system }],
+					{ litmCollectionMigration: true, diff: false },
+				);
+				actorsRepaired += 1;
+			}
+			const embeddedUpdates = [];
+			for (const item of actor.items ?? []) {
+				const itemSystem = foundry.utils.deepClone(item.system);
+				if (!restoreBlankTagNames(itemSystem, itemNames(item))) continue;
+				embeddedUpdates.push({ _id: item._id, system: itemSystem });
+			}
+			if (embeddedUpdates.length) {
+				const parent =
+					game.actors.get(actor._id) ?? game.actors.getInvalid(actor._id);
+				if (!parent)
+					throw new Error(`Cannot repair items of actor ${actor._id}`);
+				await CONFIG.Item.documentClass.updateDocuments(embeddedUpdates, {
+					parent,
+					litmCollectionMigration: true,
+					diff: false,
+				});
+				itemsRepaired += embeddedUpdates.length;
+			}
+		}
+		for (const item of game.items._source) {
+			const system = foundry.utils.deepClone(item.system);
+			const before = JSON.stringify(system);
+			if (item.type === "fellowship") {
+				ensureFellowshipTagRecords(system, foundry.utils.randomID, {
+					theme: item.name,
+					power: names.power,
+					weakness: names.weakness,
+					draft: names.tag,
+				});
+			}
+			restoreBlankTagNames(system, itemNames(item));
+			if (JSON.stringify(system) === before) continue;
+			await CONFIG.Item.documentClass.updateDocuments(
+				[{ _id: item._id, system }],
+				{ litmCollectionMigration: true, diff: false },
+			);
+			itemsRepaired += 1;
+		}
+		info(
+			`World data schema 4: restored ${actorsRepaired} actor(s) and ${itemsRepaired} item(s).`,
+		);
+		return actorsRepaired + itemsRepaired;
 	}
 
 	static async #normalizeStoryActorReferences() {

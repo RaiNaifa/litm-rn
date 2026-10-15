@@ -217,9 +217,14 @@ export class FellowshipThemeSheet extends HandlebarsApplicationMixin(
 	}
 
 	async _processSubmitData(event, form, formData) {
+		const previousTagName = this.item.system.themeTag?.name;
 		await super._processSubmitData(event, form, formData);
 		const sys = this.item.system;
-		if (sys.themeTag?.name && this.item.name !== sys.themeTag.name) {
+		if (
+			sys.themeTag?.name &&
+			sys.themeTag.name !== previousTagName &&
+			this.item.name !== sys.themeTag.name
+		) {
 			await this.item.update({ name: sys.themeTag.name });
 		}
 	}
@@ -269,6 +274,19 @@ export class FellowshipThemeSheet extends HandlebarsApplicationMixin(
 				const t = event.currentTarget;
 				const targetId = t.dataset.input;
 				const input = t.parentElement.querySelector(`input#${targetId}`);
+				if (
+					/^system\.(?:themeTag|(?:powerTags|weaknessTags|draftTags)\.\d+)\.name$/.test(
+						input?.name,
+					) &&
+					!t.textContent.trim()
+				) {
+					const saved = foundry.utils.getProperty(this.item, input.name);
+					const name = saved?.trim() || input.defaultValue;
+					input.value = name;
+					t.textContent = name;
+					t.classList.remove("empty");
+					return;
+				}
 				if (input) input.dispatchEvent(new Event("change", { bubbles: true }));
 			});
 			el.classList.toggle("empty", !el.innerText.trim());

@@ -16,6 +16,7 @@ export class TagData extends foundry.abstract.DataModel {
 			name: new fields.StringField({
 				required: true,
 				nullable: false,
+				blank: false,
 			}),
 			isScratched: new fields.BooleanField({
 				required: false,

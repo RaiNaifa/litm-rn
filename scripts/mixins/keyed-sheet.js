@@ -18,6 +18,7 @@ export function captureKeyedForm(form, document) {
 		const resolved = resolveKeyedPath(document, input.name);
 		records.set(input.name, {
 			path: resolved?.path ?? input.name,
+			field: resolved?.field,
 			original: inputValue(input),
 			input,
 		});
@@ -54,6 +55,13 @@ export function prepareKeyedFormSubmission(form, data) {
 			? data[name]
 			: foundry.utils.getProperty(data, name);
 		removePath(result, name);
+		if (
+			snapshot.field instanceof foundry.data.fields.StringField &&
+			!snapshot.field.blank &&
+			typeof value === "string" &&
+			!value.trim()
+		)
+			continue;
 		if (
 			value !== undefined &&
 			inputValue(snapshot.input) !== snapshot.original
